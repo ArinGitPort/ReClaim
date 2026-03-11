@@ -7,16 +7,36 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Node modules (The main culprit!)
 node_modules
 dist
 dist-ssr
 *.local
 
+# Python & AI Service
+ai-service/venv/
+ai-service/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Database & Uploads
+backend/uploads/
+*.sqlite
+*.db
+
+# OS Files
+.DS_Store
+Thumbs.db
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
