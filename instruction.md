@@ -42,9 +42,10 @@ Use a monorepo structure to keep everything together for local development.
 * **Typing:** Use strict TypeScript typing for everything. Avoid `any`. Share types between the frontend and backend where possible.
 
 ### Frontend (React) Best Practices
+* Do not use emojis.
+* Make sure the front-end design are all consistent from search bar to filter designs on all pages.
 * Use functional components and React Hooks.
 * Build highly modular UI components. Place shadcn components in `src/components/ui` and custom project components in `src/components/features`.
-* Ensure the Student Gallery does NOT fetch or expose AI snapshots. The gallery only consumes basic text fields.
 * Implement a split-screen layout for the Admin Dashboard (Claim text on the left, hidden AI snapshot on the right).
 
 ### Backend (Node.js) Best Practices
