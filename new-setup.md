@@ -2,14 +2,14 @@
 
 This document contains the complete tech stack, setup instructions, and terminal commands required to run the AI-Monitored Campus Item Recovery System on any new machine.
 
-## 📦 System Dependencies Summary
+## System Dependencies Summary
 * **Frontend (Root):** React 18, Vite, TypeScript, Tailwind CSS v4, shadcn/ui, react-router-dom, axios
 * **Backend (`/backend`):** Node.js, Express.js, TypeScript, Prisma (PostgreSQL), cors, dotenv, multer
 * **AI Service (`/ai-service`):** Python 3.10+, FastAPI, Uvicorn, Ultralytics (YOLOv8), opencv-python, requests
 
 ---
 
-## 🚀 Complete Setup Commands (Run step-by-step)
+## Complete Setup Commands (Run step-by-step)
 
 Ensure the new PC has Node.js, Python (3.10+), Git, and PostgreSQL installed before running these commands.
 

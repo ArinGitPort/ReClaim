@@ -43,6 +43,7 @@ Use a monorepo structure to keep everything together for local development.
 
 ### Frontend (React) Best Practices
 * Do not use emojis.
+* Make sure the User Interface are clean, modern, and user-friendly like ShadCN.
 * Make sure the front-end design are all consistent from search bar to filter designs on all pages.
 * Use functional components and React Hooks.
 * Build highly modular UI components. Place shadcn components in `src/components/ui` and custom project components in `src/components/features`.
