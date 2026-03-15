@@ -25,27 +25,35 @@
 * **ML Library:** Ultralytics YOLOv8 (running locally via CUDA/GPU)
 * **Image Processing:** OpenCV
 
+
+**Extra Libraries**
+* Please make sure you add the additional libraries needed for the project for documentation purposes and for easier installation.
+
 ---
 
-## 2. Recommended Directory Structure (Monorepo)
-Use a monorepo structure to keep everything together for local development.
+## 2. Recommended Directory Structure 
+* Use as this as a guide, it doesn't have to be exact
 
 /project-root
   /frontend             # Vite + React + TS + Tailwind
     /src
       /components
-        /atoms          # Basic UI elements (Buttons, Inputs, Icons)
-        /molecules      # Simple groupings (Search bars, Form fields)
-        /organisms      # Complex UI sections (Item cards, Sidebars)
-        /templates      # Page layouts without data
-      /pages            # Data-fetching components and routing
-      /hooks            # Custom React hooks
-      /lib              # shadcn/ui utility functions
+        /ui             # Generic, "dumb" UI elements (shadcn buttons, inputs, dialogs)
+      /features         # Domain-driven modules (Organized by what the app ACTUALLY does)
+        /auth           # Login forms, authentication context, protected routes
+        /gallery        # Public item cards, search bar, grid layouts
+        /claims         # Dynamic proof of ownership forms, status trackers
+        /admin          # Verification queue, AI log viewer, camera toggle
+      /pages            # Top-level route components that stitch features together
+      /hooks            # Global custom React hooks
+      /lib              # Utility functions (e.g., shadcn's `cn` function, API client)
+      /types            # Shared TypeScript interfaces (e.g., Item, Claim, User)
   /backend              # Node.js + Express API + Prisma ORM
     /src
-      /controllers      # Request handlers
-      /services         # Core business logic
+      /controllers      # Request handlers (receives HTTP requests, sends responses)
+      /services         # Core business logic (database queries, rule enforcement)
       /routes           # API endpoint definitions
+      /middlewares      # Security (auth verification, error handling)
     /uploads            # Local folder for encrypted AI snapshots
   /ai-service           # Python + FastAPI + YOLOv8 scripts
   /docs                 # System architecture, DFDs, and database schemas
@@ -87,7 +95,7 @@ Use a monorepo structure to keep everything together for local development.
 ---
 
 ## 4. Design System & Color Palette
-Follow this specific color taxonomy for the Tailwind CSS configuration to maintain a professional, high-contrast UI suitable for a database-heavy dashboard.
+Follow this specific color taxonomy for the Tailwind CSS configuration to maintain a professional, high-contrast UI suitable for a database-heavy dashboard. (This doesn't have to be exact, but it should be close.)
 
 ### Base & Structure (The Canvas)
 * **App Background:** `#FFFFFF` (Pure White) - Main screen and sidebar.
