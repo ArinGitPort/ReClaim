@@ -40,9 +40,3 @@ The system is built to facilitate clear communication between users who have los
 
 ---
 
-src/
-├── components/     # Reusable UI components (Navigation, Layout, UI primitives)
-├── features/       # Feature-based logic (Gallery, Reporting, Admin Dashboard)
-├── lib/            # Shared utilities (Prisma client, helper functions)
-├── styles/         # Global styles and Tailwind configuration
-└── App.tsx         # Root component and routing configuration
