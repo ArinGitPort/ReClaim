@@ -98,18 +98,19 @@
 Follow this specific color taxonomy for the Tailwind CSS configuration to maintain a professional, high-contrast UI suitable for a database-heavy dashboard. (This doesn't have to be exact, but it should be close.)
 
 ### Base & Structure (The Canvas)
-* **App Background:** `#FFFFFF` (Pure White) - Main screen and sidebar.
-* **Card/Surface Background:** `#FFFFFF` (Pure White) - Found item cards and form containers.
-* **Borders & Dividers:** `#E5E7EB` (Light Gray) - 1px sidebar separator, card outlines, table borders.
-* **Subtle Background (Hover):** `#F9FAFB` (Off-White) - Table rows on hover state.
+* **App Canvas:** `#F1F5F9` (`bg-slate-100`) - Main background where content cards reside.
+* **Top Header:** `#FFFFFF` (`bg-white/80`) - Sticky top navigation with backdrop-blur.
+* **Sidebar & Mobile Pivot:** `#1E2F85` (Deep Navy) - Primary vertical navigation and mobile dropdown menu.
+* **Card/Surface Background:** `#FFFFFF` (Pure White) - Items, forms, and modal containers.
+* **Borders & Dividers:** 1px `slate-200` for white areas; `indigo-900/white-10` for navy areas.
 
 ### Typography (The Text)
-* **Primary Text:** `#334155` (Dark Slate) - Main headings, user inputs, primary descriptions.
-* **Secondary Text:** `#64748B` (Medium Gray) - Timestamps, location tags, table headers, inactive links.
+* **Primary Text:** White (over Navy) / `#0F172A` (`slate-900`) over White backgrounds.
+* **Secondary Text:** `#64748B` (`slate-500`) - Metadata, location tags, and timestamps.
 
 ### Interactive Elements (The Actions)
-* **Primary Brand/Action:** `#2563EB` (Deep Blue) - Main buttons ("Submit Claim", "Approve"), active sidebar icons, text links.
-* **Active State Background:** `#EFF6FF` (Faint Blue) - Background highlight for the currently selected sidebar menu item.
+* **Primary Action/Buttons:** `#263DA8` (Royal Blue) - "Claim This Item", etc.
+* **Active State (Sidebar):** `#FFFFFF` (white/10) - Vibrant highlight for the currently selected menu item against Navy.
 
 ### System Status (The Indicators)
 * **Success (Verified/Returned):** `#10B981` (Emerald Green) - Approved claim badges, successful verification messages.

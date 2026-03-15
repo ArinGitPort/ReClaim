@@ -4,9 +4,9 @@ import { TopNavBar } from "@/components/TopNavBar"
 
 export function GalleryPage() {
   return (
-    <div className="min-h-screen bg-background-subtle font-sans pb-24">
+    <div className="w-full min-h-full pb-24">
       {/* Top Navigation Bar */}
-      <TopNavBar />
+      <TopNavBar title="Browse Found Items" />
 
       {/* Main Layout Area */}
       <main className="max-w-[1600px] mx-auto px-6 mt-8">

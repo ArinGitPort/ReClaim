@@ -22,16 +22,16 @@ export function ItemCard({ item }: ItemCardProps) {
 
   return (
     <>
-      <div className="bg-background-app rounded-xl border border-border-divider/50 overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col">
         {/* Visual Header */}
-        <div className="h-48 w-full bg-background-subtle border-b border-border-divider/50 flex items-center justify-center relative overflow-hidden">
+        <div className="h-48 w-full bg-slate-50 border-b border-slate-200 flex items-center justify-center relative overflow-hidden">
           {item.isHighValue ? (
-            <div className="flex flex-col items-center justify-center text-text-secondary opacity-70 group-hover:scale-105 transition-transform duration-500">
+            <div className="flex flex-col items-center justify-center text-slate-500 opacity-70 group-hover:scale-105 transition-transform duration-500">
               <Laptop className="w-16 h-16 mb-2" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-brand">Secure Match required</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">Secure Match required</span>
             </div>
           ) : (
-            <div className="w-full h-full bg-border-divider/20 flex items-center justify-center text-text-secondary group-hover:scale-105 transition-transform duration-500">
+            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform duration-500">
               {/* Placeholder for actual low-value image */}
               <span className="text-xs font-medium">No Image Provided</span>
             </div>
@@ -49,25 +49,25 @@ export function ItemCard({ item }: ItemCardProps) {
         {/* Content Body */}
         <div className="p-5 flex flex-col flex-1">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-text-primary text-lg leading-tight line-clamp-1 group-hover:text-brand transition-colors">
+            <h3 className="font-bold text-slate-900 text-lg leading-tight line-clamp-1 group-hover:text-[#263DA8] transition-colors">
               {item.title}
             </h3>
           </div>
           
           <div className="space-y-2 mt-2 mb-6">
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <MapPin className="w-4 h-4 text-brand/70" />
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <MapPin className="w-4 h-4 text-[#263DA8]/70" />
               <span className="truncate">{item.location}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <CalendarClock className="w-4 h-4 text-brand/70" />
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <CalendarClock className="w-4 h-4 text-[#263DA8]/70" />
               <span>{new Date(item.dateLost).toLocaleDateString()}</span>
             </div>
           </div>
 
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="mt-auto w-full py-2.5 bg-background-subtle hover:bg-brand hover:text-white border border-border-divider hover:border-brand rounded-lg text-sm font-semibold transition-all text-text-primary shadow-sm"
+            className="mt-auto w-full py-2.5 bg-[#263DA8] hover:bg-[#203794] text-white rounded-lg text-sm font-semibold transition-all shadow-sm"
           >
             Claim This Item
           </button>
