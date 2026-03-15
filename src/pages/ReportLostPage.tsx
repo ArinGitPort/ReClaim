@@ -8,7 +8,7 @@ export function ReportLostPage() {
       <TopNavBar title="Report a Missing Item" />
       
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8 p-6 lg:p-8 pb-24">
+        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8 px-4 py-6 sm:p-8 pb-24">
           
           {/* Main Form Area */}
           <div className="flex-1 flex justify-center">

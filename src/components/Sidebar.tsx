@@ -32,7 +32,7 @@ export function Sidebar() {
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "p-2 text-white/70 hover:text-white transition-colors rounded-md hover:bg-white/10 shadow-sm border border-transparent hover:border-white/20",
+            "p-2 text-indigo-100 bg-[#263DA8]/40 hover:bg-[#263DA8]/60 transition-all rounded-lg shadow-sm border border-white/10 hover:border-white/30 active:scale-95",
             isCollapsed && "mx-auto"
           )}
           aria-label="Toggle sidebar"

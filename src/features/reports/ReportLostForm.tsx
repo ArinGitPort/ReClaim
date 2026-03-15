@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react"
-import { Package, Laptop, Wallet, FileText, CheckCircle2, Loader2, Upload, ShieldCheck, AlertCircle } from "lucide-react"
+import { Package, Laptop, Wallet, FileText, CheckCircle2, Loader2, Upload, ShieldCheck, AlertCircle, Calendar, Clock } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
@@ -54,8 +54,8 @@ export function ReportLostForm() {
     <>
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-12">
         {/* Form Header */}
-        <div className="bg-[#1E2F85] p-8 text-white">
-          <div className="flex items-center gap-4 mb-2">
+        <div className="bg-[#1E2F85] p-5 sm:p-8 text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
               <FileText className="w-6 h-6 text-white" />
             </div>
@@ -66,13 +66,13 @@ export function ReportLostForm() {
           </div>
           
           {/* Session Info Bar */}
-          <div className="mt-6 flex items-center gap-4 py-3 px-4 bg-black/20 rounded-lg border border-white/5 text-[12px]">
+          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 px-4 bg-black/20 rounded-lg border border-white/5 text-[12px]">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-3.5 h-3.5 text-indigo-300" />
               <span className="text-indigo-200 uppercase font-bold tracking-wider">Logged in as:</span>
               <span className="font-semibold">{user?.name}</span>
             </div>
-            <div className="w-px h-3 bg-white/10" />
+            <div className="hidden sm:block w-px h-3 bg-white/10" />
             <div className="flex items-center gap-2">
               <span className="text-indigo-200 uppercase font-bold tracking-wider">Student ID:</span>
               <span className="font-semibold">{user?.studentId}</span>
@@ -80,7 +80,7 @@ export function ReportLostForm() {
           </div>
         </div>
 
-        <div className="p-8 space-y-12">
+        <div className="p-5 sm:p-8 space-y-12">
           {/* Section 1: Item Identity */}
           <section className="space-y-6">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
@@ -143,17 +143,38 @@ export function ReportLostForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="date">Date Lost</Label>
-                <Input type="date" id="date" name="date" required value={formData.date} onChange={handleInputChange} />
+                <div className="relative group">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-10" />
+                  <Input 
+                    type="date" 
+                    id="date" 
+                    name="date" 
+                    required 
+                    className="pl-10 custom-date-input relative z-20" 
+                    value={formData.date} 
+                    onChange={handleInputChange} 
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="time">Time Window</Label>
-                <Select id="time" name="time" required value={formData.time} onChange={handleInputChange}>
-                  <option value="">Select window</option>
-                  <option value="morning">Morning (6AM - 12PM)</option>
-                  <option value="afternoon">Afternoon (12PM - 5PM)</option>
-                  <option value="evening">Evening (5PM - 9PM)</option>
-                  <option value="night">Late Night (9PM - 6AM)</option>
-                </Select>
+                <div className="relative group">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-10" />
+                  <Select 
+                    id="time" 
+                    name="time" 
+                    required 
+                    className="pl-10"
+                    value={formData.time} 
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select window</option>
+                    <option value="morning">Morning (6AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                    <option value="evening">Evening (5PM - 9PM)</option>
+                    <option value="night">Late Night (9PM - 6AM)</option>
+                  </Select>
+                </div>
               </div>
             </div>
           </section>
@@ -216,7 +237,7 @@ export function ReportLostForm() {
                 <Label>Reference Photo (Optional)</Label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="group border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:border-brand hover:bg-brand/[0.02] transition-all cursor-pointer text-center"
+                  className="group border-2 border-dashed border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-brand hover:bg-brand/[0.02] transition-all cursor-pointer text-center"
                 >
                   <input type="file" className="hidden" ref={fileInputRef} accept="image/*" multiple />
                   <div className="w-12 h-12 bg-slate-100 group-hover:bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">

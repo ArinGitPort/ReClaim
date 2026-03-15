@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
-import { ShieldCheck, User, Lock } from "lucide-react"
+import { User, Lock } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
