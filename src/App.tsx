@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { LandingPage } from "./pages/LandingPage"
-import { GalleryPage } from "./pages/GalleryPage"
-import { ThemeProvider } from "./components/theme-provider"
+import { LandingPage } from "@/pages/LandingPage"
+import { GalleryPage } from "@/pages/GalleryPage"
+import { RegisterPage } from "@/pages/RegisterPage"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./index.css"
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </Router>
     </ThemeProvider>

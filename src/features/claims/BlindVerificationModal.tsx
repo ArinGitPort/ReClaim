@@ -46,26 +46,104 @@ export function BlindVerificationModal({ isOpen, onClose, itemId, itemTitle }: B
             </p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-text-primary block ml-1">
-              Secret Identifier / Description <span className="text-status-error">*</span>
-            </label>
-            <textarea 
-              rows={4}
-              placeholder="e.g., My lock screen is a picture of a golden retriever. There's a scratch on the bottom left corner..."
-              className="w-full p-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary resize-none placeholder:text-text-secondary"
-            />
-          </div>
+          <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            
+            {/* 1. The Must-Have Identifiers */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">1. Device Identifiers</h3>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-text-primary block ml-1">
+                  Device Name / Username <span className="text-status-error">*</span>
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g., John's MacBook Pro"
+                  className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-text-primary block ml-1">
-              Student / Staff ID Number <span className="text-status-error">*</span>
-            </label>
-            <input 
-              type="text"
-              placeholder="Enter your campus ID"
-              className="w-full h-12 px-4 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
-            />
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-text-primary block ml-1">
+                  Lock Screen Wallpaper <span className="text-status-error">*</span>
+                </label>
+                <input 
+                  type="text"
+                  placeholder="Describe the image on the lock screen"
+                  className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-text-primary block ml-1">
+                  Serial Number / MAC Address <span className="text-text-secondary font-normal">(Optional)</span>
+                </label>
+                <input 
+                  type="text"
+                  placeholder="Enter if known"
+                  className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+                />
+              </div>
+            </div>
+
+            {/* 2. Physical Identifiers */}
+            <div className="space-y-4 pt-3 border-t border-border-divider/50">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">2. Physical Identifiers</h3>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-text-primary block ml-1">
+                  External Case / Color <span className="text-status-error">*</span>
+                </label>
+                <select className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary cursor-pointer">
+                  <option value="" disabled selected>Select primary color</option>
+                  <option value="space-gray">Space Gray / Dark Gray</option>
+                  <option value="silver">Silver / Light Gray</option>
+                  <option value="black">Black</option>
+                  <option value="white">White</option>
+                  <option value="other">Other / Has Hard Shell Case</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-text-primary block ml-1">
+                  Distinctive Features <span className="text-text-secondary font-normal">(Optional)</span>
+                </label>
+                <textarea 
+                  rows={2}
+                  placeholder="Specific stickers, scratches, or dents"
+                  className="w-full p-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary resize-none placeholder:text-text-secondary"
+                />
+              </div>
+            </div>
+
+            {/* 3. Logistics */}
+            <div className="space-y-4 pt-3 border-t border-border-divider/50">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">3. User Logistics</h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-text-primary block ml-1 truncate">
+                    Student / Staff ID <span className="text-status-error">*</span>
+                  </label>
+                  <input 
+                    type="text"
+                    placeholder="2020-XXXXXX"
+                    className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-text-primary block ml-1 truncate">
+                    Contact Phone <span className="text-status-error">*</span>
+                  </label>
+                  <input 
+                    type="tel"
+                    placeholder="09XX-XXX-XXXX"
+                    className="w-full h-11 px-3.5 text-sm bg-background-subtle border border-border-divider/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,8 +1,8 @@
 // @ts-ignore - Local JSX component missing exact declaration map
-import Particles from "../components/Particles"
-import { LoginForm } from "../features/auth/LoginForm"
-import { Button } from "../components/ui/Button"
-import { ThemeToggle } from "../components/ThemeToggle"
+import Particles from "@/components/Particles"
+import { LoginForm } from "@/features/auth/LoginForm"
+import { Button } from "@/components/ui/Button"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Link } from "react-router-dom"
 
 export function LandingPage() {
@@ -70,7 +70,7 @@ export function LandingPage() {
           <LoginForm />
           
           <div className="mt-8 text-center text-sm text-text-secondary">
-            <p>New to ReClaim? <a href="#" className="text-brand font-semibold hover:underline transition-all">Create an Account</a></p>
+            <p>New to ReClaim? <Link to="/register" className="text-brand font-semibold hover:underline transition-all">Create an Account</Link></p>
           </div>
         </div>
       </div>

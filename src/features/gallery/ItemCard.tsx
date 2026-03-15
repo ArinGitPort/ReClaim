@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { ShieldAlert, Laptop, MapPin, CalendarClock } from "lucide-react"
-import { BlindVerificationModal } from "../claims/BlindVerificationModal"
+import { BlindVerificationModal } from "@/features/claims/BlindVerificationModal"
 
 // Ensure we have our shared types in place (will create types/index.ts later)
 export interface FoundItem {

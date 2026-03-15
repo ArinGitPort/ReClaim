@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import { Input } from "../../components/ui/Input"
-import { Button } from "../../components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
 import { ShieldCheck, User, Lock } from "lucide-react"
 
 export function LoginForm() {
@@ -14,7 +14,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full animate-in fade-in zoom-in duration-500">
+    <div className="w-full">
       <div className="flex flex-col items-center mb-10">
         <div className="w-14 h-14 bg-brand/10 rounded-full flex items-center justify-center mb-5">
           <ShieldCheck className="w-7 h-7 text-brand" />

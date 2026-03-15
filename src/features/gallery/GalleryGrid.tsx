@@ -1,5 +1,5 @@
-import { ItemCard } from "./ItemCard"
-import type { FoundItem } from "./ItemCard"
+import { ItemCard } from "@/features/gallery/ItemCard"
+import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
 
 // Mock data generator for initial UI building
