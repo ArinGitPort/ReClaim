@@ -1,73 +1,47 @@
-# React + TypeScript + Vite
+# ReClaim: Campus Item Recovery & Tracking System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ReClaim is a modern, web-based lost-and-found platform designed specifically for the National University (NU) Philippines campus environment. It bridges the gap between students who have lost personal belongings and the campus administration tasked with finding them.
 
-Currently, two official plugins are available:
+Built with a focus on UI/UX, security, and structured verification, ReClaim moves away from cluttered social media posts and into a centralized, professional recovery ecosystem.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### For Students
+* **Browse Found Items:** A clean, filtered gallery of items turned in to the Admin office.
+* **Secure Reporting:** Private submission of "Lost Item Reports" directly to the school administration.
+* **Claim Management:** Track the status of your claims from "Pending" to "Approved" and "Ready for Pickup."
+* **Confidential Verification:** Dedicated fields for sensitive proof (e.g., lock screen details) visible only to authorized staff.
 
-## Expanding the ESLint configuration
+### For Administrators
+* **Submission Management:** Review and approve student reports and claims in a centralized queue.
+* **Inventory Control:** Log found items with high-quality descriptions and locations.
+* **Manual Matching:** Dedicated tools for administrators to link lost reports to found inventory based on verified proof.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Design Philosophy
+As a UI/UX-focused project, ReClaim follows a "Unified Shell" design system:
+* **Branded Framing:** A solid, high-contrast header and sidebar provide a consistent visual anchor.
+* **Clean Elevation:** Utilizing shadcn/ui components on a soft gray canvas to ensure white item cards pop and information hierarchy is clear.
+* **Frictionless UX:** Auto-identifying students via their institutional login to remove redundant data entry and ensure session security.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Tech Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **Frontend:** React, Vite, Tailwind CSS
+- **UI Components:** shadcn/ui, Lucide React Icons
+- **State & Forms:** React Hook Form, Zod Validation
+- **Backend:** Node.js
+- **Database & ORM:** PostgreSQL, Prisma ORM
+- **Routing:** React Router v6
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/your-username/reclaim-nu.git](https://github.com/your-username/reclaim-nu.git)
