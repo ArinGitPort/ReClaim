@@ -7,13 +7,15 @@ import { MyClaimsPage } from "@/pages/MyClaimsPage"
 import { MyReportsPage } from "@/pages/MyReportsPage"
 import { AppLayout } from "@/components/AppLayout"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/features/auth/AuthContext"
 import "./index.css"
 
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
-      <Router>
-        <Routes>
+      <AuthProvider>
+        <Router>
+          <Routes>
           {/* Public / Unauthenticated Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -29,7 +31,8 @@ function App() {
             <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
           </Route>
         </Routes>
-      </Router>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

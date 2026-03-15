@@ -16,9 +16,6 @@ export function LoginForm() {
   return (
     <div className="w-full">
       <div className="flex flex-col items-center mb-10">
-        <div className="w-14 h-14 bg-brand/10 rounded-full flex items-center justify-center mb-5">
-          <ShieldCheck className="w-7 h-7 text-brand" />
-        </div>
         <h2 className="text-3xl font-bold text-text-primary text-center tracking-tight">Login</h2>
         <p className="text-text-secondary text-base mt-2 text-center">
           Sign in with your campus ID to manage reports and claims.

@@ -8,14 +8,15 @@
 @theme inline {
   --font-sans: 'Geist Variable', sans-serif;
   
-  --color-brand: #2563EB;
-  --color-brand-active: #EFF6FF;
+  --color-brand: #263DA8;
+  --color-brand-active: #203794;
+  --color-navy: #1E2F85;
   --color-background-app: #FFFFFF;
   --color-background-card: #FFFFFF;
-  --color-background-subtle: #F9FAFB;
-  --color-text-primary: #334155;
+  --color-background-subtle: #F1F5F9;
+  --color-text-primary: #0F172A;
   --color-text-secondary: #64748B;
-  --color-border-divider: #E5E7EB;
+  --color-border-divider: #E2E8F0;
   --color-status-success: #10B981;
   --color-status-pending: #F59E0B;
   --color-status-error: #E11D48;

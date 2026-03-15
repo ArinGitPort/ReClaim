@@ -60,11 +60,11 @@ export function LandingPage() {
       <div className="flex-none w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 xl:p-16 bg-background-app border-l border-border-divider/50 shadow-[-15px_0_30px_-15px_rgba(0,0,0,0.03)] z-20">
         <div className="w-full max-w-sm flex flex-col items-center">
           {/* Mobile Logo Visibility */}
-          <div className="lg:hidden mb-12 text-center mt-8">
+          <div className="mb-12 text-center mt-8">
             <h1 className="text-5xl font-extrabold tracking-tight text-text-primary mb-3">
               <span className="text-brand">Re</span>Claim
             </h1>
-            <p className="text-sm font-medium text-text-secondary">AI-Monitored Recovery System</p>
+            <p className="text-sm font-medium text-text-secondary">Lost & Found System</p>
           </div>
           
           <LoginForm />
