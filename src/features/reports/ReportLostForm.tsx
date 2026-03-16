@@ -52,9 +52,9 @@ export function ReportLostForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-12">
+      <form onSubmit={handleSubmit} className="mb-12">
         {/* Form Header */}
-        <div className="bg-[#1E2F85] p-5 sm:p-8 text-white">
+        <div className="bg-[#1E2F85] p-5 sm:p-8 text-white rounded-2xl shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
               <FileText className="w-6 h-6 text-white" />
@@ -80,7 +80,7 @@ export function ReportLostForm() {
           </div>
         </div>
 
-        <div className="p-5 sm:p-8 space-y-12">
+        <div className="space-y-12">
           {/* Section 1: Item Identity */}
           <section className="space-y-6">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
@@ -95,6 +95,7 @@ export function ReportLostForm() {
                   id="category" 
                   name="category" 
                   required
+                  className="bg-white shadow-sm border-slate-200"
                   value={category} 
                   onChange={(e) => {
                     setCategory(e.target.value as Category)
@@ -113,7 +114,7 @@ export function ReportLostForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="color">Primary Color</Label>
-                <Select id="color" name="color" required value={formData.color} onChange={handleInputChange}>
+                <Select id="color" name="color" required value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
                   <option value="">Select color</option>
                   <option value="black">Black</option>
                   <option value="silver">Silver/Gray</option>
@@ -126,12 +127,12 @@ export function ReportLostForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="brand">Brand / Model (Optional)</Label>
-                <Input id="brand" name="brand" placeholder="e.g. Apple, Nike, Sony" value={formData.brand} onChange={handleInputChange} />
+                <Input id="brand" name="brand" placeholder="e.g. Apple, Nike, Sony" value={formData.brand} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="location">Campus Location</Label>
-                <Select id="location" name="location" required value={formData.location} onChange={handleInputChange}>
+                <Select id="location" name="location" required value={formData.location} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
                   <option value="">Select building/zone</option>
                   <option value="lib">Main Library</option>
                   <option value="eng">Engineering Building</option>
@@ -150,7 +151,7 @@ export function ReportLostForm() {
                     id="date" 
                     name="date" 
                     required 
-                    className="pl-10 custom-date-input relative z-20" 
+                    className="pl-10 custom-date-input relative z-20 bg-white shadow-sm border-slate-200" 
                     value={formData.date} 
                     onChange={handleInputChange} 
                   />
@@ -164,7 +165,7 @@ export function ReportLostForm() {
                     id="time" 
                     name="time" 
                     required 
-                    className="pl-10"
+                    className="pl-10 bg-white shadow-sm border-slate-200"
                     value={formData.time} 
                     onChange={handleInputChange}
                   >
@@ -195,7 +196,7 @@ export function ReportLostForm() {
                 {category === "electronics" && (
                   <div className="space-y-2">
                     <Label htmlFor="deviceName">Device Name / Bluetooth Name</Label>
-                    <Input id="deviceName" name="deviceName" placeholder="e.g. Mika's iPhone, My Macbook Pro" value={formData.deviceName} onChange={handleInputChange} />
+                    <Input id="deviceName" name="deviceName" placeholder="e.g. Mika's iPhone, My Macbook Pro" value={formData.deviceName} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
                     <p className="text-[11px] text-slate-500">Helpful for confirming ownership via system settings.</p>
                   </div>
                 )}
@@ -203,7 +204,7 @@ export function ReportLostForm() {
                 {category === "wallets" && (
                   <div className="space-y-2">
                     <Label htmlFor="nameOnDoc">Full Name Printed on the Document</Label>
-                    <Input id="nameOnDoc" name="nameOnDoc" placeholder="Enter the exact name shown" value={formData.nameOnDoc} onChange={handleInputChange} />
+                    <Input id="nameOnDoc" name="nameOnDoc" placeholder="Enter the exact name shown" value={formData.nameOnDoc} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
                     <p className="text-[11px] text-slate-500 italic">This will be cross-referenced with your student record.</p>
                   </div>
                 )}
@@ -217,6 +218,7 @@ export function ReportLostForm() {
                       placeholder="Describe specific items kept inside (e.g. blue notebook, specific charm, etc.)" 
                       value={formData.contents}
                       onChange={handleInputChange}
+                      className="bg-white shadow-sm border-slate-200"
                     />
                   </div>
                 )}
@@ -237,7 +239,7 @@ export function ReportLostForm() {
                 <Label>Reference Photo (Optional)</Label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="group border-2 border-dashed border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-brand hover:bg-brand/[0.02] transition-all cursor-pointer text-center"
+                  className="group border-2 border-dashed border-slate-200 bg-white shadow-sm rounded-2xl p-6 sm:p-8 hover:border-brand hover:bg-brand/[0.02] transition-all cursor-pointer text-center"
                 >
                   <input type="file" className="hidden" ref={fileInputRef} accept="image/*" multiple />
                   <div className="w-12 h-12 bg-slate-100 group-hover:bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
@@ -256,6 +258,7 @@ export function ReportLostForm() {
                   placeholder="List unique scratches, stickers, charms or personalized features..." 
                   value={formData.marks}
                   onChange={handleInputChange}
+                  className="bg-white shadow-sm border-slate-200"
                 />
               </div>
 
@@ -270,6 +273,7 @@ export function ReportLostForm() {
                   placeholder="e.g. 'The lock screen is a photo of me and my dog'" 
                   value={formData.privateNote}
                   onChange={handleInputChange}
+                  className="bg-white shadow-sm border-indigo-100 focus:border-indigo-300 ring-indigo-50"
                 />
                 <p className="text-[11px] text-slate-400 italic">This field is encrypted and visible only to the reviewing Administrator.</p>
               </div>
@@ -278,7 +282,7 @@ export function ReportLostForm() {
 
           {/* Submit UI */}
           <div className="pt-8 border-t border-slate-200">
-            <div className="bg-indigo-50/50 rounded-xl p-5 border border-indigo-100 mb-6 flex gap-4">
+            <div className="bg-indigo-50/50 rounded-xl p-5 border border-indigo-100 mb-6 flex gap-4 shadow-sm">
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-indigo-200">
                 <ShieldCheck className="w-4 h-4 text-indigo-600" />
               </div>
