@@ -54,27 +54,27 @@ export function ReportLostForm() {
     <>
       <form onSubmit={handleSubmit} className="mb-12">
         {/* Form Header */}
-        <div className="bg-[#1E2F85] p-5 sm:p-8 text-white rounded-2xl shadow-sm mb-8">
+        <div className="bg-brand p-5 sm:p-8 text-white rounded-2xl shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Post a Missing Item Report</h1>
-              <p className="text-indigo-100/70 text-sm">Institutionally verified recovery process.</p>
+              <p className="text-white/70 text-sm">Institutionally verified recovery process.</p>
             </div>
           </div>
           
           {/* Session Info Bar */}
-          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 px-4 bg-black/20 rounded-lg border border-white/5 text-[12px]">
+          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 px-4 bg-black/10 rounded-lg border border-white/5 text-[12px]">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-300" />
-              <span className="text-indigo-200 uppercase font-bold tracking-wider">Logged in as:</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-white/60" />
+              <span className="text-white/80 uppercase font-bold tracking-wider">Logged in as:</span>
               <span className="font-semibold">{user?.name}</span>
             </div>
             <div className="hidden sm:block w-px h-3 bg-white/10" />
             <div className="flex items-center gap-2">
-              <span className="text-indigo-200 uppercase font-bold tracking-wider">Student ID:</span>
+              <span className="text-white/80 uppercase font-bold tracking-wider">Student ID:</span>
               <span className="font-semibold">{user?.studentId}</span>
             </div>
           </div>
@@ -145,7 +145,7 @@ export function ReportLostForm() {
               <div className="space-y-2">
                 <Label htmlFor="date">Date Lost</Label>
                 <div className="relative group">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-10" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-30" />
                   <Input 
                     type="date" 
                     id="date" 
@@ -160,7 +160,7 @@ export function ReportLostForm() {
               <div className="space-y-2">
                 <Label htmlFor="time">Time Window</Label>
                 <div className="relative group">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-10" />
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand/60 group-hover:text-brand transition-colors pointer-events-none z-30" />
                   <Select 
                     id="time" 
                     name="time" 
@@ -205,7 +205,7 @@ export function ReportLostForm() {
                   <div className="space-y-2">
                     <Label htmlFor="nameOnDoc">Full Name Printed on the Document</Label>
                     <Input id="nameOnDoc" name="nameOnDoc" placeholder="Enter the exact name shown" value={formData.nameOnDoc} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
-                    <p className="text-[11px] text-slate-500 italic">This will be cross-referenced with your student record.</p>
+                    <p className="text-[11px] text-slate-500">This will be cross-referenced with your student record.</p>
                   </div>
                 )}
 
@@ -264,8 +264,8 @@ export function ReportLostForm() {
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="privateNote" className="text-indigo-600">Personal Private Note (Highly Sensitive Proof)</Label>
-                  <AlertCircle className="w-3 h-3 text-indigo-400" />
+                  <Label htmlFor="privateNote" className="text-brand">Personal Private Note (Highly Sensitive Proof)</Label>
+                  <AlertCircle className="w-3 h-3 text-brand/60" />
                 </div>
                 <Input 
                   id="privateNote" 
@@ -273,20 +273,20 @@ export function ReportLostForm() {
                   placeholder="e.g. 'The lock screen is a photo of me and my dog'" 
                   value={formData.privateNote}
                   onChange={handleInputChange}
-                  className="bg-white shadow-sm border-indigo-100 focus:border-indigo-300 ring-indigo-50"
+                  className="bg-white shadow-sm border-brand/20 focus:border-brand ring-brand/5" 
                 />
-                <p className="text-[11px] text-slate-400 italic">This field is encrypted and visible only to the reviewing Administrator.</p>
+                <p className="text-[11px] text-slate-400">This field is encrypted and visible only to the reviewing Administrator.</p>
               </div>
             </div>
           </section>
 
           {/* Submit UI */}
           <div className="pt-8 border-t border-slate-200">
-            <div className="bg-indigo-50/50 rounded-xl p-5 border border-indigo-100 mb-6 flex gap-4 shadow-sm">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-indigo-200">
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <div className="bg-brand/[0.03] rounded-xl p-5 border border-brand/10 mb-6 flex gap-4 shadow-sm">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-brand/20">
+                <ShieldCheck className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-xs text-indigo-700/80 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
                 Your report will be manually reviewed by the Campus Admin Office to ensure a secure return process. Reports remain private and will not appear in the public gallery.
               </p>
             </div>

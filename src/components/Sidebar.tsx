@@ -8,7 +8,8 @@ import {
   Settings, 
   MapPin, 
   LogOut,
-  Menu
+  Menu,
+  ChevronLeft
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +19,7 @@ export function Sidebar() {
   return (
     <aside 
       className={cn(
-        "hidden md:flex bg-[#1E2F85] border-r border-[#172363] flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
+        "hidden md:flex bg-[#1E2F85] border-r border-black/20 flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
@@ -32,12 +33,12 @@ export function Sidebar() {
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "p-2 text-indigo-100 bg-[#263DA8]/40 hover:bg-[#263DA8]/60 transition-all rounded-lg shadow-sm border border-white/10 hover:border-white/30 active:scale-95",
+            "p-2 text-white/90 bg-white/10 hover:bg-white/20 transition-all rounded-lg shadow-sm border border-white/10 hover:border-white/30 active:scale-95",
             isCollapsed && "mx-auto"
           )}
           aria-label="Toggle sidebar"
         >
-          <Menu className="w-5 h-5" />
+          {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
       </div>
 
@@ -137,7 +138,12 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
       )}
       title={isCollapsed ? label : undefined}
     >
-      {icon}
+      <div className={cn(
+        "transition-transform group-hover:scale-110",
+        isActive ? "text-white" : "text-white/70 group-hover:text-white"
+      )}>
+        {icon}
+      </div>
       
       {!isCollapsed && (
         <span className="text-sm flex-1 whitespace-nowrap overflow-hidden text-ellipsis">

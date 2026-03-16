@@ -39,7 +39,7 @@ export function BlindVerificationModal({ isOpen, onClose, itemId, itemTitle }: B
 
         {/* Body Form */}
         <div className="p-6 space-y-6">
-          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex gap-3 text-indigo-700 dark:text-indigo-400">
+          <div className="bg-brand/10 border border-brand/20 rounded-xl p-4 flex gap-3 text-brand/80">
             <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <p className="text-sm leading-relaxed">
               <strong>Blind Verification is active.</strong> High-value items require specific, non-public identifiers. If this is a digital device, please describe the lock screen wallpaper or provide the MAC address.

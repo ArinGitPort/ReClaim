@@ -39,7 +39,7 @@ export function ItemCard({ item }: ItemCardProps) {
           
           {/* High Value Badge overlay */}
           {item.isHighValue && (
-            <div className="absolute top-3 left-3 bg-indigo-500/10 backdrop-blur-md border border-indigo-500/20 px-2.5 py-1 rounded text-[10px] font-bold text-indigo-500 flex items-center gap-1.5 shadow-sm">
+            <div className="absolute top-3 left-3 bg-brand/10 backdrop-blur-md border border-brand/20 px-2.5 py-1 rounded text-[10px] font-bold text-brand flex items-center gap-1.5 shadow-sm">
               <ShieldAlert className="w-3 h-3" />
               HIGH VALUE
             </div>

@@ -32,7 +32,7 @@ export function LandingPage() {
         </div>
         
         <div className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-brand/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 max-w-3xl text-left">
           <h1 className="text-7xl font-extrabold tracking-tight text-text-primary mb-6">

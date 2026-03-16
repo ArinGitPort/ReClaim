@@ -81,7 +81,7 @@ function MobileNavItem({ to, icon, label, variant = "default" }: { to: string, i
             : "text-white/70 hover:bg-white/5 hover:text-white font-medium"
       )}
     >
-      {icon}
+      <div className={cn("transition-transform", isActive && "scale-105")}>{icon}</div>
       <span className="text-base flex-1">{label}</span>
     </NavLink>
   )
