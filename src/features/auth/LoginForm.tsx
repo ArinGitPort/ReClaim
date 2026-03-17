@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { User, Lock } from "lucide-react"
+import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 
@@ -20,7 +21,13 @@ export function LoginForm() {
 
     try {
       await login(email, password)
-      navigate("/gallery")
+
+      const me = await api.get<{ user: { role: "ADMIN" | "STAFF" | "STUDENT" } }>("/auth/me")
+      if (me.data.user.role === "ADMIN" || me.data.user.role === "STAFF") {
+        navigate("/admin/dashboard")
+      } else {
+        navigate("/gallery")
+      }
     } catch {
       setError("Login failed. Check your credentials and try again.")
     } finally {

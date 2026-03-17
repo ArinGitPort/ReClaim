@@ -8,6 +8,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+const metrics: Array<{ icon: React.ReactNode; label: string }> = []
+
 export function DashboardPage() {
   return (
     <div className="space-y-8">
@@ -19,35 +21,21 @@ export function DashboardPage() {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <MetricCard 
-          icon={<Package className="text-brand" />} 
-          label="Total Inventory" 
-          value="142" 
-          trend="+8 this week"
-          color="brand"
-        />
-        <MetricCard 
-          icon={<AlertCircle className="text-amber-600" />} 
-          label="Pending Claims" 
-          value="18" 
-          trend="Requires attention"
-          color="amber"
-          alert
-        />
-        <MetricCard 
-          icon={<ShieldCheck className="text-emerald-600" />} 
-          label="Resolved Today" 
-          value="5" 
-          trend="Avg. 4.2/day"
-          color="emerald"
-        />
-        <MetricCard 
-          icon={<HandMetal className="text-brand" />} 
-          label="Active Users" 
-          value="1,204" 
-          trend="↑ 12% vs last month"
-          color="blue"
-        />
+        {metrics.map((metric) => (
+          <MetricCard
+            key={metric.label}
+            icon={metric.icon}
+            label={metric.label}
+            value="--"
+            trend="No analytics data"
+            color="brand"
+          />
+        ))}
+        {metrics.length === 0 && (
+          <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
+            No analytics records available.
+          </div>
+        )}
       </div>
 
       {/* Bottom Insights Section */}
@@ -78,12 +66,11 @@ export function DashboardPage() {
               <ShieldCheck className="w-5 h-5 text-brand" />
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">AI Service Health</h3>
             </div>
-            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full border border-emerald-100">ALL SYSTEMS OPTIMAL</span>
+            <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full border border-slate-200">NO DATA</span>
           </div>
           
           <div className="space-y-6">
-            <HealthBar label="Inference Engine" value={98} status="OPTIMAL" />
-            <HealthBar label="Database Sync" value={92} status="STABLE" />
+            <div className="text-slate-500 text-sm font-semibold">No AI health metrics available.</div>
           </div>
         </div>
       </div>

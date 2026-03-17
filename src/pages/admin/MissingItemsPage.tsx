@@ -16,63 +16,29 @@ import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
 
-// Canonical reports — students who filed a missing item report
-const MOCK_REPORTS = [
-  {
-    id: "REP-9021",
-    student: "Juan Dela Cruz",
-    studentId: "2021-10294",
-    item: "Apple MacBook Pro M2",
-    category: "Electronics",
-    color: "Space Gray",
-    brand: "Apple MacBook Pro (M2, 2023)",
-    date: "2026-03-14",
-    location: "Main Library - 2nd Floor",
-    timeWindow: "Morning (6AM - 12PM)",
-    status: "Under Review",
-    // Category-specific
-    deviceName: "Juan's MacBook Pro",
-    marks: "Small crack on the bottom-left corner near the charging port.",
-    privateNote: "The lock screen wallpaper is a photo of my golden retriever named Bruno.",
-  },
-  {
-    id: "REP-9020",
-    student: "Maria Clara",
-    studentId: "2022-05123",
-    item: "Blue Hydroflask 32oz",
-    category: "Everyday Items",
-    color: "Pacific Blue",
-    brand: "Hydroflask",
-    date: "2026-03-13",
-    location: "Student Union - Cafeteria",
-    timeWindow: "Afternoon (12PM - 5PM)",
-    status: "Submitted",
-    marks: "Sunflower stickers and a small dent on the bottom.",
-    privateNote: "My name is written in white marker on the bottom of the bottle.",
-  },
-  {
-    id: "REP-9019",
-    student: "Roberto Reyes",
-    studentId: "2021-09821",
-    item: "Black Leather Wallet",
-    category: "Wallets/IDs",
-    color: "Black",
-    brand: "Coach",
-    date: "2026-03-15",
-    location: "Gymnasium - Locker Room",
-    timeWindow: "Evening (5PM - 9PM)",
-    status: "Active Search",
-    nameOnDoc: "Roberto C. Reyes",
-    marks: "Distinctive 'R' embossed on the front cover.",
-    privateNote: "Contains my National U student ID, a folded handwritten note, and a Php 200 bill.",
-  },
-]
+const REPORTS: Array<{
+  id: string
+  student: string
+  studentId: string
+  item: string
+  category: string
+  color: string
+  brand: string
+  date: string
+  location: string
+  timeWindow: string
+  status: string
+  deviceName?: string
+  nameOnDoc?: string
+  marks: string
+  privateNote: string
+}> = []
 
 export function MissingItemsPage() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [showLinker, setShowLinker] = useState(false)
 
-  const report = MOCK_REPORTS.find(r => r.id === selectedReport)
+  const report = REPORTS.find(r => r.id === selectedReport)
 
   return (
     <div className="space-y-8">
@@ -82,7 +48,7 @@ export function MissingItemsPage() {
           <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
             <MatchLinkingModal
               reportId={selectedReport}
-              itemTitle={MOCK_REPORTS.find(r => r.id === selectedReport)?.item || "Item"}
+              itemTitle={REPORTS.find(r => r.id === selectedReport)?.item || "Item"}
               onClose={() => setShowLinker(false)}
             />
           </div>
@@ -124,7 +90,7 @@ export function MissingItemsPage() {
           </div>
 
           <div className="space-y-3">
-            {MOCK_REPORTS.map((r) => (
+            {REPORTS.map((r) => (
               <div
                 key={r.id}
                 onClick={() => setSelectedReport(r.id)}
@@ -159,6 +125,11 @@ export function MissingItemsPage() {
                 </div>
               </div>
             ))}
+            {REPORTS.length === 0 && (
+              <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
+                No lost reports available.
+              </div>
+            )}
           </div>
         </div>
 

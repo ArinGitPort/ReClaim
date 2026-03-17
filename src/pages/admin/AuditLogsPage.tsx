@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 
-const MOCK_LOGS = [
-  { id: "LOG-001", event: "Item Logged", detail: "Apple MacBook Pro M2 (ITEM-8291)", user: "Admin (admin@reclaim.ph)", role: "System Admin", timestamp: "2026-03-14 09:15:00", ip: "192.168.1.1", status: "Success" },
-  { id: "LOG-002", event: "Claim Submitted", detail: "CLM-4421 by Juan Dela Cruz — MacBook Pro", user: "Juan Dela Cruz (2021-10294)", role: "Student", timestamp: "2026-03-15 10:30:22", ip: "192.168.1.45", status: "Success" },
-  { id: "LOG-003", event: "Claim Approved", detail: "CLM-4421 — MacBook Pro returned to Juan Dela Cruz", user: "Admin (admin@reclaim.ph)", role: "System Admin", timestamp: "2026-03-16 12:04:12", ip: "192.168.1.1", status: "Success" },
-  { id: "LOG-004", event: "Report Submitted", detail: "REP-9020 by Maria Clara — Blue Hydroflask", user: "Maria Clara (2022-05123)", role: "Student", timestamp: "2026-03-16 13:20:45", ip: "192.168.1.67", status: "Success" },
-  { id: "LOG-005", event: "Report Rejected", detail: "REP-9019 — Insufficient proof identifiers", user: "Staff (staff_02)", role: "Frontdesk Staff", timestamp: "2026-03-16 13:45:22", ip: "192.168.1.8", status: "Access Denied" },
-]
+const logs: Array<{ id: string; event: string; detail: string; user: string; role: string; timestamp: string; ip: string; status: string }> = []
 
 export function AuditLogsPage() {
   return (
@@ -59,7 +53,7 @@ export function AuditLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {MOCK_LOGS.map((log) => (
+              {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/50 transition-colors group cursor-default">
                   <td className="px-8 py-5 whitespace-nowrap">
                     <span className="text-[11px] font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 group-hover:bg-slate-100 group-hover:text-slate-900 transition-all">
@@ -97,6 +91,13 @@ export function AuditLogsPage() {
                   </td>
                 </tr>
               ))}
+              {logs.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
+                    No audit log records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

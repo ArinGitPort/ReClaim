@@ -14,12 +14,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 
-// Mock Inventory Data for Matching
-const MOCK_MATCHES = [
-  { id: "ITEM-8291", title: "Apple MacBook Pro M2", category: "Electronics", date: "2024-03-15", location: "Library - 2nd Floor", matchScore: 92, status: "Available" },
-  { id: "ITEM-1022", title: "Grey ASUS Zenbook", category: "Electronics", date: "2024-03-12", location: "Cafeteria", matchScore: 65, status: "Available" },
-  { id: "ITEM-0912", title: "Laptop Charger (Mac)", category: "Electronics", date: "2024-03-10", location: "Library", matchScore: 40, status: "Available" },
-]
+const inventoryMatches: Array<{ id: string; title: string; category: string; date: string; location: string; matchScore: number; status: string }> = []
 
 export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: () => void; reportId: string; itemTitle: string }) {
   const [isLinking, setIsLinking] = useState(false)
@@ -92,10 +87,10 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
 
         {/* Matches List */}
         <div className="flex-1 overflow-y-auto p-8 space-y-4">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Potential Matches ({MOCK_MATCHES.length})</h4>
+           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Potential Matches ({inventoryMatches.length})</h4>
           
           <div className="space-y-4">
-             {MOCK_MATCHES.map((item) => (
+             {inventoryMatches.map((item) => (
                 <div 
                   key={item.id}
                   onClick={() => setSelectedMatch(item.id)}

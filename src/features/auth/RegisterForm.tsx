@@ -3,9 +3,11 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Mail, Phone, Lock, Hash, User, AlertCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function RegisterForm() {
   const navigate = useNavigate()
+  const { register } = useAuth()
   
   // Form State
   const [studentId, setStudentId] = useState("")
@@ -19,6 +21,7 @@ export function RegisterForm() {
   
   // Validation State
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validateForm = () => {
     // 1. Student ID Validation (YYYY-XXXXXX)
@@ -53,7 +56,7 @@ export function RegisterForm() {
     return null
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     
@@ -63,12 +66,29 @@ export function RegisterForm() {
       return
     }
 
-    // Placeholder for actual API submission
-    console.log("Registration valid. Submitting payload...", {
-      studentId, email, firstName, lastName, middleInitial, mobile
-    })
-    
-    navigate("/")
+    const fullName = [firstName, middleInitial, lastName].filter(Boolean).join(" ")
+
+    setIsSubmitting(true)
+    try {
+      await register({
+        name: fullName,
+        email,
+        password,
+        studentId,
+      })
+
+      navigate("/gallery")
+    } catch (err: any) {
+      if (!err.response) {
+        setError("Network error: Backend server is unreachable. Please ensure the backend is running on port 4000.")
+      } else if (err.response.status === 409) {
+        setError("Registration failed: This email is already registered.")
+      } else {
+        setError(err.response?.data?.error || "Registration failed. Please check your information and try again.")
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,8 +285,8 @@ export function RegisterForm() {
         </div>
 
         <div className="pt-6 pb-2 flex justify-center">
-          <Button type="submit" size="lg" className="w-full md:w-auto md:px-12 h-12 text-base font-semibold shadow-sm transition-shadow text-white rounded-lg">
-            Complete Registration
+          <Button type="submit" disabled={isSubmitting} size="lg" className="w-full md:w-auto md:px-12 h-12 text-base font-semibold shadow-sm transition-shadow text-white rounded-lg">
+            {isSubmitting ? "Creating Account..." : "Complete Registration"}
           </Button>
         </div>
       </form>

@@ -16,13 +16,42 @@ export const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: env.frontendOrigin,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const isConfiguredOrigin = origin === env.frontendOrigin;
+      const isLocalDevOrigin = /^http:\/\/localhost:\d+$/.test(origin);
+
+      if (isConfiguredOrigin || isLocalDevOrigin) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("CORS origin not allowed"));
+    },
   })
 );
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "reclaim-backend" });
+});
+
+app.get("/api", (_req, res) => {
+  res.json({
+    message: "ReClaim API is running",
+    routes: {
+      auth: "/api/auth",
+      items: "/api/items",
+      claims: "/api/claims",
+      reports: "/api/reports",
+      handover: "/api/handover",
+      evidence: "/api/evidence",
+    },
+  });
 });
 
 app.use("/api/auth", authRoutes);

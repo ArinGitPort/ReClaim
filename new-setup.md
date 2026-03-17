@@ -73,3 +73,7 @@ cd ai-service
 .\venv\Scripts\activate
 # Start the FastAPI server
 uvicorn main:app --reload
+
+# Prisma ORM migration
+npm run prisma:migrate -- --name init
+npm run prisma:generate

@@ -14,81 +14,21 @@ import { cn } from "@/lib/utils"
 import { ClaimSuccessModal } from "@/features/claims/ClaimSuccessModal"
 import { DenyClaimModal } from "@/features/claims/DenyClaimModal"
 
-// Canonical claims — students claiming found items from the gallery
-const CLAIMS_DATA = [
-  {
-    id: "CLM-4421",
-    category: "Electronics",
-    student: "Juan Dela Cruz",
-    studentId: "2021-10294",
-    timeAgo: "2 hours ago",
-    isHighValue: true,
-    item: "Apple MacBook Pro M2",
-    inventoryId: "ITEM-8291",
-    physicalDetails: {
-      color: "Space Gray",
-      condition: "Good — Minor scuff",
-      storage: "Safe A-1",
-      serialNumber: "FVFGG0M1Q6L4",
-      deviceName: "Juan's MacBook Pro",
-    },
-    studentProof: {
-      marks: "Small crack on the bottom-left corner near the charging port.",
-      serialNumber: "FVFGG0M1Q6L4",
-      deviceName: "Juan's MacBook Pro",
-      privateNote: "The lock screen wallpaper is a photo of my golden retriever named Bruno.",
-    }
-  },
-  {
-    id: "CLM-4420",
-    category: "Everyday Items",
-    student: "Maria Clara",
-    studentId: "2022-05123",
-    timeAgo: "5 hours ago",
-    isHighValue: false,
-    item: "Blue Hydroflask 32oz",
-    inventoryId: "ITEM-8289",
-    physicalDetails: {
-      color: "Pacific Blue",
-      condition: "Good",
-      storage: "Shelf C-4",
-      serialNumber: "N/A",
-      deviceName: "N/A",
-    },
-    studentProof: {
-      marks: "Sunflower stickers and a small dent on the bottom.",
-      serialNumber: "N/A",
-      deviceName: "N/A",
-      privateNote: "My name is written in white marker on the bottom of the bottle.",
-    }
-  },
-  {
-    id: "CLM-4419",
-    category: "Wallets/IDs",
-    student: "Roberto Reyes",
-    studentId: "2021-09821",
-    timeAgo: "1 day ago",
-    isHighValue: true,
-    item: "Black Leather Wallet",
-    inventoryId: "ITEM-8290",
-    physicalDetails: {
-      color: "Black",
-      condition: "Good",
-      storage: "Shelf B-2",
-      serialNumber: "N/A",
-      deviceName: "N/A",
-    },
-    studentProof: {
-      marks: "Distinctive 'R' embossed on the front cover.",
-      serialNumber: "N/A",
-      deviceName: "N/A",
-      privateNote: "Contains my National U student ID, a folded handwritten note, and a Php 200 bill.",
-    }
-  }
-]
+const CLAIMS_DATA: Array<{
+  id: string
+  category: string
+  student: string
+  studentId: string
+  timeAgo: string
+  isHighValue: boolean
+  item: string
+  inventoryId: string
+  physicalDetails: { color: string; condition: string; storage: string; serialNumber: string; deviceName: string }
+  studentProof: { marks: string; serialNumber: string; deviceName: string; privateNote: string }
+}> = []
 
 export function ClaimsVerificationPage() {
-  const [selectedClaimId, setSelectedClaimId] = useState(CLAIMS_DATA[0].id)
+  const [selectedClaimId, setSelectedClaimId] = useState(CLAIMS_DATA[0]?.id ?? "")
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("All")
   const [status, setStatus] = useState<"review" | "denying" | "success">("review")
@@ -100,7 +40,7 @@ export function ClaimsVerificationPage() {
   const [isDirty, setIsDirty] = useState(false)
   const [pendingSelection, setPendingSelection] = useState<string | null>(null)
 
-  const selectedClaim = CLAIMS_DATA.find(c => c.id === selectedClaimId) || CLAIMS_DATA[0]
+  const selectedClaim = CLAIMS_DATA.find(c => c.id === selectedClaimId)
 
   const handleClaimSelect = (id: string) => {
     if (id === selectedClaimId) return
@@ -135,6 +75,22 @@ export function ClaimsVerificationPage() {
     return matchesSearch && matchesCategory
   })
 
+
+  if (!selectedClaim) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">Final review workspace to validate ownership proof against physical inventory records.</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500 font-semibold">
+          No claim records available.
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

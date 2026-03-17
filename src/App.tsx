@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 
 // Public pages
 import { LandingPage } from "@/pages/public/LandingPage"
@@ -30,6 +30,43 @@ import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/SettingsPage"
 
 import "./index.css"
+import { useAuth } from "@/contexts/AuthContext"
+
+function ProtectedUserRoutes() {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
+
+  if (user.role === "ADMIN" || user.role === "STAFF") {
+    return <Navigate to="/admin/dashboard" replace />
+  }
+
+  return <AppLayout />
+}
+
+function ProtectedAdminRoutes() {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
+
+  if (user.role !== "ADMIN" && user.role !== "STAFF") {
+    return <Navigate to="/gallery" replace />
+  }
+
+  return <AdminLayout />
+}
 
 function App() {
   return (
@@ -42,7 +79,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             
             {/* Protected / Authenticated Routes with Sidebar Navigation */}
-            <Route element={<AppLayout />}>
+            <Route element={<ProtectedUserRoutes />}>
               <Route path="/gallery" element={<GalleryPage />} />
               <Route path="/report-lost" element={<ReportLostPage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
@@ -53,7 +90,7 @@ function App() {
             </Route>
 
             {/* Administrative Dashboard Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<ProtectedAdminRoutes />}>
               <Route index element={<DashboardPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="inventory" element={<InventoryPage />} />

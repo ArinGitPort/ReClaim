@@ -16,15 +16,7 @@ import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
 
-// Mock Data — canonical set shared with GalleryGrid
-const MOCK_INVENTORY = [
-  { id: "ITEM-8291", thumbnail: null, title: "Apple MacBook Pro M2", category: "Electronics", date: "2026-03-14", location: "Main Library - 2nd Floor", status: "Claim Pending", storage: "Safe A-1" },
-  { id: "ITEM-8290", thumbnail: null, title: "Black Leather Wallet", category: "Wallets/IDs", date: "2026-03-15", location: "Gymnasium - Locker Room", status: "Available", storage: "Shelf B-2" },
-  { id: "ITEM-8289", thumbnail: null, title: "Blue Hydroflask 32oz", category: "Everyday Items", date: "2026-03-13", location: "Student Union - Cafeteria", status: "Available", storage: "Shelf C-4" },
-  { id: "ITEM-8288", thumbnail: null, title: "Keys with Honda Lanyard", category: "Everyday Items", date: "2026-03-10", location: "Main Library - Entrance", status: "Available", storage: "Safe B-3" },
-  { id: "ITEM-8287", thumbnail: null, title: "Gray North Face Hoodie", category: "Clothing", date: "2026-03-09", location: "Student Union - Lounge", status: "Returned", storage: "-" },
-  { id: "ITEM-8286", thumbnail: null, title: "Sony WH-1000XM4 Headphones", category: "Electronics", date: "2026-03-12", location: "Main Library - Quiet Zone", status: "Available", storage: "Shelf A-3" },
-]
+const inventoryItems: Array<{ id: string; title: string; category: string; date: string; location: string; status: string; storage: string }> = []
 
 export function InventoryPage() {
   const [search, setSearch] = useState("")
@@ -93,7 +85,7 @@ export function InventoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {MOCK_INVENTORY.map((item) => (
+              {inventoryItems.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
                   <td className="px-8 py-5 whitespace-nowrap">
                     <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
@@ -146,6 +138,13 @@ export function InventoryPage() {
                   </td>
                 </tr>
               ))}
+              {inventoryItems.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
+                    No inventory records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -154,7 +153,7 @@ export function InventoryPage() {
         <div className="bg-slate-50/50 border-t border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest">
           <div className="flex items-center gap-2 mb-4 sm:mb-0">
              <div className="w-2 h-2 rounded-full bg-brand/30" />
-             Showing 5 entries out of 142 total items
+             Showing {inventoryItems.length} entries
           </div>
           <div className="flex items-center gap-4">
             <button className="px-4 py-2 hover:text-brand transition-colors disabled:opacity-30 flex items-center gap-2" disabled>
