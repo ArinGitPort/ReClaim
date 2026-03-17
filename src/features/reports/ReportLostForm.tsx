@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/Textarea"
 import { Label } from "@/components/ui/Label"
 import { useAuth } from "@/contexts/AuthContext"
 import { ReportConfirmationModal } from "./ReportConfirmationModal"
+import { api } from "@/lib/api"
 
 type Category = "electronics" | "bags" | "wallets" | "clothing" | "keys" | "others" | ""
 
@@ -39,15 +40,34 @@ export function ReportLostForm() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+
+    try {
+      const proofData = {
+        deviceName: formData.deviceName,
+        nameOnDoc: formData.nameOnDoc,
+        contents: formData.contents,
+        marks: formData.marks,
+        privateNote: formData.privateNote,
+        brand: formData.brand,
+      }
+
+      await api.post("/reports", {
+        title: `${formData.color} ${formData.category}`.trim(),
+        category: formData.category || "others",
+        color: formData.color,
+        location: formData.location,
+        reportedLostAtUtc: new Date(`${formData.date || new Date().toISOString().slice(0, 10)}T00:00:00.000Z`).toISOString(),
+        timeWindow: formData.time,
+        proofData,
+      })
+
       setShowConfirmation(true)
-    }, 2000)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

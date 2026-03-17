@@ -1,18 +1,48 @@
+import { useEffect, useState } from "react"
 import { ItemCard } from "@/features/gallery/ItemCard"
 import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
-
-// Canonical items — mirrors admin Inventory (ITEM-8291 through ITEM-8286)
-const mockItems: FoundItem[] = [
-  { id: "ITEM-8291", title: "Apple MacBook Pro M2", category: "Electronics", location: "Main Library - 2nd Floor", dateLost: "2026-03-14T08:00:00Z", isHighValue: true },
-  { id: "ITEM-8290", title: "Black Leather Wallet", category: "Wallets/IDs", location: "Gymnasium - Locker Room", dateLost: "2026-03-15T17:00:00Z", isHighValue: true },
-  { id: "ITEM-8289", title: "Blue Hydroflask 32oz", category: "Everyday Items", location: "Student Union - Cafeteria", dateLost: "2026-03-13T12:30:00Z", isHighValue: false },
-  { id: "ITEM-8288", title: "Keys with Honda Lanyard", category: "Everyday Items", location: "Main Library - Entrance", dateLost: "2026-03-10T09:15:00Z", isHighValue: false },
-  { id: "ITEM-8286", title: "Sony WH-1000XM4 Headphones", category: "Electronics", location: "Main Library - Quiet Zone", dateLost: "2026-03-12T14:20:00Z", isHighValue: true },
-]
+import { api } from "@/lib/api"
 
 export function GalleryGrid() {
-  const items = mockItems
+  const [items, setItems] = useState<FoundItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadItems(): Promise<void> {
+      try {
+        const response = await api.get<{
+          items: Array<{
+            id: string
+            code: string
+            title: string
+            category: string
+            foundLocation: string
+            foundAtUtc: string
+          }>
+        }>("/items/public")
+
+        setItems(
+          response.data.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            location: item.foundLocation,
+            dateLost: item.foundAtUtc,
+            isHighValue: ["electronics", "wallets/ids"].includes(item.category.toLowerCase()),
+          }))
+        )
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void loadItems()
+  }, [])
+
+  if (isLoading) {
+    return <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>
+  }
 
   if (items.length === 0) {
     return (

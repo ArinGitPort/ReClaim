@@ -1,22 +1,50 @@
+import { useEffect, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
+import { api } from "@/lib/api"
 
-// Dummy report for the logged-in student (Juan Dela Cruz)
-const MY_REPORTS = [
-  {
-    id: "REP-9021",
-    item: "Apple MacBook Pro M2",
-    category: "Electronics",
-    dateFiled: "March 14, 2026",
-    location: "Main Library - 2nd Floor",
-    timeWindow: "Morning (6AM - 12PM)",
-    status: "Under Review",
-  },
-]
+interface ReportView {
+  id: string
+  item: string
+  category: string
+  dateFiled: string
+  location: string
+  status: string
+}
 
 export function MyReportsPage() {
+  const [reports, setReports] = useState<ReportView[]>([])
+
+  useEffect(() => {
+    async function loadReports(): Promise<void> {
+      const response = await api.get<{
+        reports: Array<{
+          reportCode: string
+          title: string
+          category: string
+          location: string
+          createdAt: string
+          status: string
+        }>
+      }>("/reports")
+
+      setReports(
+        response.data.reports.map((report) => ({
+          id: report.reportCode,
+          item: report.title,
+          category: report.category,
+          location: report.location,
+          dateFiled: new Date(report.createdAt).toLocaleDateString(),
+          status: report.status.replaceAll("_", " "),
+        }))
+      )
+    }
+
+    void loadReports()
+  }, [])
+
   return (
     <div className="w-full min-h-full pb-24">
       <TopNavBar title="My Lost Reports" />
@@ -35,7 +63,7 @@ export function MyReportsPage() {
         </div>
 
         <div className="space-y-4">
-          {MY_REPORTS.map((report) => (
+          {reports.map((report) => (
             <div
               key={report.id}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5"

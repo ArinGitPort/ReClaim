@@ -2,15 +2,30 @@ import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { User, Lock } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
 
 export function LoginForm() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Placeholder for actual login logic
-    console.log("Logging in...", { email, password })
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      await login(email, password)
+      navigate("/gallery")
+    } catch {
+      setError("Login failed. Check your credentials and try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -67,8 +82,10 @@ export function LoginForm() {
           </a>
         </div>
 
-        <Button type="submit" className="w-full mt-6 h-12 text-base font-semibold shadow hover:shadow-md transition-shadow text-white">
-          Sign In
+        {error && <p className="text-sm text-rose-600 font-semibold">{error}</p>}
+
+        <Button type="submit" disabled={isLoading} className="w-full mt-6 h-12 text-base font-semibold shadow hover:shadow-md transition-shadow text-white">
+          {isLoading ? "Signing In..." : "Sign In"}
         </Button>
       </form>
     </div>

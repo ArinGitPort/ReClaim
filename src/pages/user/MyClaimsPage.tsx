@@ -1,22 +1,55 @@
+import { useEffect, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
+import { api } from "@/lib/api"
 
-// Dummy claim for the logged-in student (Juan Dela Cruz)
-const MY_CLAIMS = [
-  {
-    id: "CLM-4421",
-    item: "Apple MacBook Pro M2",
-    category: "Electronics",
-    inventoryId: "ITEM-8291",
-    location: "Main Library - 2nd Floor",
-    submittedDate: "March 15, 2026",
-    status: "Pending Verification",
-  },
-]
+interface ClaimView {
+  id: string
+  item: string
+  category: string
+  inventoryId: string
+  location: string
+  submittedDate: string
+  status: string
+}
 
 export function MyClaimsPage() {
+  const [claims, setClaims] = useState<ClaimView[]>([])
+
+  useEffect(() => {
+    async function loadClaims(): Promise<void> {
+      const response = await api.get<{
+        claims: Array<{
+          claimCode: string
+          status: string
+          createdAt: string
+          foundItem: {
+            code: string
+            title: string
+            category: string
+            foundLocation: string
+          }
+        }>
+      }>("/claims")
+
+      setClaims(
+        response.data.claims.map((claim) => ({
+          id: claim.claimCode,
+          item: claim.foundItem.title,
+          category: claim.foundItem.category,
+          inventoryId: claim.foundItem.code,
+          location: claim.foundItem.foundLocation,
+          submittedDate: new Date(claim.createdAt).toLocaleDateString(),
+          status: claim.status.replaceAll("_", " "),
+        }))
+      )
+    }
+
+    void loadClaims()
+  }, [])
+
   return (
     <div className="w-full min-h-full pb-24">
       <TopNavBar title="My Claims" />
@@ -35,7 +68,7 @@ export function MyClaimsPage() {
         </div>
 
         <div className="space-y-4">
-          {MY_CLAIMS.map((claim) => (
+          {claims.map((claim) => (
             <div
               key={claim.id}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5"

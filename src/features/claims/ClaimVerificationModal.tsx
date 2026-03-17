@@ -1,5 +1,6 @@
 import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { api } from "@/lib/api"
 
 interface ClaimVerificationModalProps {
   isOpen: boolean
@@ -9,6 +10,13 @@ interface ClaimVerificationModalProps {
 }
 
 export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: ClaimVerificationModalProps) {
+  const [deviceName, setDeviceName] = useState("")
+  const [wallpaper, setWallpaper] = useState("")
+  const [serialNumber, setSerialNumber] = useState("")
+  const [externalColor, setExternalColor] = useState("")
+  const [marks, setMarks] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -21,6 +29,25 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
   }, [isOpen])
 
   if (!isOpen) return null
+
+  async function handleSubmitClaim(): Promise<void> {
+    setIsSubmitting(true)
+    try {
+      await api.post("/claims", {
+        foundItemId: itemId,
+        proof: {
+          deviceName,
+          wallpaper,
+          serialNumber,
+          externalColor,
+          marks,
+        },
+      })
+      onClose()
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
@@ -69,6 +96,8 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
                 <input
                   type="text"
                   placeholder="e.g., John's MacBook Pro"
+                  value={deviceName}
+                  onChange={(e) => setDeviceName(e.target.value)}
                   className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 placeholder:text-slate-400 font-medium"
                 />
               </div>
@@ -80,6 +109,8 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
                 <input
                   type="text"
                   placeholder="Describe the image on the lock screen"
+                  value={wallpaper}
+                  onChange={(e) => setWallpaper(e.target.value)}
                   className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 placeholder:text-slate-400 font-medium"
                 />
               </div>
@@ -91,6 +122,8 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
                 <input
                   type="text"
                   placeholder="Enter if known"
+                  value={serialNumber}
+                  onChange={(e) => setSerialNumber(e.target.value)}
                   className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 placeholder:text-slate-400 font-medium font-mono"
                 />
               </div>
@@ -104,8 +137,8 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
                 <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                   External Case / Color <span className="text-rose-500 font-black">*</span>
                 </label>
-                <select className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 cursor-pointer font-medium">
-                  <option value="" disabled selected>Select primary color</option>
+                <select value={externalColor} onChange={(e) => setExternalColor(e.target.value)} className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 cursor-pointer font-medium">
+                  <option value="" disabled>Select primary color</option>
                   <option value="space-gray">Space Gray / Dark Gray</option>
                   <option value="silver">Silver / Light Gray</option>
                   <option value="black">Black</option>
@@ -121,6 +154,8 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
                 <textarea
                   rows={2}
                   placeholder="Specific stickers, stickers, or notable scratches..."
+                  value={marks}
+                  onChange={(e) => setMarks(e.target.value)}
                   className="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all text-slate-900 resize-none placeholder:text-slate-400 font-medium shadow-inner"
                 />
               </div>
@@ -137,10 +172,12 @@ export function ClaimVerificationModal({ isOpen, onClose, itemId, itemTitle }: C
             Cancel
           </button>
           <button
+            onClick={() => void handleSubmitClaim()}
+            disabled={isSubmitting}
             className="flex-1 h-12 bg-brand hover:bg-brand-active transition-all text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 shadow-sm uppercase tracking-widest"
           >
             <CheckCircle2 className="w-4 h-4" />
-            Submit Request
+            {isSubmitting ? "Submitting..." : "Submit Request"}
           </button>
         </div>
 
