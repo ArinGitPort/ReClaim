@@ -59,6 +59,21 @@ export async function updateReportStatus(input: {
     throw new HttpError(404, "Lost report not found");
   }
 
+  if (
+    input.status === ReportStatus.ACTIVE_SEARCH &&
+    report.status !== ReportStatus.SUBMITTED &&
+    report.status !== ReportStatus.UNDER_REVIEW
+  ) {
+    throw new HttpError(400, "Only submitted or under-review reports can be authorized for active search");
+  }
+
+  if (
+    report.status === ReportStatus.REJECTED ||
+    report.status === ReportStatus.RESOLVED
+  ) {
+    throw new HttpError(400, "Cannot update a finalized report");
+  }
+
   return prisma.lostReport.update({
     where: { id: input.reportId },
     data: {

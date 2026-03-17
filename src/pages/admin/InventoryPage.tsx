@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { 
   Search, 
   Plus, 
@@ -15,12 +15,75 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
+import { api } from "@/lib/api"
 
-const inventoryItems: Array<{ id: string; title: string; category: string; date: string; location: string; status: string; storage: string }> = []
+type InventoryRow = {
+  id: string
+  code: string
+  title: string
+  category: string
+  date: string
+  location: string
+  status: string
+  storage: string
+}
 
 export function InventoryPage() {
+  const [inventoryItems, setInventoryItems] = useState<InventoryRow[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [showFastEntry, setShowFastEntry] = useState(false)
+
+  async function loadItems(query?: string): Promise<void> {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await api.get<{
+        items: Array<{
+          id: string
+          code: string
+          title: string
+          category: string
+          foundAtUtc: string
+          foundLocation: string
+          status: string
+          storageLocation?: string | null
+        }>
+      }>("/items/admin", { params: query ? { search: query } : undefined })
+
+      setInventoryItems(
+        response.data.items.map((item) => ({
+          id: item.id,
+          code: item.code,
+          title: item.title,
+          category: item.category,
+          date: new Date(item.foundAtUtc).toLocaleDateString(),
+          location: item.foundLocation,
+          status: item.status,
+          storage: item.storageLocation ?? "Not assigned",
+        }))
+      )
+    } catch {
+      setError("Unable to load inventory records.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadItems()
+  }, [])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadItems(search.trim() || undefined)
+    }, 350)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [search])
+
+  const visibleItems = useMemo(() => inventoryItems, [inventoryItems])
 
   return (
     <div className="space-y-8">
@@ -28,7 +91,12 @@ export function InventoryPage() {
         <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowFastEntry(false)} />
           <div className="relative w-full max-w-xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
-            <LogNewItemModal onClose={() => setShowFastEntry(false)} />
+            <LogNewItemModal
+              onClose={() => setShowFastEntry(false)}
+              onSaved={() => {
+                void loadItems(search.trim() || undefined)
+              }}
+            />
           </div>
         </div>
       )}
@@ -85,11 +153,11 @@ export function InventoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {inventoryItems.map((item) => (
+              {visibleItems.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
                   <td className="px-8 py-5 whitespace-nowrap">
                     <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
-                      {item.id}
+                      {item.code}
                     </span>
                   </td>
                   <td className="px-8 py-5">
@@ -138,7 +206,14 @@ export function InventoryPage() {
                   </td>
                 </tr>
               ))}
-              {inventoryItems.length === 0 && (
+              {isLoading && (
+                <tr>
+                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
+                    Loading inventory records...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && visibleItems.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
                     No inventory records found.
@@ -148,12 +223,13 @@ export function InventoryPage() {
             </tbody>
           </table>
         </div>
+        {error && <div className="px-8 py-4 text-sm font-semibold text-rose-600 border-t border-slate-100">{error}</div>}
         
         {/* Compact Table Footer */}
         <div className="bg-slate-50/50 border-t border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest">
           <div className="flex items-center gap-2 mb-4 sm:mb-0">
              <div className="w-2 h-2 rounded-full bg-brand/30" />
-             Showing {inventoryItems.length} entries
+             Showing {visibleItems.length} entries
           </div>
           <div className="flex items-center gap-4">
             <button className="px-4 py-2 hover:text-brand transition-colors disabled:opacity-30 flex items-center gap-2" disabled>
@@ -177,10 +253,10 @@ export function InventoryPage() {
 function StatusBadge({ status }: { status: string }) {
   const getStyles = () => {
     switch(status) {
-      case 'Available': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      case 'Claim Pending': return 'bg-amber-50 text-amber-700 border-amber-100'
-      case 'Returned': return 'bg-slate-50 text-slate-500 border-slate-100'
-      case 'Archived': return 'bg-rose-50 text-rose-700 border-rose-100'
+      case 'AVAILABLE': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+      case 'CLAIM_PENDING': return 'bg-amber-50 text-amber-700 border-amber-100'
+      case 'RETURNED': return 'bg-slate-50 text-slate-500 border-slate-100'
+      case 'ARCHIVED': return 'bg-rose-50 text-rose-700 border-rose-100'
       default: return 'bg-slate-50 text-slate-700 border-slate-100'
     }
   }
@@ -190,8 +266,8 @@ function StatusBadge({ status }: { status: string }) {
       "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border shadow-sm inline-flex items-center gap-2",
       getStyles()
     )}>
-      {status === 'Claim Pending' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-      {status}
+      {status === 'CLAIM_PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
+      {status.replaceAll("_", " ")}
     </span>
   )
 }

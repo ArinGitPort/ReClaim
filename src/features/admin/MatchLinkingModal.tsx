@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { 
   Search, 
   X, 
@@ -13,20 +13,121 @@ import {
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api"
 
-const inventoryMatches: Array<{ id: string; title: string; category: string; date: string; location: string; matchScore: number; status: string }> = []
+type InventoryMatch = {
+  id: string
+  code: string
+  title: string
+  category: string
+  color: string
+  date: string
+  location: string
+  status: string
+  matchScore: number
+}
 
-export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: () => void; reportId: string; itemTitle: string }) {
+type MatchPrefill = {
+  category: string
+  color: string
+  dateFrom: string
+}
+
+export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, itemTitle, prefill }: { onClose: () => void; onLinked?: (matchedItemId: string) => void; reportId: string; reportCode: string; itemTitle: string; prefill?: MatchPrefill }) {
   const [isLinking, setIsLinking] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
+  const [searchText, setSearchText] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [inventoryMatches, setInventoryMatches] = useState<InventoryMatch[]>([])
 
-  const handleLink = () => {
+  const normalizedDate = prefill?.dateFrom ? new Date(prefill.dateFrom).toLocaleDateString() : null
+  const prefillHint = prefill
+    ? `Category: ${prefill.category} • Color: ${prefill.color}${normalizedDate ? ` • Date >= ${normalizedDate}` : ""}`
+    : null
+  const defaultSearchValue = [itemTitle, prefill?.color, prefill?.category].filter(Boolean).join(" ")
+
+  useEffect(() => {
+    setSearchText(defaultSearchValue)
+  }, [defaultSearchValue])
+
+  useEffect(() => {
+    async function loadInventory(): Promise<void> {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await api.get<{
+          items: Array<{
+            id: string
+            code: string
+            title: string
+            category: string
+            color: string
+            foundAtUtc: string
+            foundLocation: string
+            status: string
+          }>
+        }>("/items/admin", {
+          params: searchText.trim() ? { search: searchText.trim() } : undefined,
+        })
+
+        setInventoryMatches(
+          response.data.items
+            .filter((item) => item.status === "AVAILABLE")
+            .map((item) => ({
+              id: item.id,
+              code: item.code,
+              title: item.title,
+              category: item.category,
+              color: item.color,
+              date: new Date(item.foundAtUtc).toLocaleDateString(),
+              location: item.foundLocation,
+              status: item.status,
+              matchScore: computeMatchScore(item, prefill),
+            }))
+            .sort((a, b) => b.matchScore - a.matchScore)
+        )
+      } catch {
+        setError("Unable to load inventory matches.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void loadInventory()
+    }, 300)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [prefill, searchText])
+
+  const selectedItem = useMemo(
+    () => inventoryMatches.find((item) => item.id === selectedMatch),
+    [inventoryMatches, selectedMatch]
+  )
+
+  const handleLink = async () => {
+    if (!selectedItem) {
+      return
+    }
+
+    setError(null)
     setIsLinking(true)
-    setTimeout(() => {
+    try {
+      await api.patch(`/reports/${reportId}`, {
+        status: "MATCHED",
+        matchedItemId: selectedItem.id,
+      })
+
+      onLinked?.(selectedItem.id)
+
       setIsLinking(false)
       setConfirmed(true)
-    }, 1500)
+    } catch {
+      setIsLinking(false)
+      setError("Failed to link report with selected inventory item.")
+    }
   }
 
   if (confirmed) {
@@ -38,7 +139,7 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
         <div>
           <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-2">Report Linked!</h3>
           <p className="text-slate-500 font-medium leading-relaxed max-w-xs mx-auto text-sm">
-            {reportId} is connected to the inventory. Student has been notified.
+            {reportCode} is connected to {selectedItem?.code ?? "inventory"}. Student can now proceed with claim flow.
           </p>
         </div>
         <Button className="w-full h-12 bg-brand hover:bg-brand-active text-white font-black rounded-xl uppercase tracking-widest text-xs shadow-sm" onClick={onClose}>Finish Workspace</Button>
@@ -74,20 +175,35 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
             <Input 
               placeholder="Search Inventory by keywords..." 
-              defaultValue={itemTitle}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
               className="pl-12 h-12 bg-slate-50 border-slate-200 shadow-inner focus:bg-white focus:ring-4 focus:ring-brand/5 rounded-xl text-sm font-bold placeholder:text-slate-400"
             />
           </div>
+          {prefillHint && (
+            <div className="text-[10px] font-black uppercase tracking-wider text-brand bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
+              Prefilled criteria: {prefillHint}
+            </div>
+          )}
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="bg-white text-[10px] h-8 font-black uppercase tracking-widest border-slate-200 text-slate-500 rounded-lg">
-               <Filter className="w-3 h-3 mr-2" /> Show Only Electronics
-            </Button>
+            {prefill?.category && (
+              <Button variant="outline" size="sm" className="bg-white text-[10px] h-8 font-black uppercase tracking-widest border-slate-200 text-slate-500 rounded-lg">
+                <Filter className="w-3 h-3 mr-2" /> Category: {prefill.category}
+              </Button>
+            )}
+            {prefill?.color && (
+              <Button variant="outline" size="sm" className="bg-white text-[10px] h-8 font-black uppercase tracking-widest border-slate-200 text-slate-500 rounded-lg">
+                <Filter className="w-3 h-3 mr-2" /> Color: {prefill.color}
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Matches List */}
         <div className="flex-1 overflow-y-auto p-8 space-y-4">
            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Potential Matches ({inventoryMatches.length})</h4>
+           {error && <p className="text-xs font-semibold text-rose-600">{error}</p>}
+           {isLoading && <p className="text-xs font-semibold text-slate-500">Loading inventory candidates...</p>}
           
           <div className="space-y-4">
              {inventoryMatches.map((item) => (
@@ -110,7 +226,7 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
                   
                   <div className="flex-1 min-w-0 pr-12">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.id}</span>
+                        <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.code}</span>
                         <StatusBadge weight={item.matchScore} />
                       </div>
                      <h5 className="font-bold text-slate-900 text-[17px] leading-tight mb-2 truncate group-hover:text-brand transition-colors tracking-tight">{item.title}</h5>
@@ -152,7 +268,7 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
               <Button variant="outline" className="flex-1 sm:flex-none h-11 px-8 border-slate-200 rounded-xl font-bold uppercase tracking-widest text-[10px] text-slate-500" onClick={() => setSelectedMatch(null)}>Change Choice</Button>
               <Button 
                 onClick={handleLink}
-                disabled={isLinking}
+                disabled={isLinking || !selectedItem}
                 className="flex-1 sm:flex-none h-11 px-10 bg-brand hover:opacity-90 text-white font-black uppercase tracking-widest text-[11px] shadow-sm rounded-xl transition-all active:scale-95"
               >
                 {isLinking ? "Establishing Link..." : "Confirm & Notify"}
@@ -167,6 +283,23 @@ export function MatchLinkingModal({ onClose, reportId, itemTitle }: { onClose: (
       </div>
     </div>
   )
+}
+
+function computeMatchScore(item: { category: string; color: string }, prefill?: MatchPrefill): number {
+  let score = 40
+  if (!prefill) {
+    return score
+  }
+
+  if (item.category.toLowerCase() === prefill.category.toLowerCase()) {
+    score += 35
+  }
+
+  if (item.color.toLowerCase() === prefill.color.toLowerCase()) {
+    score += 25
+  }
+
+  return Math.min(score, 99)
 }
 
 function StatusBadge({ weight }: { weight: number }) {

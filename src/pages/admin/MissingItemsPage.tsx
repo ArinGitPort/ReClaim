@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FileText,
   FileSearch,
@@ -7,6 +7,7 @@ import {
   ShieldAlert,
   Calendar,
   Eye,
+  EyeOff,
   CheckCircle2,
   XCircle,
   HelpCircle,
@@ -15,9 +16,14 @@ import {
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
+import { api } from "@/lib/api"
+import { getRealtimeSocket } from "@/lib/realtime"
 
-const REPORTS: Array<{
+type ReportStatus = "SUBMITTED" | "UNDER_REVIEW" | "ACTIVE_SEARCH" | "MATCHED" | "RESOLVED" | "REJECTED"
+
+type ReportRow = {
   id: string
+  code: string
   student: string
   studentId: string
   item: string
@@ -27,18 +33,156 @@ const REPORTS: Array<{
   date: string
   location: string
   timeWindow: string
-  status: string
+  status: ReportStatus
   deviceName?: string
   nameOnDoc?: string
   marks: string
   privateNote: string
-}> = []
+  reportedLostAtUtcRaw: string
+}
 
 export function MissingItemsPage() {
+  const [reports, setReports] = useState<ReportRow[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("All")
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
+  const [revealedPrivateNotes, setRevealedPrivateNotes] = useState<Record<string, boolean>>({})
   const [showLinker, setShowLinker] = useState(false)
 
-  const report = REPORTS.find(r => r.id === selectedReport)
+  const loadReports = useCallback(async (silent = false): Promise<void> => {
+    if (!silent) {
+      setIsLoading(true)
+    }
+
+    setError(null)
+    try {
+      const response = await api.get<{
+        reports: Array<{
+          id: string
+          reportCode: string
+          title: string
+          category: string
+          color: string
+          location: string
+          reportedLostAtUtc: string
+          timeWindow?: string
+          status: ReportStatus
+          proofData?: Record<string, unknown>
+          reporterUser?: { name: string; studentId?: string | null }
+        }>
+      }>("/reports")
+
+      const mapped = response.data.reports.map((entry) => {
+        const proof = entry.proofData ?? {}
+        return {
+          id: entry.id,
+          code: entry.reportCode,
+          student: entry.reporterUser?.name ?? "Unknown Student",
+          studentId: entry.reporterUser?.studentId ?? "N/A",
+          item: entry.title,
+          category: entry.category,
+          color: entry.color,
+          brand: String(proof.brand ?? "Not specified"),
+          date: new Date(entry.reportedLostAtUtc).toLocaleDateString(),
+          location: entry.location,
+          timeWindow: entry.timeWindow ?? "Not specified",
+          status: entry.status,
+          deviceName: typeof proof.deviceName === "string" ? proof.deviceName : undefined,
+          nameOnDoc: typeof proof.nameOnDoc === "string" ? proof.nameOnDoc : undefined,
+          marks: String(proof.marks ?? "Not provided"),
+          privateNote: String(proof.privateNote ?? "Not provided"),
+          reportedLostAtUtcRaw: entry.reportedLostAtUtc,
+        }
+      })
+
+      setReports(mapped)
+      setSelectedReport((prev) => {
+        if (prev && mapped.some((row) => row.id === prev)) {
+          return prev
+        }
+        return mapped[0]?.id ?? null
+      })
+    } catch {
+      if (!silent) {
+        setError("Unable to load reports. Please refresh and try again.")
+      }
+    } finally {
+      if (!silent) {
+        setIsLoading(false)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadReports()
+
+    const intervalId = window.setInterval(() => {
+      void loadReports(true)
+    }, 5000)
+
+    const handleFocus = () => {
+      void loadReports(true)
+    }
+
+    window.addEventListener("focus", handleFocus)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener("focus", handleFocus)
+    }
+  }, [loadReports])
+
+  useEffect(() => {
+    const socket = getRealtimeSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleStatusUpdated = () => {
+      void loadReports(true)
+    }
+
+    socket.on("report.status.updated", handleStatusUpdated)
+
+    return () => {
+      socket.off("report.status.updated", handleStatusUpdated)
+    }
+  }, [loadReports])
+
+  const filteredReports = useMemo(
+    () => reports.filter((row) => {
+      const matchesSearch =
+        row.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        row.student.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        row.code.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesCategory = categoryFilter === "All" || row.category.toLowerCase() === categoryFilter.toLowerCase()
+      return matchesSearch && matchesCategory
+    }),
+    [reports, searchQuery, categoryFilter]
+  )
+
+  const report = reports.find(r => r.id === selectedReport)
+  const isPrivateNoteVisible = report ? Boolean(revealedPrivateNotes[report.id]) : false
+  const canReviewReport = report ? (report.status === "SUBMITTED" || report.status === "UNDER_REVIEW") : false
+  const isAuthorized = report?.status === "ACTIVE_SEARCH"
+
+  async function updateReportStatus(nextStatus: ReportStatus): Promise<void> {
+    if (!report) return
+    setIsUpdating(true)
+    setError(null)
+    try {
+      await api.patch(`/reports/${report.id}`, { status: nextStatus })
+      setReports((prev) => prev.map((row) => (row.id === report.id ? { ...row, status: nextStatus } : row)))
+    } catch {
+      setError("Failed to update report status.")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -47,8 +191,21 @@ export function MissingItemsPage() {
           <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowLinker(false)} />
           <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
             <MatchLinkingModal
-              reportId={selectedReport}
-              itemTitle={REPORTS.find(r => r.id === selectedReport)?.item || "Item"}
+              reportId={reports.find(r => r.id === selectedReport)?.id || selectedReport}
+              reportCode={reports.find(r => r.id === selectedReport)?.code || ""}
+              itemTitle={reports.find(r => r.id === selectedReport)?.item || "Item"}
+              onLinked={() => {
+                const currentId = selectedReport
+                if (!currentId) return
+                setReports((prev) => prev.map((row) => (
+                  row.id === currentId ? { ...row, status: "MATCHED" } : row
+                )))
+              }}
+              prefill={report ? {
+                category: report.category,
+                color: report.color,
+                dateFrom: report.reportedLostAtUtcRaw,
+              } : undefined}
               onClose={() => setShowLinker(false)}
             />
           </div>
@@ -69,6 +226,8 @@ export function MissingItemsPage() {
               <input
                 type="text"
                 placeholder="Search reports..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
               />
             </div>
@@ -76,9 +235,10 @@ export function MissingItemsPage() {
               {["All", "Electronics", "Wallets/IDs", "Everyday Items"].map(cat => (
                 <button
                   key={cat}
+                  onClick={() => setCategoryFilter(cat)}
                   className={cn(
                     "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border shadow-sm",
-                    cat === "All"
+                    cat === categoryFilter
                       ? "bg-brand text-white border-brand shadow-brand/20"
                       : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 active:scale-95"
                   )}
@@ -90,7 +250,7 @@ export function MissingItemsPage() {
           </div>
 
           <div className="space-y-3">
-            {REPORTS.map((r) => (
+            {filteredReports.map((r) => (
               <div
                 key={r.id}
                 onClick={() => setSelectedReport(r.id)}
@@ -105,7 +265,7 @@ export function MissingItemsPage() {
 
                 <div className="flex justify-between items-start mb-3">
                   <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                    {r.id}
+                    {r.code}
                   </span>
                   <StatusBadge status={r.status} />
                 </div>
@@ -125,7 +285,12 @@ export function MissingItemsPage() {
                 </div>
               </div>
             ))}
-            {REPORTS.length === 0 && (
+            {isLoading && (
+              <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
+                Loading reports...
+              </div>
+            )}
+            {!isLoading && filteredReports.length === 0 && (
               <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
                 No lost reports available.
               </div>
@@ -147,7 +312,7 @@ export function MissingItemsPage() {
                     <div className="flex items-center gap-2">
                       <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase underline underline-offset-4 decoration-brand/20 decoration-2">Report Workspace</h2>
                       <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Reference:</span>
-                      <span className="text-brand font-extrabold tracking-tight">{report.id}</span>
+                      <span className="text-brand font-extrabold tracking-tight">{report.code}</span>
                     </div>
                   </div>
                 </div>
@@ -156,14 +321,25 @@ export function MissingItemsPage() {
                     <MessageSquare className="w-4 h-4 mr-2 text-brand" /> Send Inquiry
                   </Button>
                   <Button
+                    disabled={!isAuthorized}
                     onClick={() => setShowLinker(true)}
                     size="sm"
-                    className="bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg transition-all active:scale-95"
+                    className={cn(
+                      "text-white font-bold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg transition-all active:scale-95",
+                      isAuthorized
+                        ? "bg-brand hover:bg-brand-active shadow-lg shadow-brand/20 ring-2 ring-brand/20"
+                        : "bg-slate-300 cursor-not-allowed"
+                    )}
                   >
                     <Link2 className="w-4 h-4 mr-2" /> Match Inventory
                   </Button>
                 </div>
               </div>
+              {isAuthorized && (
+                <div className="px-6 pb-5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                  Report authorized. Next required step: match this report with found inventory.
+                </div>
+              )}
 
               {/* Workspace Content */}
               <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
@@ -172,6 +348,11 @@ export function MissingItemsPage() {
                   <div className="space-y-10">
                     <DetailSection title="Reported Identity">
                       <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          <DetailItem label="Student Name" value={report.student} />
+                          <DetailItem label="Student Number" value={report.studentId} />
+                        </div>
+                        <div className="h-px bg-slate-100 w-full" />
                         <DetailItem label="Item Name / Description" value={report.item} />
                         <div className="grid grid-cols-2 gap-4">
                           <DetailItem label="Category" value={report.category} />
@@ -218,14 +399,46 @@ export function MissingItemsPage() {
                       <div className="space-y-4">
                         <div className="p-6 bg-slate-50/50 rounded-xl border border-slate-200 border-dashed relative group transition-all hover:bg-white hover:border-brand/20">
                           <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-3 font-mono">Student Private Note</label>
-                          <div className="blur-md select-none text-sm text-slate-300 pointer-events-none transition-all duration-700 group-hover:blur-sm">
+                          <div className={cn(
+                            "text-sm transition-all duration-300",
+                            isPrivateNoteVisible
+                              ? "text-slate-700"
+                              : "blur-md select-none text-slate-300 pointer-events-none group-hover:blur-sm"
+                          )}>
                             {report.privateNote}
                           </div>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] opacity-100 group-hover:bg-white/10 transition-all rounded-xl">
-                            <Button size="sm" className="bg-brand text-white hover:bg-brand-active text-[10px] font-bold tracking-widest h-9 px-6 rounded-lg uppercase shadow-sm">
+                          <div className={cn(
+                            "absolute inset-0 flex flex-col items-center justify-center rounded-xl transition-all",
+                            isPrivateNoteVisible
+                              ? "bg-transparent pointer-events-none opacity-0"
+                              : "bg-white/40 backdrop-blur-[2px] opacity-100 group-hover:bg-white/10"
+                          )}>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (!report) return
+                                setRevealedPrivateNotes((prev) => ({ ...prev, [report.id]: true }))
+                              }}
+                              className="bg-brand text-white hover:bg-brand-active text-[10px] font-bold tracking-widest h-9 px-6 rounded-lg uppercase shadow-sm pointer-events-auto"
+                            >
                               <Eye className="w-3.5 h-3.5 mr-2" /> Reveal Private Note
                             </Button>
                           </div>
+                          {isPrivateNoteVisible && (
+                            <div className="mt-4">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  if (!report) return
+                                  setRevealedPrivateNotes((prev) => ({ ...prev, [report.id]: false }))
+                                }}
+                                className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest border-slate-200 text-slate-600"
+                              >
+                                <EyeOff className="w-3.5 h-3.5 mr-2" /> Hide Private Note
+                              </Button>
+                            </div>
+                          )}
                         </div>
 
                         <div className="p-6 bg-white rounded-xl border border-slate-100 shadow-inner">
@@ -239,14 +452,21 @@ export function MissingItemsPage() {
                     </DetailSection>
 
                     {/* Footer Decision Unit */}
-                    <div className="pt-8 border-t border-slate-100 flex gap-4">
-                      <Button variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
-                        <XCircle className="w-4 h-4 mr-2" /> Reject Report
-                      </Button>
-                      <Button className="flex-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all active:scale-95 shadow-sm">
-                        <CheckCircle2 className="w-4 h-4 mr-2" /> Verify & Authorize
-                      </Button>
-                    </div>
+                    {canReviewReport ? (
+                      <div className="pt-8 border-t border-slate-100 flex gap-4">
+                        <Button disabled={isUpdating} onClick={() => void updateReportStatus("REJECTED")} variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
+                          <XCircle className="w-4 h-4 mr-2" /> Reject Report
+                        </Button>
+                        <Button disabled={isUpdating} onClick={() => void updateReportStatus("ACTIVE_SEARCH")} className="flex-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all active:scale-95 shadow-sm">
+                          <CheckCircle2 className="w-4 h-4 mr-2" /> Verify & Authorize
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="pt-8 border-t border-slate-100 rounded-xl bg-slate-50 px-5 py-4 text-xs font-semibold text-slate-600">
+                        Review decision is already recorded for this report. Continue with inventory matching or follow-up handling.
+                      </div>
+                    )}
+                    {error && <p className="text-xs font-semibold text-rose-600">{error}</p>}
                   </div>
                 </div>
               </div>
@@ -292,9 +512,11 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 function StatusBadge({ status }: { status: string }) {
   const getStyles = () => {
     switch (status) {
-      case 'Submitted': return 'bg-blue-50 text-blue-700 border-blue-100'
-      case 'Under Review': return 'bg-amber-50 text-amber-700 border-amber-100'
-      case 'Active Search': return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
+      case 'SUBMITTED': return 'bg-blue-50 text-blue-700 border-blue-100'
+      case 'UNDER_REVIEW': return 'bg-amber-50 text-amber-700 border-amber-100'
+      case 'ACTIVE_SEARCH': return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
+      case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100'
+      case 'RESOLVED': return 'bg-slate-100 text-slate-700 border-slate-200'
       default: return 'bg-slate-50 text-slate-600 border-slate-100'
     }
   }
@@ -304,7 +526,7 @@ function StatusBadge({ status }: { status: string }) {
       "px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-all",
       getStyles()
     )}>
-      {status}
+      {status.replaceAll("_", " ")}
     </span>
   )
 }

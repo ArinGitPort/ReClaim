@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { api, clearStoredToken, getStoredToken, setStoredToken } from "@/lib/api"
+import { disconnectRealtimeSocket } from "@/lib/realtime"
 
 interface User {
   id: string
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.data.user)
       } catch {
         clearStoredToken()
+        disconnectRealtimeSocket()
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
+    disconnectRealtimeSocket()
     clearStoredToken()
     setUser(null)
   }

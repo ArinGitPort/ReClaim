@@ -14,20 +14,52 @@ import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
+import { api } from "@/lib/api"
+import { AxiosError } from "axios"
 
 
-export function LogNewItemModal({ onClose }: { onClose: () => void }) {
+export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState(1)
+  const [savedCode, setSavedCode] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [title, setTitle] = useState("")
+  const [category, setCategory] = useState("")
+  const [color, setColor] = useState("")
+  const [location, setLocation] = useState("")
+  const [storage, setStorage] = useState("")
+  const [notes, setNotes] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsSubmitting(true)
-    setTimeout(() => {
+
+    try {
+      const response = await api.post<{ item: { code: string } }>("/items", {
+        title,
+        category,
+        color,
+        foundLocation: location,
+        foundAtUtc: new Date().toISOString(),
+        publicDescription: `${title} reported by admin inventory intake`,
+        privateDiscoveryNote: notes || undefined,
+        privateData: {},
+        storageLocation: storage,
+      })
+
+      setSavedCode(response.data.item.code)
+      onSaved?.()
       setIsSubmitting(false)
-      setStep(2) // Confirmation step
-    }, 1500)
+      setStep(2)
+    } catch (err) {
+      const message = err instanceof AxiosError
+        ? (err.response?.data as { message?: string } | undefined)?.message
+        : undefined
+      setError(message ?? "Failed to log item. Please check required fields and try again.")
+      setIsSubmitting(false)
+    }
   }
 
   if (step === 2) {
@@ -38,7 +70,7 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           <h3 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">Item Logged Successfully</h3>
-          <p className="text-slate-500 font-medium">ITEM-8293 has been added to the secure inventory.</p>
+          <p className="text-slate-500 font-medium">{savedCode ?? "Item"} has been added to the secure inventory.</p>
         </div>
         <div className="pt-4 flex gap-3">
           <Button variant="outline" className="flex-1 h-12" onClick={() => setStep(1)}>Log Another</Button>
@@ -66,7 +98,7 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Form Area */}
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
+      <form id="log-new-item-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
         {/* Core Identity */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
@@ -77,25 +109,25 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-xs uppercase tracking-wider font-bold text-slate-500">Item Title/Name</Label>
-              <Input id="title" placeholder="e.g. Silver Ring with Blue Stone" required className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm" />
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Silver Ring with Blue Stone" required className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="category" className="text-xs uppercase tracking-wider font-bold text-slate-500">Category</Label>
-                <Select id="category" className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
+                <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
                   <option value="">Select Category</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="wallets">Wallets/IDs</option>
-                  <option value="bags">Bags</option>
-                  <option value="clothing">Clothing</option>
-                  <option value="keys">Keys</option>
-                  <option value="others">Others</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Wallets/IDs">Wallets/IDs</option>
+                  <option value="Bags">Bags</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Keys">Keys</option>
+                  <option value="Others">Others</option>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-                <Input id="color" placeholder="e.g. Silver, Black" className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
+                <Input id="color" value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g. Silver, Black" required className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
               </div>
             </div>
           </div>
@@ -111,11 +143,11 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="location" className="text-xs uppercase tracking-wider font-bold text-slate-500">Found At</Label>
-              <Input id="location" placeholder="e.g. Lobby B" required className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
+              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lobby B" required className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="storage" className="text-xs uppercase tracking-wider font-bold text-slate-500">Storage Location</Label>
-              <Input id="storage" placeholder="e.g. Safe A-1" required className="h-11 bg-amber-50/30 border-amber-100 focus:bg-white transition-all shadow-sm font-medium" />
+              <Input id="storage" value={storage} onChange={(e) => setStorage(e.target.value)} placeholder="e.g. Safe A-1" required className="h-11 bg-amber-50/30 border-amber-100 focus:bg-white transition-all shadow-sm font-medium" />
             </div>
           </div>
         </div>
@@ -147,11 +179,14 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
             <Label htmlFor="notes" className="text-xs uppercase tracking-wider font-bold text-slate-500">Notes (Only visible to Admin)</Label>
             <Textarea 
               id="notes" 
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Found inside the wallet was a student ID for Juan Dela Cruz..."
               className="min-h-[100px] bg-slate-50 border-slate-200 shadow-sm text-slate-600"
             />
           </div>
         </div>
+        {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
       </form>
 
       {/* Footer Actions */}
@@ -165,6 +200,8 @@ export function LogNewItemModal({ onClose }: { onClose: () => void }) {
           Cancel
         </Button>
         <Button 
+          type="submit"
+          form="log-new-item-form"
           disabled={isSubmitting}
           className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95"
         >

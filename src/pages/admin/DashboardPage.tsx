@@ -1,7 +1,5 @@
 import { 
   TrendingUp, 
-  Package, 
-  HandMetal, 
   ShieldCheck,
   ArrowUpRight,
   AlertCircle
@@ -116,19 +114,3 @@ function MetricCard({
   )
 }
 
-function HealthBar({ label, value, status }: { label: string, value: number, status: string }) {
-  return (
-    <div className="space-y-2.5">
-      <div className="flex justify-between items-end">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</span>
-        <span className="text-[10px] font-bold text-brand">{status}</span>
-      </div>
-      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-        <div 
-          className="h-full bg-brand rounded-full transition-all duration-1000" 
-          style={{ width: `${value}%` }} 
-        />
-      </div>
-    </div>
-  )
-}

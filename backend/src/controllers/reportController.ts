@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { listReports, submitLostReport, updateReportStatus } from "../services/reportService.js";
 import { logAudit } from "../services/auditService.js";
+import { emitReportStatusUpdated } from "../realtime/socket.js";
 
 const createReportSchema = z.object({
   title: z.string().min(2),
@@ -82,6 +83,14 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
       status: report.status,
       matchedItemId: report.matchedItemId,
     },
+  });
+
+  emitReportStatusUpdated({
+    reportId: report.id,
+    reportCode: report.reportCode,
+    status: report.status,
+    reporterUserId: report.reporterUserId,
+    matchedItemId: report.matchedItemId,
   });
 
   res.json({ report });
