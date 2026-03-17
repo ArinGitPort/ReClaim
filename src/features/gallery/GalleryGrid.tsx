@@ -2,14 +2,13 @@ import { ItemCard } from "@/features/gallery/ItemCard"
 import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
 
-// Mock data generator for initial UI building
+// Canonical items — mirrors admin Inventory (ITEM-8291 through ITEM-8286)
 const mockItems: FoundItem[] = [
-  { id: "1", title: "Apple MacBook Pro M2", category: "Electronics", location: "Main Library - 2nd Floor", dateLost: "2026-03-14T08:00:00Z", isHighValue: true },
-  { id: "2", title: "Blue Hydroflask 32oz", category: "Everyday Items", location: "Student Union - Cafeteria", dateLost: "2026-03-13T12:30:00Z", isHighValue: false },
-  { id: "3", title: "Black Leather Wallet", category: "Wallets & IDs", location: "Gymnasium - Locker Room", dateLost: "2026-03-15T16:00:00Z", isHighValue: true },
-  { id: "4", title: "Keys with Honda Lanyard", category: "Everyday Items", location: "Main Library - Entrance", dateLost: "2026-03-10T09:15:00Z", isHighValue: true },
-  { id: "5", title: "Gray North Face Beanie", category: "Clothing & Accessories", location: "Student Union - Lounge", dateLost: "2026-03-14T18:45:00Z", isHighValue: false },
-  { id: "6", title: "Sony WH-1000XM4 Headphones", category: "Electronics", location: "Main Library - Quiet Zone", dateLost: "2026-03-12T14:20:00Z", isHighValue: true },
+  { id: "ITEM-8291", title: "Apple MacBook Pro M2", category: "Electronics", location: "Main Library - 2nd Floor", dateLost: "2026-03-14T08:00:00Z", isHighValue: true },
+  { id: "ITEM-8290", title: "Black Leather Wallet", category: "Wallets/IDs", location: "Gymnasium - Locker Room", dateLost: "2026-03-15T17:00:00Z", isHighValue: true },
+  { id: "ITEM-8289", title: "Blue Hydroflask 32oz", category: "Everyday Items", location: "Student Union - Cafeteria", dateLost: "2026-03-13T12:30:00Z", isHighValue: false },
+  { id: "ITEM-8288", title: "Keys with Honda Lanyard", category: "Everyday Items", location: "Main Library - Entrance", dateLost: "2026-03-10T09:15:00Z", isHighValue: false },
+  { id: "ITEM-8286", title: "Sony WH-1000XM4 Headphones", category: "Electronics", location: "Main Library - Quiet Zone", dateLost: "2026-03-12T14:20:00Z", isHighValue: true },
 ]
 
 export function GalleryGrid() {

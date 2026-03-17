@@ -14,15 +14,16 @@ import {
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
-import { FastEntryForm } from "@/features/admin/FastEntryForm"
+import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
 
-// Mock Data
+// Mock Data — canonical set shared with GalleryGrid
 const MOCK_INVENTORY = [
-  { id: "ITEM-8291", thumbnail: null, title: "Apple MacBook Pro M2", category: "Electronics", date: "2024-03-15", location: "Library - 2nd Floor", status: "Available", storage: "Safe A-1" },
-  { id: "ITEM-8290", thumbnail: null, title: "Blue Leather Wallet", category: "Wallets/IDs", date: "2024-03-14", location: "Cafeteria Lobby", status: "Claim Pending", storage: "Shelf B-2" },
-  { id: "ITEM-8289", thumbnail: null, title: "Nike Water Bottle", category: "Others", date: "2024-03-14", location: "University Gym", status: "Available", storage: "Shelf C-4" },
-  { id: "ITEM-8288", thumbnail: null, title: "Keys with Dino Keychain", category: "Keys", date: "2024-03-13", location: "Engineering Bld 301", status: "Available", storage: "Safe B-3" },
-  { id: "ITEM-8287", thumbnail: null, title: "Gray North Face Hoodie", category: "Clothing", date: "2024-03-12", location: "Parking Lot A", status: "Returned", storage: "-" },
+  { id: "ITEM-8291", thumbnail: null, title: "Apple MacBook Pro M2", category: "Electronics", date: "2026-03-14", location: "Main Library - 2nd Floor", status: "Claim Pending", storage: "Safe A-1" },
+  { id: "ITEM-8290", thumbnail: null, title: "Black Leather Wallet", category: "Wallets/IDs", date: "2026-03-15", location: "Gymnasium - Locker Room", status: "Available", storage: "Shelf B-2" },
+  { id: "ITEM-8289", thumbnail: null, title: "Blue Hydroflask 32oz", category: "Everyday Items", date: "2026-03-13", location: "Student Union - Cafeteria", status: "Available", storage: "Shelf C-4" },
+  { id: "ITEM-8288", thumbnail: null, title: "Keys with Honda Lanyard", category: "Everyday Items", date: "2026-03-10", location: "Main Library - Entrance", status: "Available", storage: "Safe B-3" },
+  { id: "ITEM-8287", thumbnail: null, title: "Gray North Face Hoodie", category: "Clothing", date: "2026-03-09", location: "Student Union - Lounge", status: "Returned", storage: "-" },
+  { id: "ITEM-8286", thumbnail: null, title: "Sony WH-1000XM4 Headphones", category: "Electronics", date: "2026-03-12", location: "Main Library - Quiet Zone", status: "Available", storage: "Shelf A-3" },
 ]
 
 export function InventoryPage() {
@@ -32,9 +33,10 @@ export function InventoryPage() {
   return (
     <div className="space-y-8">
       {showFastEntry && (
-        <div className="fixed inset-0 bg-[#0F172A]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-xl border border-white/20">
-            <FastEntryForm onClose={() => setShowFastEntry(false)} />
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowFastEntry(false)} />
+          <div className="relative w-full max-w-xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+            <LogNewItemModal onClose={() => setShowFastEntry(false)} />
           </div>
         </div>
       )}
@@ -77,7 +79,7 @@ export function InventoryPage() {
       </div>
 
       {/* Inventory Table Container */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto overflow-y-hidden">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>

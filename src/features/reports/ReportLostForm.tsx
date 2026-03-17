@@ -294,7 +294,7 @@ export function ReportLostForm() {
             <Button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-14 text-base font-bold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-xl shadow-brand/20 bg-brand hover:bg-brand/90"
+              className="w-full h-14 text-base font-bold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md bg-brand hover:bg-brand/90"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">

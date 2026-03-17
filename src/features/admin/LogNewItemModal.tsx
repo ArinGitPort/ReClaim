@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
 
 
-export function FastEntryForm({ onClose }: { onClose: () => void }) {
+export function LogNewItemModal({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState(1)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -33,7 +33,7 @@ export function FastEntryForm({ onClose }: { onClose: () => void }) {
   if (step === 2) {
     return (
       <div className="p-8 text-center space-y-6 animate-in zoom-in-95 duration-300">
-        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto shadow-inner">
+        <div className="w-20 h-20 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto shadow-inner">
           <CheckCircle2 className="w-10 h-10 text-emerald-600" />
         </div>
         <div>
@@ -53,12 +53,11 @@ export function FastEntryForm({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/20">
+          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
             <Plus className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Fast-Entry Log</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Office Intake Mode</p>
+            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Log New Item</h2>
           </div>
         </div>
         <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
@@ -130,7 +129,7 @@ export function FastEntryForm({ onClose }: { onClose: () => void }) {
           
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-brand/20 transition-all group"
+            className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-brand/20 transition-all group"
           >
             <input type="file" ref={fileInputRef} className="hidden" />
             <Upload className="w-6 h-6 text-slate-300 group-hover:text-brand mb-2 transition-colors" />
@@ -167,7 +166,7 @@ export function FastEntryForm({ onClose }: { onClose: () => void }) {
         </Button>
         <Button 
           disabled={isSubmitting}
-          className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-lg shadow-brand/20 rounded-xl transition-all active:scale-95"
+          className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95"
         >
           {isSubmitting ? "Processing..." : "Log to Inventory"}
         </Button>

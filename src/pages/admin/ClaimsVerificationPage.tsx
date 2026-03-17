@@ -4,7 +4,6 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
-  XCircle,
   ShieldCheck,
   ArrowRight,
   Eye,
@@ -12,8 +11,10 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
+import { ClaimSuccessModal } from "@/features/claims/ClaimSuccessModal"
+import { DenyClaimModal } from "@/features/claims/DenyClaimModal"
 
-// Mock Data for Triage
+// Canonical claims — students claiming found items from the gallery
 const CLAIMS_DATA = [
   {
     id: "CLM-4421",
@@ -23,62 +24,65 @@ const CLAIMS_DATA = [
     timeAgo: "2 hours ago",
     isHighValue: true,
     item: "Apple MacBook Pro M2",
+    inventoryId: "ITEM-8291",
     physicalDetails: {
       color: "Space Gray",
-      condition: "Good",
+      condition: "Good — Minor scuff",
       storage: "Safe A-1",
       serialNumber: "FVFGG0M1Q6L4",
-      wallpaper: "Standard macOS Monterey"
+      deviceName: "Juan's MacBook Pro",
     },
     studentProof: {
-      marks: "Small scratch on the bottom right corner near the screw.",
+      marks: "Small crack on the bottom-left corner near the charging port.",
       serialNumber: "FVFGG0M1Q6L4",
-      wallpaper: "Standard macOS Monterey",
-      privateNote: "Found in a black laptop sleeve with a National U sticker."
+      deviceName: "Juan's MacBook Pro",
+      privateNote: "The lock screen wallpaper is a photo of my golden retriever named Bruno.",
     }
   },
   {
-    id: "CLM-4425",
-    category: "Jewelry",
-    student: "Maria Santos",
+    id: "CLM-4420",
+    category: "Everyday Items",
+    student: "Maria Clara",
     studentId: "2022-05123",
-    timeAgo: "15 minutes ago",
-    isHighValue: true,
-    item: "Engagement Ring (Gold)",
-    physicalDetails: {
-      color: "Yellow Gold",
-      condition: "Excellent",
-      storage: "Vault-01",
-      serialNumber: "N/A",
-      wallpaper: "N/A"
-    },
-    studentProof: {
-      marks: "Engraved with 'A & M 2023' on the inside band.",
-      serialNumber: "N/A",
-      wallpaper: "N/A",
-      privateNote: "It has a 1-carat diamond in a six-prong setting."
-    }
-  },
-  {
-    id: "CLM-4410",
-    category: "Accessories",
-    student: "Roberto Reyes",
-    studentId: "2021-09821",
     timeAgo: "5 hours ago",
     isHighValue: false,
-    item: "Hydro Flask Water Bottle",
+    item: "Blue Hydroflask 32oz",
+    inventoryId: "ITEM-8289",
     physicalDetails: {
       color: "Pacific Blue",
-      condition: "Battered",
-      storage: "Bin B-12",
+      condition: "Good",
+      storage: "Shelf C-4",
       serialNumber: "N/A",
-      wallpaper: "N/A"
+      deviceName: "N/A",
     },
     studentProof: {
-      marks: "Many stickers of anime characters (One Piece) and a dent on the bottom.",
+      marks: "Sunflower stickers and a small dent on the bottom.",
       serialNumber: "N/A",
-      wallpaper: "N/A",
-      privateNote: "It was filled with iced tea when I lost it."
+      deviceName: "N/A",
+      privateNote: "My name is written in white marker on the bottom of the bottle.",
+    }
+  },
+  {
+    id: "CLM-4419",
+    category: "Wallets/IDs",
+    student: "Roberto Reyes",
+    studentId: "2021-09821",
+    timeAgo: "1 day ago",
+    isHighValue: true,
+    item: "Black Leather Wallet",
+    inventoryId: "ITEM-8290",
+    physicalDetails: {
+      color: "Black",
+      condition: "Good",
+      storage: "Shelf B-2",
+      serialNumber: "N/A",
+      deviceName: "N/A",
+    },
+    studentProof: {
+      marks: "Distinctive 'R' embossed on the front cover.",
+      serialNumber: "N/A",
+      deviceName: "N/A",
+      privateNote: "Contains my National U student ID, a folded handwritten note, and a Php 200 bill.",
     }
   }
 ]
@@ -89,7 +93,7 @@ export function ClaimsVerificationPage() {
   const [categoryFilter, setCategoryFilter] = useState("All")
   const [status, setStatus] = useState<"review" | "denying" | "success">("review")
   const [denyReason, setDenyReason] = useState("")
-  const [revealWallpaper, setRevealWallpaper] = useState(false)
+  const [revealDeviceName, setRevealDeviceName] = useState(false)
   const [revealSerial, setRevealSerial] = useState(false)
   
   // Selection change states
@@ -104,7 +108,7 @@ export function ClaimsVerificationPage() {
       setPendingSelection(id)
     } else {
       setSelectedClaimId(id)
-      setRevealWallpaper(false)
+      setRevealDeviceName(false)
       setRevealSerial(false)
       setDenyReason("")
       setStatus("review")
@@ -116,7 +120,7 @@ export function ClaimsVerificationPage() {
       setSelectedClaimId(pendingSelection)
       setPendingSelection(null)
       setIsDirty(false)
-      setRevealWallpaper(false)
+      setRevealDeviceName(false)
       setRevealSerial(false)
       setDenyReason("")
       setStatus("review")
@@ -131,23 +135,6 @@ export function ClaimsVerificationPage() {
     return matchesSearch && matchesCategory
   })
 
-  if (status === "success") {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-8 min-h-[600px]">
-        <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center shadow-inner relative">
-          <div className="absolute inset-0 bg-emerald-400 rounded-full opacity-10" />
-          <CheckCircle2 className="w-12 h-12 text-emerald-600 relative z-10" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tight">Claim Processed</h2>
-          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">The verification for {selectedClaim.id} has been completed. The student will receive an official notification shortly.</p>
-        </div>
-        <Button className="h-12 px-10 bg-brand hover:bg-brand-active text-white font-bold rounded-xl" onClick={() => setStatus("review")}>
-          Return to Queue
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -168,8 +155,8 @@ export function ClaimsVerificationPage() {
         {/* Unsaved Changes Prompt (Modal Style) */}
         {pendingSelection && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setPendingSelection(null)} />
-            <div className="relative bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 fill-mode-both">
+            <div className="absolute inset-0 bg-slate-900/80" onClick={() => setPendingSelection(null)} />
+            <div className="relative bg-white rounded-xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 fill-mode-both">
               <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-6">
                 <AlertCircle className="w-8 h-8 text-amber-600" />
               </div>
@@ -186,7 +173,7 @@ export function ClaimsVerificationPage() {
         {/* LEFT PANEL: Claims Navigation (Fixed width) */}
         <div className="w-full xl:w-[380px] xl:sticky xl:top-[1.5rem] flex flex-col gap-4">
           {/* Filters - Design Synced */}
-          <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div className="relative group">
               <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
               <input 
@@ -198,7 +185,7 @@ export function ClaimsVerificationPage() {
               />
             </div>
             <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar">
-              {["All", "Electronics", "Jewelry", "Accessories"].map(cat => (
+              {["All", "Electronics", "Wallets/IDs", "Everyday Items"].map(cat => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
@@ -265,51 +252,9 @@ export function ClaimsVerificationPage() {
 
         {/* RIGHT PANEL: Verification Workspace (Fluid) */}
         <div className="flex-1 w-full space-y-6">
-          {status === "denying" && (
-            <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 space-y-6 shadow-sm animate-in slide-in-from-top-4 duration-300">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center">
-                  <XCircle className="w-6 h-6 text-rose-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-extrabold text-rose-900 uppercase tracking-tight">Deny Claim Request</h3>
-                  <p className="text-rose-700/70 text-sm font-medium">A reason for denial is mandatory and will be sent to the student.</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-rose-900 uppercase tracking-wider">Reason for Denial</label>
-                <textarea 
-                  value={denyReason}
-                  onChange={(e) => {
-                    setDenyReason(e.target.value)
-                    setIsDirty(true)
-                  }}
-                  placeholder="e.g. The serial number provided does not match our records..."
-                  className="w-full min-h-[120px] bg-white border border-rose-200 rounded-2xl p-4 text-sm font-medium focus:ring-4 focus:ring-rose-500/10 focus:border-rose-300 transition-all outline-none shadow-sm"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" className="h-12 border-rose-200 text-rose-700 hover:bg-rose-100 rounded-xl" onClick={() => {
-                  setStatus("review")
-                  setIsDirty(false)
-                }}>Cancel</Button>
-                <Button 
-                  className="h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-widest text-xs disabled:opacity-50 rounded-xl"
-                  disabled={!denyReason.trim()}
-                  onClick={() => {
-                    setStatus("success")
-                    setIsDirty(false)
-                  }}
-                >
-                  Confirm Denial
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* Main Verification Grid */}
           <div className={cn(
-            "grid grid-cols-1 xl:grid-cols-2 gap-px bg-slate-200 rounded-3xl overflow-hidden shadow-sm border border-slate-200 transition-all",
+            "grid grid-cols-1 xl:grid-cols-2 gap-px bg-slate-200 rounded-xl overflow-hidden shadow-sm border border-slate-200 transition-all",
             status === "denying" && "opacity-40 grayscale pointer-events-none scale-[0.99]"
           )}>
             {/* System Record */}
@@ -334,8 +279,8 @@ export function ClaimsVerificationPage() {
                     Admin Private Data
                   </div>
                   <div className="grid grid-cols-1 gap-6">
-                     <AdminOnlyField label="Serial Number" value={selectedClaim.physicalDetails.serialNumber} />
-                     <AdminOnlyField label="Lock Screen Wallpaper" value={selectedClaim.physicalDetails.wallpaper} />
+                   <AdminOnlyField label="Serial Number" value={selectedClaim.physicalDetails.serialNumber} />
+                   <AdminOnlyField label="Device Name / BT Name" value={selectedClaim.physicalDetails.deviceName} />
                   </div>
                 </div>
               </div>
@@ -363,19 +308,19 @@ export function ClaimsVerificationPage() {
                 <div className="space-y-4 pt-4">
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verification Matching</div>
                   <div className="grid grid-cols-1 gap-6">
-                    <SubmissionField 
-                      label="Claimed Serial" 
-                      value={selectedClaim.studentProof.serialNumber} 
+                    <SubmissionField
+                      label="Claimed Serial"
+                      value={selectedClaim.studentProof.serialNumber}
                       isRevealed={revealSerial}
                       onReveal={() => setRevealSerial(true)}
                       isMatch={selectedClaim.studentProof.serialNumber === selectedClaim.physicalDetails.serialNumber}
                     />
-                    <SubmissionField 
-                      label="Claimed Wallpaper" 
-                      value={selectedClaim.studentProof.wallpaper} 
-                      isRevealed={revealWallpaper}
-                      onReveal={() => setRevealWallpaper(true)}
-                      isMatch={selectedClaim.studentProof.wallpaper === selectedClaim.physicalDetails.wallpaper}
+                    <SubmissionField
+                      label="Device / BT Name"
+                      value={selectedClaim.studentProof.deviceName}
+                      isRevealed={revealDeviceName}
+                      onReveal={() => setRevealDeviceName(true)}
+                      isMatch={selectedClaim.studentProof.deviceName === selectedClaim.physicalDetails.deviceName}
                     />
                   </div>
                 </div>
@@ -393,7 +338,7 @@ export function ClaimsVerificationPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="bg-white p-6 md:px-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-white p-6 md:px-10 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4 group cursor-help">
               <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-brand/5 group-hover:border-brand/20 group-hover:text-brand transition-all">
                 <ShieldCheck className="w-6 h-6" />
@@ -431,6 +376,25 @@ export function ClaimsVerificationPage() {
           </div>
         </div>
       </div>
+
+      <DenyClaimModal 
+        isOpen={status === "denying"}
+        onClose={() => setStatus("review")}
+        onConfirm={(reason) => {
+          console.log("Denying with reason:", reason)
+          setStatus("review")
+          setDenyReason("")
+          setIsDirty(false)
+        }}
+        denyReason={denyReason}
+        setDenyReason={setDenyReason}
+      />
+
+      <ClaimSuccessModal 
+        isOpen={status === "success"}
+        onClose={() => setStatus("review")}
+        claimId={selectedClaim.id}
+      />
     </div>
   )
 }

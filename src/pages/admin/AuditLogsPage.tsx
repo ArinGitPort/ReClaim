@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 
 const MOCK_LOGS = [
-  { id: "LOG-003", event: "Claim Approved", user: "Admin (admin@reclaim.ph)", role: "System Admin", timestamp: "2024-03-16 12:04:12", ip: "192.168.1.1", status: "Success" },
-  { id: "LOG-004", event: "Config Updated", user: "System", role: "Automated Service", timestamp: "2024-03-16 13:00:00", ip: "localhost", status: "System" },
-  { id: "LOG-005", event: "Report Rejected", user: "Staff (staff_02)", role: "Frontdesk Staff", timestamp: "2024-03-16 13:45:22", ip: "192.168.1.8", status: "Access Denied" },
+  { id: "LOG-001", event: "Item Logged", detail: "Apple MacBook Pro M2 (ITEM-8291)", user: "Admin (admin@reclaim.ph)", role: "System Admin", timestamp: "2026-03-14 09:15:00", ip: "192.168.1.1", status: "Success" },
+  { id: "LOG-002", event: "Claim Submitted", detail: "CLM-4421 by Juan Dela Cruz — MacBook Pro", user: "Juan Dela Cruz (2021-10294)", role: "Student", timestamp: "2026-03-15 10:30:22", ip: "192.168.1.45", status: "Success" },
+  { id: "LOG-003", event: "Claim Approved", detail: "CLM-4421 — MacBook Pro returned to Juan Dela Cruz", user: "Admin (admin@reclaim.ph)", role: "System Admin", timestamp: "2026-03-16 12:04:12", ip: "192.168.1.1", status: "Success" },
+  { id: "LOG-004", event: "Report Submitted", detail: "REP-9020 by Maria Clara — Blue Hydroflask", user: "Maria Clara (2022-05123)", role: "Student", timestamp: "2026-03-16 13:20:45", ip: "192.168.1.67", status: "Success" },
+  { id: "LOG-005", event: "Report Rejected", detail: "REP-9019 — Insufficient proof identifiers", user: "Staff (staff_02)", role: "Frontdesk Staff", timestamp: "2026-03-16 13:45:22", ip: "192.168.1.8", status: "Access Denied" },
 ]
 
 export function AuditLogsPage() {
@@ -43,7 +45,7 @@ export function AuditLogsPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
@@ -66,8 +68,11 @@ export function AuditLogsPage() {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">
-                      <EventIcon event={log.event} />
-                      <span className="font-semibold text-slate-900 text-sm leading-tight">{log.event}</span>
+                       <EventIcon event={log.event} />
+                       <div>
+                         <span className="font-semibold text-slate-900 text-sm leading-tight">{log.event}</span>
+                         {log.detail && <p className="text-[10px] font-medium text-slate-400 mt-0.5">{log.detail}</p>}
+                       </div>
                     </div>
                   </td>
                   <td className="px-8 py-5">
@@ -98,7 +103,7 @@ export function AuditLogsPage() {
       </div>
 
       {/* Database Integrity Alert */}
-      <div className="p-8 bg-brand rounded-3xl text-white overflow-hidden relative group">
+      <div className="p-8 bg-brand rounded-xl text-white overflow-hidden relative group">
         <div className="absolute top-0 right-0 p-8 transform translate-x-8 -translate-y-8 opacity-10 group-hover:opacity-20 transition-all rotate-12">
            <Database className="w-48 h-48" />
         </div>
