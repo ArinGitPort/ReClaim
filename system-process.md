@@ -1,64 +1,53 @@
-Phase 1: The Student Initiation (User Side)
-This phase is all about discovery and structured data capture.
+# ReClaim System Process Architecture
 
-Discovery: The student logs into ReClaim (auto-capturing their session data, so no need to type their name or Student ID). They browse the "Found Items" gallery and spot their lost item (e.g., a MacBook Pro).
+## Workflow A: The Found Item Lifecycle
+*This workflow initiates when a physical item is discovered on campus and handed over to the administration.*
 
-Initiation: The student clicks the "Claim This Item" button on the item card.
+### Phase 1: Physical Handover & System Logging
+1. **Drop-off Protocol:** A student finds an item, consults the "Turn In an Item" drop-off guide in the User UI, and surrenders the item to the Campus Admin Office.
+2. **Admin Data Entry:** The Admin navigates to `Inventory Management` and clicks `[Log New Item]`.
+3. **Data Segregation:** * The Admin inputs **General Information** (Category, Color) which becomes public in the user gallery.
+    * The Admin inputs **Sensitive Discovery Notes** and **Admin Private Data** (e.g., Serial Number, specific damage), which are encrypted and kept strictly internal.
+4. **State Initialization:** The item is saved to the database with the status `Available`.
 
-The Verification Form: A modal or dedicated page opens. Because the system knows this is an "Electronics" category item, it renders the dynamic Verification Details form.
+### Phase 2: User Discovery & Claim Initiation
+1. **Gallery Browsing:** The owner logs into ReClaim, navigates to `Browse Found Items`, and uses the filters (Category, Location, Date) to locate their item.
+2. **Claim Trigger:** The user identifies the item (marked with a 'Secure Match Required' badge) and clicks `[Claim This Item]`.
+3. **Blind Verification Form:** The system prompts the user to provide specific 'Proof Identifiers' (e.g., Claimed Serial, Distinguishing Marks, Student Private Note).
+4. **Submission:** The user submits the claim. The item's global status updates to `Claim Pending` (locking it from other users), and the claim appears in the user's `My Claims` tab as `Pending Verification`.
 
-Data Entry: The student fills out the hidden identifiers (e.g., "Serial Number is FVFG... and the lock screen is a picture of a cat").
+### Phase 3: Admin Adjudication (Claims Verification)
+1. **Queue Triage:** The Admin opens the `Claims Verification` dashboard. The new claim populates in the left-hand triage list, flagged with a timestamp and priority level.
+2. **Workspace Comparison:** The Admin selects the claim to populate the split-screen workspace:
+    * **System Record (Left):** Displays the Admin's hidden logged data (e.g., FVFG0M1Q6L4).
+    * **Student Submission (Right):** Displays the user's submitted proof.
+3. **Verification Match:** The system highlights identical data entries with a green `Direct Match` indicator to reduce administrative cognitive load.
+4. **Decision Action:** * **Approve:** If data matches, Admin clicks `[Approve Claim]`.
+    * **Deny:** If data is entirely incorrect, Admin clicks `[Deny]`.
+    * **Inquiry:** Admin sends a message requesting more specific proof.
 
-Submission: The student clicks "Submit Claim Request."
+### Phase 4: Resolution & Physical Return
+1. **Authorization:** Upon approval, the system generates a secure Pickup Token and notifies the user.
+2. **Handover:** The user presents their ID and token at the Admin Office.
+3. **Audit Closure:** The Admin processes the handover. The transaction is permanently recorded in the `Handover Log` and `Audit Archive`. The item is removed from the active system.
 
-User UI Update: The student is redirected to their "My Claims" page. The item shows a status badge of Pending Verification.
+---
 
-Phase 2: The System Handoff (Database Layer)
-The moment the student hits submit, the system does the heavy lifting in the background to prevent chaos.
+## Workflow B: The Missing Item Lifecycle
+*This workflow initiates when a user loses an item that has not yet been turned in to the administration.*
 
-Locking the Item: The item in the public "Found Items" gallery changes its status from Available to Claim Pending. This visually signals to other students that someone is currently claiming it, preventing 50 people from trying to claim the same MacBook.
+### Phase 1: Proactive Reporting
+1. **Report Initiation:** The user navigates to `Report a Lost Item`.
+2. **Structured Submission:** The user fills out the three-part form: Item Identity (Category, Color, Location), Time Window, and Proof & Verification (Hidden distinguishing marks, reference photos).
+3. **State Initialization:** The report is submitted, appearing in the user's `My Lost Reports` tab as `Under Review`.
 
-Routing: The system packages the student's verification data, attaches their User ID, and pushes it to the Admin's Claims Verification queue.
+### Phase 2: Admin Watchlist Triage
+1. **Queue Management:** The Admin navigates to the `Missing Items` dashboard. The report appears in the triage list.
+2. **Validation:** The Admin reviews the 'Privacy Guarded Data' provided by the student.
+3. **Status Update:** The Admin changes the status to `Active Search`, confirming to the student that the office is actively monitoring for this item.
 
-Phase 3: The Admin Adjudication (Admin Side)
-This is where the "Triage" UI we just designed comes into play.
-
-Notification: The Admin dashboard receives a real-time ping. The "Claims Verification" sidebar tab shows a notification dot (e.g., "1 New Claim").
-
-The Triage List: The Admin clicks into the Claims Verification page. On the left-hand navigation list, they see a new card for the MacBook Pro, tagged with the student's name and a New badge.
-
-The Workspace Comparison: The Admin clicks the card. The right side of the screen populates:
-
-Left Panel: Loads the Official Inventory Data (the serial number the Admin typed in when they found it).
-
-Right Panel: Loads the Student Submission.
-
-Blind Verification: The Admin clicks "Reveal Input" on the student's submitted serial number to see if it matches the official record.
-
-Phase 4: The Decision Matrix (Admin Action)
-Based on the comparison, the Admin has three paths:
-
-Path A: Inquiry (Need More Info)
-
-The Admin clicks "Inquiry Request." A text box opens to type a message: "Please describe the stickers on the bottom case." The claim status changes to Action Required on the student's dashboard.
-
-Path B: Denial (Mismatched Info)
-
-The Admin clicks "Deny Claim" and selects a reason (e.g., "Serial Number does not match"). The claim is closed, and the item goes back to Available in the public gallery.
-
-Path C: Approval (Direct Match)
-
-The Admin clicks "Approve Claim."
-
-Phase 5: The Physical Handover (Closing the Loop)
-Once approved, the digital process transitions into the physical world.
-
-The Authorization: The system generates a "Pickup Token" (a short alphanumeric code or QR code) and sends it to the student's dashboard and email. The item status changes to Ready for Pickup.
-
-The Office Visit: The student walks into the Admin office and presents their Student ID and the Pickup Token.
-
-The Final Scan: The Admin types the token into the dashboard or clicks "Process Handover" on the item.
-
-The Audit Archive: The system permanently logs the transaction: "MacBook Pro returned to Juan Dela Cruz on March 17, 2026, authorized by Admin Maria."
-
-Resolution: The item is removed from the active system and archived.
+### Phase 3: Inventory Matching
+1. **System Cross-Reference:** When viewing the Report Workspace, the Admin clicks `[Match Inventory]`.
+2. **Matching Engine:** The system queries the `Found Inventory` database for items matching the exact Category, Color, and Date parameters of the report.
+3. **Link Establishment:** If a physical match is found in the office, the Admin links the Lost Report to the Found Item.
+4. **Workflow Convergence:** The system notifies the user that a potential match has been found, prompting them to formally claim it, thereby merging into **Phase 3 of Workflow A**.

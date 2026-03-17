@@ -96,23 +96,3 @@
 
 ## 4. Design System & Color Palette
 Follow this specific color taxonomy for the Tailwind CSS configuration to maintain a professional, high-contrast UI suitable for a database-heavy dashboard. (This doesn't have to be exact, but it should be close.)
-
-### Base & Structure (The Canvas)
-* **App Canvas:** `#F1F5F9` (`bg-slate-100`) - Main background where content cards reside.
-* **Top Header:** `#FFFFFF` (`bg-white/80`) - Sticky top navigation with backdrop-blur.
-* **Sidebar & Mobile Pivot:** `#1E2F85` (Deep Navy) - Primary vertical navigation and mobile dropdown menu.
-* **Card/Surface Background:** `#FFFFFF` (Pure White) - Items, forms, and modal containers.
-* **Borders & Dividers:** 1px `slate-200` for white areas; `indigo-900/white-10` for navy areas.
-
-### Typography (The Text)
-* **Primary Text:** White (over Navy) / `#0F172A` (`slate-900`) over White backgrounds.
-* **Secondary Text:** `#64748B` (`slate-500`) - Metadata, location tags, and timestamps.
-
-### Interactive Elements (The Actions)
-* **Primary Action/Buttons:** `#263DA8` (Royal Blue) - "Claim This Item", etc.
-* **Active State (Sidebar):** `#FFFFFF` (white/10) - Vibrant highlight for the currently selected menu item against Navy.
-
-### System Status (The Indicators)
-* **Success (Verified/Returned):** `#10B981` (Emerald Green) - Approved claim badges, successful verification messages.
-* **Pending (Reviewing/Searching):** `#F59E0B` (Amber) - Items waiting for admin review, "Possible Match" AI flags.
-* **Error/Archived (Denied/Purged):** `#E11D48` (Rose Red) - Denied claims, expired items, "Stop AI Camera" action.
