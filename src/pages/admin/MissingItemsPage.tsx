@@ -39,6 +39,15 @@ type ReportRow = {
   marks: string
   privateNote: string
   reportedLostAtUtcRaw: string
+  linkedItem?: {
+    id: string
+    code: string
+    title: string
+    category: string
+    color: string
+    storageLocation: string
+    status: string
+  }
 }
 
 export function MissingItemsPage() {
@@ -72,6 +81,15 @@ export function MissingItemsPage() {
           status: ReportStatus
           proofData?: Record<string, unknown>
           reporterUser?: { name: string; studentId?: string | null }
+          matchedItem?: {
+            id: string
+            code: string
+            title: string
+            category: string
+            color: string
+            storageLocation?: string | null
+            status: string
+          } | null
         }>
       }>("/reports")
 
@@ -95,6 +113,17 @@ export function MissingItemsPage() {
           marks: String(proof.marks ?? "Not provided"),
           privateNote: String(proof.privateNote ?? "Not provided"),
           reportedLostAtUtcRaw: entry.reportedLostAtUtc,
+          linkedItem: entry.matchedItem
+            ? {
+                id: entry.matchedItem.id,
+                code: entry.matchedItem.code,
+                title: entry.matchedItem.title,
+                category: entry.matchedItem.category,
+                color: entry.matchedItem.color,
+                storageLocation: entry.matchedItem.storageLocation ?? "Unassigned",
+                status: entry.matchedItem.status,
+              }
+            : undefined,
         }
       })
 
@@ -163,6 +192,11 @@ export function MissingItemsPage() {
       return matchesSearch && matchesCategory
     }),
     [reports, searchQuery, categoryFilter]
+  )
+
+  const triageReports = useMemo(
+    () => filteredReports.filter((row) => row.status === "SUBMITTED" || row.status === "UNDER_REVIEW" || row.status === "ACTIVE_SEARCH"),
+    [filteredReports]
   )
 
   const report = reports.find(r => r.id === selectedReport)
@@ -250,7 +284,7 @@ export function MissingItemsPage() {
           </div>
 
           <div className="space-y-3">
-            {filteredReports.map((r) => (
+            {triageReports.map((r) => (
               <div
                 key={r.id}
                 onClick={() => setSelectedReport(r.id)}
@@ -290,9 +324,9 @@ export function MissingItemsPage() {
                 Loading reports...
               </div>
             )}
-            {!isLoading && filteredReports.length === 0 && (
+            {!isLoading && triageReports.length === 0 && (
               <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
-                No lost reports available.
+                No active reports in triage queue.
               </div>
             )}
           </div>
@@ -391,6 +425,21 @@ export function MissingItemsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {report.status === "MATCHED" && report.linkedItem && (
+                      <div className="p-6 bg-emerald-50/60 rounded-xl border border-emerald-100 space-y-3">
+                        <h5 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Linked Asset</h5>
+                        <div className="space-y-2">
+                          <DetailItem label="Inventory Code" value={report.linkedItem.code} />
+                          <DetailItem label="Matched Item" value={report.linkedItem.title} />
+                          <div className="grid grid-cols-2 gap-4">
+                            <DetailItem label="Category" value={report.linkedItem.category} />
+                            <DetailItem label="Color" value={report.linkedItem.color} />
+                          </div>
+                          <DetailItem label="Storage Location" value={report.linkedItem.storageLocation} />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Right: Security & Decisions */}
@@ -515,6 +564,7 @@ function StatusBadge({ status }: { status: string }) {
       case 'SUBMITTED': return 'bg-blue-50 text-blue-700 border-blue-100'
       case 'UNDER_REVIEW': return 'bg-amber-50 text-amber-700 border-amber-100'
       case 'ACTIVE_SEARCH': return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
+      case 'MATCHED': return 'bg-indigo-50 text-indigo-700 border-indigo-100'
       case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100'
       case 'RESOLVED': return 'bg-slate-100 text-slate-700 border-slate-200'
       default: return 'bg-slate-50 text-slate-600 border-slate-100'

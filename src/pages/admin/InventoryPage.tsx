@@ -251,10 +251,12 @@ export function InventoryPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const label = status === "CLAIM_PENDING" ? "READY FOR PICKUP" : status.replaceAll("_", " ")
+
   const getStyles = () => {
     switch(status) {
       case 'AVAILABLE': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      case 'CLAIM_PENDING': return 'bg-amber-50 text-amber-700 border-amber-100'
+      case 'CLAIM_PENDING': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'RETURNED': return 'bg-slate-50 text-slate-500 border-slate-100'
       case 'ARCHIVED': return 'bg-rose-50 text-rose-700 border-rose-100'
       default: return 'bg-slate-50 text-slate-700 border-slate-100'
@@ -267,7 +269,7 @@ function StatusBadge({ status }: { status: string }) {
       getStyles()
     )}>
       {status === 'CLAIM_PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-      {status.replaceAll("_", " ")}
+      {label}
     </span>
   )
 }

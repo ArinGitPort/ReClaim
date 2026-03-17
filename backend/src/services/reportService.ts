@@ -1,6 +1,6 @@
-import { ReportStatus, type Prisma } from "@prisma/client";
+import { ClaimStatus, ItemStatus, ReportStatus, type Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
-import { createCode } from "../utils/codes.js";
+import { createCode, createPickupToken } from "../utils/codes.js";
 import { HttpError } from "../utils/errors.js";
 
 export async function submitLostReport(input: {
@@ -29,6 +29,49 @@ export async function submitLostReport(input: {
 }
 
 export async function listReports(filters: { userId?: string; status?: ReportStatus }) {
+  if (filters.userId) {
+    const studentReports = await prisma.lostReport.findMany({
+      where: {
+        reporterUserId: filters.userId,
+        status: filters.status,
+      },
+      include: {
+        reporterUser: {
+          select: {
+            id: true,
+            name: true,
+            studentId: true,
+            email: true,
+          },
+        },
+        matchedItem: {
+          include: {
+            claims: {
+              where: {
+                claimantUserId: filters.userId,
+                status: ClaimStatus.APPROVED,
+              },
+              select: {
+                id: true,
+                claimCode: true,
+                pickupToken: true,
+                pickupTokenExpires: true,
+              },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return studentReports.map((report) => ({
+      ...report,
+      pickupClaim: report.matchedItem?.claims?.[0] ?? null,
+    }));
+  }
+
   return prisma.lostReport.findMany({
     where: {
       reporterUserId: filters.userId,
@@ -53,6 +96,7 @@ export async function updateReportStatus(input: {
   reportId: string;
   status: ReportStatus;
   matchedItemId?: string;
+  adminId: string;
 }) {
   const report = await prisma.lostReport.findUnique({ where: { id: input.reportId } });
   if (!report) {
@@ -72,6 +116,73 @@ export async function updateReportStatus(input: {
     report.status === ReportStatus.RESOLVED
   ) {
     throw new HttpError(400, "Cannot update a finalized report");
+  }
+
+  if (input.status === ReportStatus.MATCHED) {
+    if (!input.matchedItemId) {
+      throw new HttpError(400, "matchedItemId is required when marking report as matched");
+    }
+
+    if (report.status !== ReportStatus.ACTIVE_SEARCH) {
+      throw new HttpError(400, "Only active-search reports can be marked as match found");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const matchedItem = await tx.foundItem.findUnique({ where: { id: input.matchedItemId } });
+      if (!matchedItem) {
+        throw new HttpError(404, "Matched found item not found");
+      }
+
+      if (matchedItem.status !== ItemStatus.AVAILABLE) {
+        throw new HttpError(409, "Found item is no longer available for matching");
+      }
+
+      const now = new Date();
+      const updatedReport = await tx.lostReport.update({
+        where: { id: input.reportId },
+        data: {
+          status: ReportStatus.MATCHED,
+          matchedItemId: input.matchedItemId,
+        },
+      });
+
+      await tx.foundItem.update({
+        where: { id: input.matchedItemId },
+        data: {
+          status: ItemStatus.CLAIM_PENDING,
+        },
+      });
+
+      const existingClaim = await tx.claim.findFirst({
+        where: {
+          foundItemId: input.matchedItemId,
+          claimantUserId: report.reporterUserId,
+          status: ClaimStatus.APPROVED,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const claim = existingClaim ?? await tx.claim.create({
+        data: {
+          claimCode: createCode("CLM"),
+          foundItemId: input.matchedItemId,
+          claimantUserId: report.reporterUserId,
+          submittedProof: report.proofData,
+          status: ClaimStatus.APPROVED,
+          reviewerNote: "Auto-approved from lost-report matching workflow",
+          decisionAtUtc: now,
+          verifiedByAdminId: input.adminId,
+          pickupToken: createPickupToken(),
+          pickupTokenExpires: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 3),
+        },
+      });
+
+      return {
+        ...updatedReport,
+        pickupToken: claim.pickupToken,
+        pickupTokenExpires: claim.pickupTokenExpires,
+      };
+    });
   }
 
   return prisma.lostReport.update({

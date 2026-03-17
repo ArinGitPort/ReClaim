@@ -71,14 +71,17 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
     reportId: id,
     status: body.status,
     matchedItemId: body.matchedItemId,
+    adminId: req.user!.id,
   });
 
   await logAudit({
     actorUserId: req.user!.id,
-    action: AuditAction.REPORT_UPDATED,
+    action: body.status === ReportStatus.MATCHED ? AuditAction.REPORT_LINKED : AuditAction.REPORT_UPDATED,
     targetType: "lost_report",
     targetId: report.id,
-    description: `Report updated to ${body.status}`,
+    description: body.status === ReportStatus.MATCHED
+      ? `Admin linked report ${report.reportCode} to found item ${body.matchedItemId}`
+      : `Report updated to ${body.status}`,
     payload: {
       status: report.status,
       matchedItemId: report.matchedItemId,

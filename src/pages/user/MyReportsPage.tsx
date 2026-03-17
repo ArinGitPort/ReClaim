@@ -6,6 +6,14 @@ import { Link } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 
+type ReportRealtimeEvent = {
+  reportId: string
+  reportCode: string
+  status: string
+  reporterUserId: string
+  matchedItemId?: string | null
+}
+
 interface ReportView {
   id: string
   item: string
@@ -19,10 +27,13 @@ interface ReportView {
   marks: string
   privateNote: string
   status: string
+  pickupToken?: string
+  pickupTokenExpires?: string
 }
 
 export function MyReportsPage() {
   const [reports, setReports] = useState<ReportView[]>([])
+  const [liveNotice, setLiveNotice] = useState<string | null>(null)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
@@ -36,6 +47,10 @@ export function MyReportsPage() {
           reportedLostAtUtc: string
           timeWindow?: string
           proofData?: Record<string, unknown>
+          pickupClaim?: {
+            pickupToken?: string | null
+            pickupTokenExpires?: string | null
+          } | null
           createdAt: string
           status: string
         }>
@@ -56,7 +71,9 @@ export function MyReportsPage() {
             brand: String(proof.brand ?? "Not specified"),
             marks: String(proof.marks ?? "Not provided"),
             privateNote: String(proof.privateNote ?? "Not provided"),
-            status: report.status.replaceAll("_", " "),
+            status: toStudentStatusLabel(report.status),
+            pickupToken: report.pickupClaim?.pickupToken ?? undefined,
+            pickupTokenExpires: report.pickupClaim?.pickupTokenExpires ?? undefined,
           }
         })
       )
@@ -100,7 +117,10 @@ export function MyReportsPage() {
       return
     }
 
-    const handleStatusUpdated = () => {
+    const handleStatusUpdated = (event: ReportRealtimeEvent) => {
+      if (event.status === "MATCHED") {
+        setLiveNotice(`Good news! ${event.reportCode} is now ready for pickup.`)
+      }
       void loadReports()
     }
 
@@ -115,6 +135,11 @@ export function MyReportsPage() {
     <div className="w-full min-h-full pb-24">
       <TopNavBar title="My Lost Reports" />
       <div className="max-w-5xl mx-auto px-6 mt-8">
+        {liveNotice && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            {liveNotice}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-1">Tracking & Status</h2>
@@ -184,6 +209,16 @@ export function MyReportsPage() {
                     {report.privateNote}
                   </div>
                 </div>
+                {report.status === "Ready for Pickup" && report.pickupToken && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Pickup Authorization</div>
+                    <div className="text-lg font-black text-emerald-800 tracking-wide">{report.pickupToken}</div>
+                    <p className="mt-2 text-xs font-semibold text-emerald-700">
+                      Present this token at the Admin Office to claim your item.
+                      {report.pickupTokenExpires ? ` Expires: ${new Date(report.pickupTokenExpires).toLocaleString()}` : ""}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -198,7 +233,7 @@ function ReportStatusBadge({ status }: { status: string }) {
     "Submitted": "bg-cyan-50 text-cyan-700 border-cyan-200",
     "Under Review": "bg-orange-50 text-orange-700 border-orange-200",
     "Active Search": "bg-emerald-50 text-emerald-700 border-emerald-200",
-    "Matched": "bg-indigo-50 text-indigo-700 border-indigo-200",
+    "Ready for Pickup": "bg-emerald-100 text-emerald-800 border-emerald-300",
     "Resolved": "bg-slate-100 text-slate-700 border-slate-300",
     "Rejected": "bg-rose-50 text-rose-700 border-rose-200",
   }
@@ -219,7 +254,7 @@ function ReportStatusMessage({ status }: { status: string }) {
     "Submitted": "Your report was received and is queued for admin review",
     "Under Review": "Admin is reviewing your report",
     "Active Search": "Administration has authorized this report and is actively searching",
-    "Matched": "A potential inventory match was linked to your report",
+    "Ready for Pickup": "A confirmed match is ready for collection at the Admin Office",
     "Resolved": "Report workflow is complete",
     "Rejected": "Report was reviewed and not authorized",
   }
@@ -229,6 +264,14 @@ function ReportStatusMessage({ status }: { status: string }) {
       <Clock className="w-3 h-3" /> {messages[status] ?? "Status updated"}
     </p>
   )
+}
+
+function toStudentStatusLabel(status: string): string {
+  if (status === "MATCHED") {
+    return "Ready for Pickup"
+  }
+
+  return status.replaceAll("_", " ")
 }
 
 function DetailField({ label, value }: { label: string; value: string }) {
