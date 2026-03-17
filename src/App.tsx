@@ -1,23 +1,34 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { LandingPage } from "@/pages/LandingPage"
-import { GalleryPage } from "@/pages/GalleryPage"
-import { RegisterPage } from "@/pages/RegisterPage"
-import { ReportLostPage } from "@/pages/ReportLostPage"
-import { MyClaimsPage } from "@/pages/MyClaimsPage"
-import { MyReportsPage } from "@/pages/MyReportsPage"
-import { AdminLayout } from "@/components/admin/AdminLayout"
-import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage"
-import { AdminInventoryPage } from "@/pages/admin/AdminInventoryPage"
-import { AdminReportsPage } from "@/pages/admin/AdminReportsPage"
-import { AdminClaimsPage } from "@/pages/admin/AdminClaimsPage"
-import { AdminLogsPage } from "@/pages/admin/AdminLogsPage"
-import { AdminHandoverLogPage } from "@/pages/admin/AdminHandoverLogPage"
-import { AdminUserDirectoryPage } from "@/pages/admin/AdminUserDirectoryPage"
-import { AdminExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
-import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage"
-import { AppLayout } from "@/components/AppLayout"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/features/auth/AuthContext"
+
+// Public pages
+import { LandingPage } from "@/pages/public/LandingPage"
+import { RegisterPage } from "@/pages/public/RegisterPage"
+
+// User pages
+import { GalleryPage } from "@/pages/user/GalleryPage"
+import { ReportLostPage } from "@/pages/user/ReportLostPage"
+import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
+import { MyReportsPage } from "@/pages/user/MyReportsPage"
+
+// Layouts
+import { AppLayout } from "@/layouts/AppLayout"
+import { AdminLayout } from "@/layouts/admin/AdminLayout"
+
+// Contexts
+import { ThemeProvider } from "@/contexts/ThemeProvider"
+import { AuthProvider } from "@/contexts/AuthContext"
+
+// Admin pages
+import { DashboardPage } from "@/pages/admin/DashboardPage"
+import { InventoryPage } from "@/pages/admin/InventoryPage"
+import { MissingItemsPage } from "@/pages/admin/MissingItemsPage"
+import { ClaimsVerificationPage } from "@/pages/admin/ClaimsVerificationPage"
+import { AuditLogsPage } from "@/pages/admin/AuditLogsPage"
+import { HandoverLogPage } from "@/pages/admin/HandoverLogPage"
+import { UserDirectoryPage } from "@/pages/admin/UserDirectoryPage"
+import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
+import { SettingsPage } from "@/pages/admin/SettingsPage"
+
 import "./index.css"
 
 function App() {
@@ -26,35 +37,35 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-          {/* Public / Unauthenticated Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Protected / Authenticated Routes with Sidebar Navigation */}
-          <Route element={<AppLayout />}>
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/report-lost" element={<ReportLostPage />} />
-            <Route path="/my-claims" element={<MyClaimsPage />} />
-            <Route path="/my-reports" element={<MyReportsPage />} />
-            {/* Placeholder routes that will just render an empty view inside the layout for now */}
-            <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />
-            <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
-          </Route>
+            {/* Public / Unauthenticated Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Protected / Authenticated Routes with Sidebar Navigation */}
+            <Route element={<AppLayout />}>
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/report-lost" element={<ReportLostPage />} />
+              <Route path="/my-claims" element={<MyClaimsPage />} />
+              <Route path="/my-reports" element={<MyReportsPage />} />
+              {/* Placeholder routes */}
+              <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />
+              <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
+            </Route>
 
-          {/* Administrative Dashboard Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboardPage />} />
-            <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="inventory" element={<AdminInventoryPage />} />
-            <Route path="reports" element={<AdminReportsPage />} />
-            <Route path="claims" element={<AdminClaimsPage />} />
-            <Route path="handover-log" element={<AdminHandoverLogPage />} />
-            <Route path="user-directory" element={<AdminUserDirectoryPage />} />
-            <Route path="expired-inventory" element={<AdminExpiredInventoryPage />} />
-            <Route path="logs" element={<AdminLogsPage />} />
-            <Route path="settings" element={<AdminSettingsPage />} />
-          </Route>
-        </Routes>
+            {/* Administrative Dashboard Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="reports" element={<MissingItemsPage />} />
+              <Route path="claims" element={<ClaimsVerificationPage />} />
+              <Route path="handover-log" element={<HandoverLogPage />} />
+              <Route path="user-directory" element={<UserDirectoryPage />} />
+              <Route path="expired-inventory" element={<ExpiredInventoryPage />} />
+              <Route path="logs" element={<AuditLogsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
         </Router>
       </AuthProvider>
     </ThemeProvider>
