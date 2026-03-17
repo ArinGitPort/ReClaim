@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Textarea } from "@/components/ui/Textarea"
 import { Label } from "@/components/ui/Label"
-import { useAuth } from "@/features/auth/AuthContext"
+import { useAuth } from "@/contexts/AuthContext"
 import { ReportConfirmationModal } from "./ReportConfirmationModal"
 
 type Category = "electronics" | "bags" | "wallets" | "clothing" | "keys" | "others" | ""
