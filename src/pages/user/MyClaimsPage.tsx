@@ -13,6 +13,9 @@ interface ClaimView {
   location: string
   submittedDate: string
   status: string
+  reviewerNote?: string | null
+  pickupToken?: string | null
+  pickupTokenExpires?: string | null
 }
 
 export function MyClaimsPage() {
@@ -25,6 +28,9 @@ export function MyClaimsPage() {
           claimCode: string
           status: string
           createdAt: string
+          reviewerNote?: string | null
+          pickupToken?: string | null
+          pickupTokenExpires?: string | null
           foundItem: {
             code: string
             title: string
@@ -42,7 +48,10 @@ export function MyClaimsPage() {
           inventoryId: claim.foundItem.code,
           location: claim.foundItem.foundLocation,
           submittedDate: new Date(claim.createdAt).toLocaleDateString(),
-          status: claim.status.replaceAll("_", " "),
+          status: formatClaimStatus(claim.status),
+          reviewerNote: claim.reviewerNote,
+          pickupToken: claim.pickupToken,
+          pickupTokenExpires: claim.pickupTokenExpires,
         }))
       )
     }
@@ -69,45 +78,60 @@ export function MyClaimsPage() {
 
         <div className="space-y-4">
           {claims.map((claim) => (
-            <div
-              key={claim.id}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5"
-            >
-              {/* Icon */}
-              <div className="w-14 h-14 bg-brand/5 border border-brand/10 rounded-2xl flex items-center justify-center shrink-0">
-                <Package className="w-7 h-7 text-brand" />
-              </div>
-
-              {/* Details */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                    {claim.id}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    {claim.inventoryId}
-                  </span>
+            <div key={claim.id} className="space-y-3">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5">
+                {/* Icon */}
+                <div className="w-14 h-14 bg-brand/5 border border-brand/10 rounded-2xl flex items-center justify-center shrink-0">
+                  <Package className="w-7 h-7 text-brand" />
                 </div>
-                <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
-                <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {claim.location}
+
+                {/* Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
+                      {claim.id}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      {claim.inventoryId}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Submitted {claim.submittedDate}
+                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
+                  <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {claim.location}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Submitted {claim.submittedDate}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Status */}
-              <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-                <ClaimStatusBadge status={claim.status} />
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Awaiting admin review
-                </p>
+                {/* Status */}
+                <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                  <ClaimStatusBadge status={claim.status} />
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {claimStatusMessage(claim.status)}
+                  </p>
+                </div>
               </div>
+              {claim.status === "Inquiry Required" && claim.reviewerNote && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
+                <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
+                </div>
+              )}
+              {claim.status === "Ready for Pickup" && claim.pickupToken && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-1">Pickup Token</div>
+                  <div className="text-lg font-black text-emerald-800 tracking-wider">{claim.pickupToken}</div>
+                  <p className="text-xs font-semibold text-emerald-700 mt-1">
+                    Present this token and your ID at the Admin Office.
+                    {claim.pickupTokenExpires ? ` Expires: ${new Date(claim.pickupTokenExpires).toLocaleString()}` : ""}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -119,10 +143,10 @@ export function MyClaimsPage() {
 function ClaimStatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     "Pending Verification": "bg-amber-50 text-amber-700 border-amber-100",
-    "Action Required": "bg-rose-50 text-rose-700 border-rose-100",
+    "Inquiry Required": "bg-orange-50 text-orange-700 border-orange-100",
     "Approved": "bg-emerald-50 text-emerald-700 border-emerald-100",
-    "Denied": "bg-slate-50 text-slate-600 border-slate-100",
-    "Ready for Pickup": "bg-brand/5 text-brand border-brand/10",
+    "Denied": "bg-rose-50 text-rose-700 border-rose-100",
+    "Ready for Pickup": "bg-emerald-100 text-emerald-800 border-emerald-200",
   }
 
   return (
@@ -134,4 +158,28 @@ function ClaimStatusBadge({ status }: { status: string }) {
       {status}
     </span>
   )
+}
+
+function formatClaimStatus(rawStatus: string): string {
+  if (rawStatus === "APPROVED") {
+    return "Ready for Pickup"
+  }
+
+  return rawStatus.replaceAll("_", " ")
+}
+
+function claimStatusMessage(status: string): string {
+  if (status === "Ready for Pickup") {
+    return "Claim approved. Bring your token and ID to claim the item"
+  }
+
+  if (status === "Inquiry Required") {
+    return "Admin requires additional proof details"
+  }
+
+  if (status === "Denied") {
+    return "Claim denied by admin review"
+  }
+
+  return "Awaiting admin review"
 }

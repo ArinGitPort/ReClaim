@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, User } from "lucide-react"
 import { Link } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useAuth } from "@/contexts/AuthContext"
+import { useNotifications } from "@/contexts/NotificationContext"
 
 interface TopNavBarProps {
   title?: string
@@ -15,6 +16,7 @@ export function TopNavBar({
   backLabel = "Back" 
 }: TopNavBarProps) {
   const { user } = useAuth()
+  const { unreadCount } = useNotifications()
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
@@ -32,10 +34,14 @@ export function TopNavBar({
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 mr-2">
-            <button className="relative p-2 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-full transition-all group">
+            <Link to="/notifications" className="relative p-2 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-full transition-all group inline-flex">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
-            </button>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 border-2 border-white rounded-full text-[10px] font-bold text-white grid place-items-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
           </div>
 
           <div className="h-8 w-px bg-slate-200"></div>

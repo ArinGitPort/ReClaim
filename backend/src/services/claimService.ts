@@ -74,6 +74,15 @@ export async function decideClaim(input: {
     throw new HttpError(404, "Claim not found");
   }
 
+  if (claim.status === ClaimStatus.APPROVED || claim.status === ClaimStatus.DENIED) {
+    throw new HttpError(400, "Claim has already been finalized");
+  }
+
+  const note = input.reviewerNote?.trim();
+  if ((input.status === ClaimStatus.DENIED || input.status === ClaimStatus.INQUIRY_REQUIRED) && !note) {
+    throw new HttpError(400, "reviewerNote is required for deny or inquiry decisions");
+  }
+
   const decisionAtUtc = new Date();
   const approved = input.status === ClaimStatus.APPROVED;
 
@@ -81,7 +90,7 @@ export async function decideClaim(input: {
     where: { id: claim.id },
     data: {
       status: input.status,
-      reviewerNote: input.reviewerNote ?? null,
+      reviewerNote: note ?? null,
       decisionAtUtc,
       verifiedByAdminId: input.adminId,
       pickupToken: approved ? createPickupToken() : null,
@@ -92,9 +101,41 @@ export async function decideClaim(input: {
   await prisma.foundItem.update({
     where: { id: claim.foundItemId },
     data: {
-      status: approved ? ItemStatus.CLAIM_PENDING : ItemStatus.AVAILABLE,
+      status: input.status === ClaimStatus.DENIED ? ItemStatus.AVAILABLE : ItemStatus.CLAIM_PENDING,
     },
   });
 
   return updated;
+}
+
+export async function updateClaimProof(input: {
+  claimId: string;
+  userId: string;
+  proof: Prisma.InputJsonValue;
+}) {
+  const claim = await prisma.claim.findUnique({ where: { id: input.claimId } });
+  if (!claim) {
+    throw new HttpError(404, "Claim not found");
+  }
+
+  if (claim.claimantUserId !== input.userId) {
+    throw new HttpError(403, "You can only update your own claim");
+  }
+
+  if (claim.status !== ClaimStatus.INQUIRY_REQUIRED) {
+    throw new HttpError(400, "Only inquiry-required claims can be updated with additional proof");
+  }
+
+  return prisma.claim.update({
+    where: { id: claim.id },
+    data: {
+      submittedProof: input.proof,
+      status: ClaimStatus.PENDING_VERIFICATION,
+      reviewerNote: null,
+      decisionAtUtc: null,
+      verifiedByAdminId: null,
+      pickupToken: null,
+      pickupTokenExpires: null,
+    },
+  });
 }

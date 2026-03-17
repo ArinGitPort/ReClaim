@@ -9,6 +9,7 @@ import { claimRoutes } from "./routes/claimRoutes.js";
 import { evidenceRoutes } from "./routes/evidenceRoutes.js";
 import { handoverRoutes } from "./routes/handoverRoutes.js";
 import { itemRoutes } from "./routes/itemRoutes.js";
+import { notificationRoutes } from "./routes/notificationRoutes.js";
 import { reportRoutes } from "./routes/reportRoutes.js";
 
 export const app = express();
@@ -48,6 +49,7 @@ app.get("/api", (_req, res) => {
       items: "/api/items",
       claims: "/api/claims",
       reports: "/api/reports",
+      notifications: "/api/notifications",
       handover: "/api/handover",
       evidence: "/api/evidence",
     },
@@ -58,6 +60,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/handover", handoverRoutes);
 app.use("/api/evidence", evidenceRoutes);
 

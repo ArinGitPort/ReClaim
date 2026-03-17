@@ -9,6 +9,7 @@ import { GalleryPage } from "@/pages/user/GalleryPage"
 import { ReportLostPage } from "@/pages/user/ReportLostPage"
 import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
 import { MyReportsPage } from "@/pages/user/MyReportsPage"
+import { NotificationsPage } from "@/pages/user/NotificationsPage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -17,6 +18,7 @@ import { AdminLayout } from "@/layouts/admin/AdminLayout"
 // Contexts
 import { ThemeProvider } from "@/contexts/ThemeProvider"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { NotificationProvider } from "@/contexts/NotificationContext"
 
 // Admin pages
 import { DashboardPage } from "@/pages/admin/DashboardPage"
@@ -28,6 +30,7 @@ import { HandoverLogPage } from "@/pages/admin/HandoverLogPage"
 import { UserDirectoryPage } from "@/pages/admin/UserDirectoryPage"
 import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/SettingsPage"
+import { AdminNotificationsPage } from "@/pages/admin/NotificationsPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"
@@ -72,8 +75,9 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
       <AuthProvider>
-        <Router>
-          <Routes>
+        <NotificationProvider>
+          <Router>
+            <Routes>
             {/* Public / Unauthenticated Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -84,6 +88,7 @@ function App() {
               <Route path="/report-lost" element={<ReportLostPage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/my-reports" element={<MyReportsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               {/* Placeholder routes */}
               <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />
               <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
@@ -100,10 +105,12 @@ function App() {
               <Route path="user-directory" element={<UserDirectoryPage />} />
               <Route path="expired-inventory" element={<ExpiredInventoryPage />} />
               <Route path="logs" element={<AuditLogsPage />} />
+              <Route path="notifications" element={<AdminNotificationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
-          </Routes>
-        </Router>
+            </Routes>
+          </Router>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   )

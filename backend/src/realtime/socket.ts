@@ -111,3 +111,28 @@ export function emitReportStatusUpdated(payload: {
   ioInstance.to("reports:admins").emit("report.status.updated", payload);
   ioInstance.to(`reports:user:${payload.reporterUserId}`).emit("report.status.updated", payload);
 }
+
+export function emitNotificationCreated(payload: {
+  userId: string;
+  notification: {
+    id: string;
+    title: string;
+    message: string;
+    route?: string | null;
+    createdAt: Date | string;
+    readAt?: Date | null;
+  };
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance.to(`reports:user:${payload.userId}`).emit("notification.created", {
+    id: payload.notification.id,
+    title: payload.notification.title,
+    message: payload.notification.message,
+    route: payload.notification.route ?? null,
+    createdAt: payload.notification.createdAt,
+    readAt: payload.notification.readAt ?? null,
+  });
+}

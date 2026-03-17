@@ -4,6 +4,18 @@ import { z } from "zod";
 import { listReports, submitLostReport, updateReportStatus } from "../services/reportService.js";
 import { logAudit } from "../services/auditService.js";
 import { emitReportStatusUpdated } from "../realtime/socket.js";
+import { createNotificationForUser, createNotificationsForRoles } from "../services/notificationService.js";
+import { emitNotificationCreated } from "../realtime/socket.js";
+
+type NotificationPayload = {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  route: string | null;
+  readAt: Date | null;
+  createdAt: Date;
+};
 
 const createReportSchema = z.object({
   title: z.string().min(2),
@@ -50,6 +62,20 @@ export async function postReport(req: Request, res: Response): Promise<void> {
     },
   });
 
+  const adminNotifications = await createNotificationsForRoles({
+    roles: ["ADMIN", "STAFF"],
+    title: "New Lost Report",
+    message: `${report.reportCode} was submitted and needs review.`,
+    route: "/admin/reports",
+  });
+
+  adminNotifications.forEach((notification: NotificationPayload) => {
+    emitNotificationCreated({
+      userId: notification.userId,
+      notification,
+    });
+  });
+
   res.status(201).json({ report });
 }
 
@@ -94,6 +120,32 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
     status: report.status,
     reporterUserId: report.reporterUserId,
     matchedItemId: report.matchedItemId,
+  });
+
+  const studentNotification = await createNotificationForUser({
+    userId: report.reporterUserId,
+    title: "Lost Report Updated",
+    message: `${report.reportCode} is now ${report.status.replaceAll("_", " ")}.`,
+    route: "/my-reports",
+  });
+
+  emitNotificationCreated({
+    userId: studentNotification.userId,
+    notification: studentNotification,
+  });
+
+  const adminNotifications = await createNotificationsForRoles({
+    roles: ["ADMIN", "STAFF"],
+    title: "Report Status Changed",
+    message: `${report.reportCode} moved to ${report.status.replaceAll("_", " ")}.`,
+    route: "/admin/reports",
+  });
+
+  adminNotifications.forEach((notification: NotificationPayload) => {
+    emitNotificationCreated({
+      userId: notification.userId,
+      notification,
+    });
   });
 
   res.json({ report });

@@ -1,4 +1,4 @@
-import { ClaimStatus, ItemStatus, ReportStatus, type Prisma } from "@prisma/client";
+import { ClaimStatus, ItemStatus, Prisma, ReportStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { createCode, createPickupToken } from "../utils/codes.js";
 import { HttpError } from "../utils/errors.js";
@@ -24,6 +24,7 @@ export async function submitLostReport(input: {
       reportedLostAtUtc: input.reportedLostAtUtc,
       timeWindow: input.timeWindow,
       proofData: input.proofData,
+      status: ReportStatus.UNDER_REVIEW,
     },
   });
 }
@@ -127,8 +128,10 @@ export async function updateReportStatus(input: {
       throw new HttpError(400, "Only active-search reports can be marked as match found");
     }
 
+    const matchedItemId = input.matchedItemId;
+
     return prisma.$transaction(async (tx) => {
-      const matchedItem = await tx.foundItem.findUnique({ where: { id: input.matchedItemId } });
+      const matchedItem = await tx.foundItem.findUnique({ where: { id: matchedItemId } });
       if (!matchedItem) {
         throw new HttpError(404, "Matched found item not found");
       }
@@ -142,12 +145,12 @@ export async function updateReportStatus(input: {
         where: { id: input.reportId },
         data: {
           status: ReportStatus.MATCHED,
-          matchedItemId: input.matchedItemId,
+          matchedItemId,
         },
       });
 
       await tx.foundItem.update({
-        where: { id: input.matchedItemId },
+        where: { id: matchedItemId },
         data: {
           status: ItemStatus.CLAIM_PENDING,
         },
@@ -155,7 +158,7 @@ export async function updateReportStatus(input: {
 
       const existingClaim = await tx.claim.findFirst({
         where: {
-          foundItemId: input.matchedItemId,
+          foundItemId: matchedItemId,
           claimantUserId: report.reporterUserId,
           status: ClaimStatus.APPROVED,
         },
@@ -165,9 +168,9 @@ export async function updateReportStatus(input: {
       const claim = existingClaim ?? await tx.claim.create({
         data: {
           claimCode: createCode("CLM"),
-          foundItemId: input.matchedItemId,
+          foundItemId: matchedItemId,
           claimantUserId: report.reporterUserId,
-          submittedProof: report.proofData,
+          submittedProof: report.proofData === null ? Prisma.JsonNull : (report.proofData as Prisma.InputJsonValue),
           status: ClaimStatus.APPROVED,
           reviewerNote: "Auto-approved from lost-report matching workflow",
           decisionAtUtc: now,
