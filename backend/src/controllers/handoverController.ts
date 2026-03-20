@@ -1,11 +1,12 @@
 import { AuditAction } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken } from "../services/handoverService.js";
-import { logAudit } from "../services/auditService.js";
-import { emitReportStatusUpdated } from "../realtime/socket.js";
-import { createNotificationForUser, createNotificationsForRoles } from "../services/notificationService.js";
-import { emitNotificationCreated } from "../realtime/socket.js";
+import { confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken } from "@/services/handoverService.js";
+import { logAudit } from "@/services/auditService.js";
+import { emitReportStatusUpdated } from "@/realtime/socket.js";
+import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
+import { emitNotificationCreated } from "@/realtime/socket.js";
+import { emitItemUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
   id: string;
@@ -85,6 +86,11 @@ export async function postHandover(req: Request, res: Response): Promise<void> {
     });
   });
 
+  emitItemUpdated({
+    itemId: handover.foundItemId,
+    status: "RETURNED",
+  });
+
   res.status(201).json({ handover });
 }
 
@@ -114,6 +120,11 @@ export async function postHandoverConfirm(req: Request, res: Response): Promise<
       matchedItemId: result.resolvedReport.matchedItemId,
     });
   }
+
+  emitItemUpdated({
+    itemId: result.handover.foundItemId,
+    status: "RETURNED",
+  });
 
   res.status(201).json({
     handover: result.handover,

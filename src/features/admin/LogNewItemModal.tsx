@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import { useState, useRef } from "react"
 import { 
   Package, 
   MapPin, 
@@ -16,6 +16,12 @@ import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
+import {
+  CAMPUS_LOCATIONS,
+  ITEM_CATEGORIES,
+  ITEM_COLORS,
+  STORAGE_LOCATIONS,
+} from "@/features/admin/itemFormOptions"
 
 
 export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
@@ -26,10 +32,38 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState("")
   const [color, setColor] = useState("")
-  const [location, setLocation] = useState("")
-  const [storage, setStorage] = useState("")
+  const [foundLocation, setFoundLocation] = useState("")
+  const [foundAtLocal, setFoundAtLocal] = useState(() => toLocalDatetimeInputValue(new Date()))
+  const [storageLocation, setStorageLocation] = useState("")
   const [notes, setNotes] = useState("")
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const resetForm = () => {
+    setTitle("")
+    setCategory("")
+    setColor("")
+    setFoundLocation("")
+    setFoundAtLocal(toLocalDatetimeInputValue(new Date()))
+    setStorageLocation("")
+    setNotes("")
+    setPhotoFile(null)
+    setError(null)
+    setSavedCode(null)
+  }
+
+  const uploadPhoto = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append("photo", file)
+
+    const response = await api.post<{ photoUrl: string }>("/items/upload-photo", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+
+    return response.data.photoUrl
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,16 +71,24 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
     setIsSubmitting(true)
 
     try {
+      const foundDate = new Date(foundAtLocal)
+      if (Number.isNaN(foundDate.getTime())) {
+        throw new Error("Please provide a valid date and time found.")
+      }
+
+      const photoUrl = photoFile ? await uploadPhoto(photoFile) : undefined
+
       const response = await api.post<{ item: { code: string } }>("/items", {
         title,
         category,
         color,
-        foundLocation: location,
-        foundAtUtc: new Date().toISOString(),
+        foundLocation,
+        foundAtUtc: foundDate.toISOString(),
+        photoUrl,
         publicDescription: `${title} reported by admin inventory intake`,
         privateDiscoveryNote: notes || undefined,
-        privateData: {},
-        storageLocation: storage,
+        privateData: photoUrl ? { photoUrl } : undefined,
+        storageLocation,
       })
 
       setSavedCode(response.data.item.code)
@@ -73,7 +115,16 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
           <p className="text-slate-500 font-medium">{savedCode ?? "Item"} has been added to the secure inventory.</p>
         </div>
         <div className="pt-4 flex gap-3">
-          <Button variant="outline" className="flex-1 h-12" onClick={() => setStep(1)}>Log Another</Button>
+          <Button
+            variant="outline"
+            className="flex-1 h-12"
+            onClick={() => {
+              resetForm()
+              setStep(1)
+            }}
+          >
+            Log Another
+          </Button>
           <Button className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold rounded-xl" onClick={onClose}>Close</Button>
         </div>
       </div>
@@ -117,17 +168,19 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
                 <Label htmlFor="category" className="text-xs uppercase tracking-wider font-bold text-slate-500">Category</Label>
                 <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
                   <option value="">Select Category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Wallets/IDs">Wallets/IDs</option>
-                  <option value="Bags">Bags</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Keys">Keys</option>
-                  <option value="Others">Others</option>
+                  {ITEM_CATEGORIES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-                <Input id="color" value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g. Silver, Black" required className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
+                <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
+                  <option value="">Select Color</option>
+                  {ITEM_COLORS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </Select>
               </div>
             </div>
           </div>
@@ -140,14 +193,47 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
              <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Logistics & Storage</h4>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="location" className="text-xs uppercase tracking-wider font-bold text-slate-500">Found At</Label>
-              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lobby B" required className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" />
+              <Label htmlFor="foundLocation" className="text-xs uppercase tracking-wider font-bold text-slate-500">Found At</Label>
+              <Select
+                id="foundLocation"
+                value={foundLocation}
+                onChange={(e) => setFoundLocation(e.target.value)}
+                className="h-11 bg-slate-50/50 border-slate-200 shadow-sm"
+                required
+              >
+                <option value="">Select Campus Zone</option>
+                {CAMPUS_LOCATIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="storage" className="text-xs uppercase tracking-wider font-bold text-slate-500">Storage Location</Label>
-              <Input id="storage" value={storage} onChange={(e) => setStorage(e.target.value)} placeholder="e.g. Safe A-1" required className="h-11 bg-amber-50/30 border-amber-100 focus:bg-white transition-all shadow-sm font-medium" />
+              <Label htmlFor="foundAt" className="text-xs uppercase tracking-wider font-bold text-slate-500">Date & Time Found</Label>
+              <Input
+                id="foundAt"
+                type="datetime-local"
+                value={foundAtLocal}
+                onChange={(e) => setFoundAtLocal(e.target.value)}
+                required
+                className="h-11 bg-slate-50/50 border-slate-200 shadow-sm"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="storageLocation" className="text-xs uppercase tracking-wider font-bold text-slate-500">Storage Location</Label>
+              <Select
+                id="storageLocation"
+                value={storageLocation}
+                onChange={(e) => setStorageLocation(e.target.value)}
+                className="h-11 bg-amber-50/30 border-amber-100 focus:bg-white transition-all shadow-sm font-medium"
+                required
+              >
+                <option value="">Select Storage</option>
+                {STORAGE_LOCATIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </Select>
             </div>
           </div>
         </div>
@@ -163,9 +249,20 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
             onClick={() => fileInputRef.current?.click()}
             className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-brand/20 transition-all group"
           >
-            <input type="file" ref={fileInputRef} className="hidden" />
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null
+                setPhotoFile(file)
+              }}
+            />
             <Upload className="w-6 h-6 text-slate-300 group-hover:text-brand mb-2 transition-colors" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-brand transition-colors">Attach Physical Proof Photo</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-brand transition-colors">
+              {photoFile ? `Selected: ${photoFile.name}` : "Attach Physical Proof Photo"}
+            </span>
           </div>
         </div>
 
@@ -210,4 +307,10 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
       </div>
     </div>
   )
+}
+
+function toLocalDatetimeInputValue(date: Date): string {
+  const offset = date.getTimezoneOffset()
+  const localDate = new Date(date.getTime() - offset * 60 * 1000)
+  return localDate.toISOString().slice(0, 16)
 }

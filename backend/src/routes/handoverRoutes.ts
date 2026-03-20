@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getHandoverPreview, postHandover, postHandoverConfirm } from "../controllers/handoverController.js";
-import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { getHandoverPreview, postHandover, postHandoverConfirm } from "@/controllers/handoverController.js";
+import { requireAuth, requireRole } from "@/middlewares/auth.js";
+import { asyncHandler } from "@/utils/asyncHandler.js";
 
 export const handoverRoutes = Router();
 

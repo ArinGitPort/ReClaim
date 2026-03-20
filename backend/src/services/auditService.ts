@@ -1,5 +1,5 @@
 import { AuditAction } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "@/lib/prisma.js";
 
 export async function logAudit(input: {
   actorUserId: string;

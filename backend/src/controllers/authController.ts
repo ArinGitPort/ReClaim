@@ -1,10 +1,10 @@
 import { UserRole } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { prisma } from "../lib/prisma.js";
-import { loginUser, registerUser } from "../services/authService.js";
-import { logAudit } from "../services/auditService.js";
-import { HttpError } from "../utils/errors.js";
+import { prisma } from "@/lib/prisma.js";
+import { loginUser, registerUser } from "@/services/authService.js";
+import { logAudit } from "@/services/auditService.js";
+import { HttpError } from "@/utils/errors.js";
 
 const registerSchema = z.object({
   name: z.string().min(2),

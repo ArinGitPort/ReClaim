@@ -1,7 +1,7 @@
 import { ClaimStatus, ItemStatus, Prisma } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
-import { createCode, createPickupToken } from "../utils/codes.js";
-import { HttpError } from "../utils/errors.js";
+import { prisma } from "@/lib/prisma.js";
+import { createCode, createPickupToken } from "@/utils/codes.js";
+import { HttpError } from "@/utils/errors.js";
 
 export async function submitClaim(input: {
   userId: string;

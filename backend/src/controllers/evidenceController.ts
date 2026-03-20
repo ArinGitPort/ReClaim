@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { HttpError } from "../utils/errors.js";
+import { HttpError } from "@/utils/errors.js";
 
 const uploadsRoot = path.resolve(process.cwd(), "..", "uploads");
 const paramsSchema = z.object({ filename: z.string().min(1) });

@@ -3,9 +3,9 @@ import {
   getNotifications,
   patchNotificationRead,
   patchNotificationsReadAll,
-} from "../controllers/notificationController.js";
-import { requireAuth } from "../middlewares/auth.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+} from "@/controllers/notificationController.js";
+import { requireAuth } from "@/middlewares/auth.js";
+import { asyncHandler } from "@/utils/asyncHandler.js";
 
 export const notificationRoutes = Router();
 

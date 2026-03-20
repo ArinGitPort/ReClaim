@@ -1,10 +1,11 @@
 import { AuditAction, ItemStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { env } from "../config/env.js";
-import { createFoundItem, listAdminItems, listPublicItems } from "../services/itemService.js";
-import { logAudit } from "../services/auditService.js";
-import { HttpError } from "../utils/errors.js";
+import { env } from "@/config/env.js";
+import { createFoundItem, listAdminItems, listPublicItems, updateFoundItem } from "@/services/itemService.js";
+import { logAudit } from "@/services/auditService.js";
+import { HttpError } from "@/utils/errors.js";
+import { emitItemUpdated } from "@/realtime/socket.js";
 
 const createItemSchema = z.object({
   title: z.string().min(2),
@@ -12,6 +13,7 @@ const createItemSchema = z.object({
   color: z.string().min(2),
   foundLocation: z.string().min(2),
   foundAtUtc: z.string().datetime(),
+  photoUrl: z.string().min(1).optional(),
   publicDescription: z.string().optional(),
   privateDiscoveryNote: z.string().optional(),
   privateData: z.record(z.string(), z.unknown()).optional(),
@@ -26,6 +28,30 @@ const createItemSchema = z.object({
     })
     .optional(),
 });
+
+const updateItemSchema = z.object({
+  title: z.string().min(2).optional(),
+  category: z.string().min(2).optional(),
+  color: z.string().min(2).optional(),
+  foundLocation: z.string().min(2).optional(),
+  foundAtUtc: z.string().datetime().optional(),
+  storageLocation: z.string().optional(),
+  privateDiscoveryNote: z.string().optional(),
+  status: z.nativeEnum(ItemStatus).optional(),
+});
+
+const idParamsSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export async function postItemPhoto(req: Request, res: Response): Promise<void> {
+  if (!req.file) {
+    throw new HttpError(400, "Photo file is required");
+  }
+
+  const photoUrl = `/uploads/items/${req.file.filename}`;
+  res.status(201).json({ photoUrl });
+}
 
 export async function getPublicItems(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
@@ -47,6 +73,15 @@ export async function getAdminItems(req: Request, res: Response): Promise<void> 
 
 export async function postItem(req: Request, res: Response): Promise<void> {
   const body = createItemSchema.parse(req.body);
+  const privateDataRecord: Record<string, unknown> = body.privateData ? { ...body.privateData } : {};
+  if (body.photoUrl) {
+    privateDataRecord.photoUrl = body.photoUrl;
+  }
+
+  const privateData = Object.keys(privateDataRecord).length > 0
+    ? (privateDataRecord as Prisma.InputJsonValue)
+    : undefined;
+
   const item = await createFoundItem({
     actorUserId: req.user!.id,
     title: body.title,
@@ -56,7 +91,7 @@ export async function postItem(req: Request, res: Response): Promise<void> {
     foundAtUtc: new Date(body.foundAtUtc),
     publicDescription: body.publicDescription,
     privateDiscoveryNote: body.privateDiscoveryNote,
-    privateData: body.privateData as Prisma.InputJsonValue | undefined,
+    privateData,
     storageLocation: body.storageLocation,
     evidence: body.evidence
       ? {
@@ -80,7 +115,52 @@ export async function postItem(req: Request, res: Response): Promise<void> {
     },
   });
 
+  emitItemUpdated({
+    itemId: item.id,
+    status: item.status,
+  });
+
   res.status(201).json({ item });
+}
+
+export async function patchItem(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = updateItemSchema.parse(req.body);
+
+  if (Object.keys(body).length === 0) {
+    throw new HttpError(400, "At least one updatable field is required");
+  }
+
+  const item = await updateFoundItem({
+    itemId: id,
+    title: body.title,
+    category: body.category,
+    color: body.color,
+    foundLocation: body.foundLocation,
+    foundAtUtc: body.foundAtUtc ? new Date(body.foundAtUtc) : undefined,
+    storageLocation: body.storageLocation,
+    privateDiscoveryNote: body.privateDiscoveryNote,
+    status: body.status,
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.ITEM_UPDATED,
+    targetType: "found_item",
+    targetId: item.id,
+    description: "Admin updated found item record",
+    payload: {
+      code: item.code,
+      status: item.status,
+    },
+  });
+
+  emitItemUpdated({
+    itemId: item.id,
+    status: item.status,
+  });
+
+  res.json({ item });
 }
 
 export async function postAiItem(req: Request, res: Response): Promise<void> {
@@ -121,6 +201,11 @@ export async function postAiItem(req: Request, res: Response): Promise<void> {
       category: item.category,
       status: item.status,
     },
+  });
+
+  emitItemUpdated({
+    itemId: item.id,
+    status: item.status,
   });
 
   res.status(201).json({ item });

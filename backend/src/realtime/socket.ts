@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { Server, type Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import type { Express } from "express";
-import { env } from "../config/env.js";
+import { env } from "@/config/env.js";
 
 type SocketUser = {
   id: string;
@@ -135,4 +135,15 @@ export function emitNotificationCreated(payload: {
     createdAt: payload.notification.createdAt,
     readAt: payload.notification.readAt ?? null,
   });
+}
+
+export function emitItemUpdated(payload: {
+  itemId: string;
+  status: "AVAILABLE" | "CLAIM_PENDING" | "RETURNED" | "ARCHIVED";
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance.emit("item.updated", payload);
 }

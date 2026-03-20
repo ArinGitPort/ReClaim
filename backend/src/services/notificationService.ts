@@ -1,5 +1,5 @@
 import { UserRole } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "@/lib/prisma.js";
 
 type NotificationRecord = {
   id: string;

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getClaims, patchClaimDecision, patchClaimProof, postClaim } from "../controllers/claimController.js";
-import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { getClaims, patchClaimDecision, patchClaimProof, postClaim } from "@/controllers/claimController.js";
+import { requireAuth, requireRole } from "@/middlewares/auth.js";
+import { asyncHandler } from "@/utils/asyncHandler.js";
 
 export const claimRoutes = Router();
 

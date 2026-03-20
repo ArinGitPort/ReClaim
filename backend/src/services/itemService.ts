@@ -1,6 +1,6 @@
 import { ItemStatus, Prisma } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
-import { createCode } from "../utils/codes.js";
+import { prisma } from "@/lib/prisma.js";
+import { createCode } from "@/utils/codes.js";
 
 export async function createFoundItem(input: {
   actorUserId: string;
@@ -97,5 +97,31 @@ export async function listAdminItems(search?: string) {
       claims: true,
     },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function updateFoundItem(input: {
+  itemId: string;
+  title?: string;
+  category?: string;
+  color?: string;
+  foundLocation?: string;
+  foundAtUtc?: Date;
+  storageLocation?: string | null;
+  privateDiscoveryNote?: string | null;
+  status?: ItemStatus;
+}) {
+  return prisma.foundItem.update({
+    where: { id: input.itemId },
+    data: {
+      title: input.title,
+      category: input.category,
+      color: input.color,
+      foundLocation: input.foundLocation,
+      foundAtUtc: input.foundAtUtc,
+      storageLocation: input.storageLocation,
+      privateDiscoveryNote: input.privateDiscoveryNote,
+      status: input.status,
+    },
   });
 }

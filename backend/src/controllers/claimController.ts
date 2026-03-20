@@ -1,10 +1,11 @@
 import { AuditAction, ClaimStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { decideClaim, listClaims, submitClaim, updateClaimProof } from "../services/claimService.js";
-import { logAudit } from "../services/auditService.js";
-import { createNotificationForUser, createNotificationsForRoles } from "../services/notificationService.js";
-import { emitNotificationCreated } from "../realtime/socket.js";
+import { decideClaim, listClaims, submitClaim, updateClaimProof } from "@/services/claimService.js";
+import { logAudit } from "@/services/auditService.js";
+import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
+import { emitNotificationCreated } from "@/realtime/socket.js";
+import { emitItemUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
   id: string;
@@ -69,6 +70,11 @@ export async function postClaim(req: Request, res: Response): Promise<void> {
     });
   });
 
+  emitItemUpdated({
+    itemId: claim.foundItemId,
+    status: "CLAIM_PENDING",
+  });
+
   res.status(201).json({ claim });
 }
 
@@ -119,6 +125,11 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
   emitNotificationCreated({
     userId: claimantNotification.userId,
     notification: claimantNotification,
+  });
+
+  emitItemUpdated({
+    itemId: claim.foundItemId,
+    status: claim.status === "DENIED" ? "AVAILABLE" : "CLAIM_PENDING",
   });
 
   res.json({ claim });

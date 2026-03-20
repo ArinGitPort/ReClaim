@@ -1,11 +1,12 @@
 import { AuditAction, ReportStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { listReports, submitLostReport, updateReportStatus } from "../services/reportService.js";
-import { logAudit } from "../services/auditService.js";
-import { emitReportStatusUpdated } from "../realtime/socket.js";
-import { createNotificationForUser, createNotificationsForRoles } from "../services/notificationService.js";
-import { emitNotificationCreated } from "../realtime/socket.js";
+import { listReports, submitLostReport, updateReportStatus } from "@/services/reportService.js";
+import { logAudit } from "@/services/auditService.js";
+import { emitReportStatusUpdated } from "@/realtime/socket.js";
+import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
+import { emitNotificationCreated } from "@/realtime/socket.js";
+import { emitItemUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
   id: string;
@@ -147,6 +148,13 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
       notification,
     });
   });
+
+  if (report.status === ReportStatus.MATCHED && report.matchedItemId) {
+    emitItemUpdated({
+      itemId: report.matchedItemId,
+      status: "CLAIM_PENDING",
+    });
+  }
 
   res.json({ report });
 }

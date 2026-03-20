@@ -1,8 +1,11 @@
+import { useState } from "react"
 import { GalleryFilters } from "@/features/gallery/GalleryFilters"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { TopNavBar } from "@/layouts/TopNavBar"
 
 export function GalleryPage() {
+  const [itemCount, setItemCount] = useState(0)
+
   return (
     <div className="w-full min-h-full pb-24">
       {/* Top Navigation Bar */}
@@ -17,11 +20,11 @@ export function GalleryPage() {
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-text-primary">Found Items</h2>
               <span className="text-sm font-medium text-text-secondary bg-background-app px-3 py-1 rounded-full border border-border-divider/40">
-                Showing 6 items
+                Showing {itemCount} items
               </span>
             </div>
             
-            <GalleryGrid />
+            <GalleryGrid onCountChange={setItemCount} />
           </div>
         </div>
       </main>

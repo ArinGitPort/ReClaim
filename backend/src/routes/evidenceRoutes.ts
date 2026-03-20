@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getEvidenceFile } from "../controllers/evidenceController.js";
-import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { getEvidenceFile } from "@/controllers/evidenceController.js";
+import { requireAuth, requireRole } from "@/middlewares/auth.js";
+import { asyncHandler } from "@/utils/asyncHandler.js";
 
 export const evidenceRoutes = Router();
 

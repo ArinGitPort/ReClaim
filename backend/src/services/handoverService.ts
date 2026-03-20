@@ -1,6 +1,6 @@
 import { ClaimStatus, ItemStatus, ReportStatus } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
-import { HttpError } from "../utils/errors.js";
+import { prisma } from "@/lib/prisma.js";
+import { HttpError } from "@/utils/errors.js";
 
 export async function createHandoverLog(input: {
   foundItemId: string;

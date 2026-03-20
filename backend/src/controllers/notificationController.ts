@@ -4,7 +4,7 @@ import {
   listNotificationsForUser,
   markAllNotificationsRead,
   markNotificationRead,
-} from "../services/notificationService.js";
+} from "@/services/notificationService.js";
 
 const idParamsSchema = z.object({
   id: z.string().uuid(),

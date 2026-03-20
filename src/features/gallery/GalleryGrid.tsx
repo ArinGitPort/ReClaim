@@ -1,44 +1,62 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ItemCard } from "@/features/gallery/ItemCard"
 import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
+import { getRealtimeSocket } from "@/lib/realtime"
 
-export function GalleryGrid() {
+export function GalleryGrid({ onCountChange }: { onCountChange?: (count: number) => void }) {
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadItems(): Promise<void> {
-      try {
-        const response = await api.get<{
-          items: Array<{
-            id: string
-            code: string
-            title: string
-            category: string
-            foundLocation: string
-            foundAtUtc: string
-          }>
-        }>("/items/public")
+  const loadItems = useCallback(async (): Promise<void> => {
+    try {
+      const response = await api.get<{
+        items: Array<{
+          id: string
+          code: string
+          title: string
+          category: string
+          foundLocation: string
+          foundAtUtc: string
+        }>
+      }>("/items/public")
 
-        setItems(
-          response.data.items.map((item) => ({
-            id: item.id,
-            title: item.title,
-            category: item.category,
-            location: item.foundLocation,
-            dateLost: item.foundAtUtc,
-            isHighValue: ["electronics", "wallets/ids"].includes(item.category.toLowerCase()),
-          }))
-        )
-      } finally {
-        setIsLoading(false)
-      }
+      const nextItems = response.data.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        category: item.category,
+        location: item.foundLocation,
+        dateLost: item.foundAtUtc,
+        isHighValue: ["electronics", "wallets/ids"].includes(item.category.toLowerCase()),
+      }))
+
+      setItems(nextItems)
+      onCountChange?.(nextItems.length)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [onCountChange])
+
+  useEffect(() => {
+    void loadItems()
+  }, [loadItems])
+
+  useEffect(() => {
+    const socket = getRealtimeSocket()
+    if (!socket) {
+      return
     }
 
-    void loadItems()
-  }, [])
+    const handleItemUpdated = () => {
+      void loadItems()
+    }
+
+    socket.on("item.updated", handleItemUpdated)
+    return () => {
+      socket.off("item.updated", handleItemUpdated)
+    }
+  }, [loadItems])
 
   if (isLoading) {
     return <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>

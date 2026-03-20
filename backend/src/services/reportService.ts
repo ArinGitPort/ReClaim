@@ -1,7 +1,7 @@
 import { ClaimStatus, ItemStatus, Prisma, ReportStatus } from "@prisma/client";
-import { prisma } from "../lib/prisma.js";
-import { createCode, createPickupToken } from "../utils/codes.js";
-import { HttpError } from "../utils/errors.js";
+import { prisma } from "@/lib/prisma.js";
+import { createCode, createPickupToken } from "@/utils/codes.js";
+import { HttpError } from "@/utils/errors.js";
 
 export async function submitLostReport(input: {
   userId: string;

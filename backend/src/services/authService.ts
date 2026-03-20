@@ -1,9 +1,9 @@
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { prisma } from "../lib/prisma.js";
-import { env } from "../config/env.js";
-import { HttpError } from "../utils/errors.js";
+import { prisma } from "@/lib/prisma.js";
+import { env } from "@/config/env.js";
+import { HttpError } from "@/utils/errors.js";
 
 export async function registerUser(input: {
   name: string;

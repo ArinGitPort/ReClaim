@@ -4,7 +4,7 @@ import {
   Plus, 
   Filter, 
   Download,
-  MoreVertical,
+  Eye,
   Edit,
   Link2,
   Package,
@@ -16,16 +16,25 @@ import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
 import { api } from "@/lib/api"
+import { getRealtimeSocket } from "@/lib/realtime"
+import { EditInventoryItemModal } from "@/features/admin/EditInventoryItemModal"
+import { InventoryLinkReportModal } from "@/features/admin/InventoryLinkReportModal"
+import { InventoryItemDetailsModal } from "@/features/admin/InventoryItemDetailsModal"
 
 type InventoryRow = {
   id: string
   code: string
   title: string
   category: string
+  color: string
+  foundAtUtc: string
+  foundLocation: string
   date: string
   location: string
   status: string
   storage: string
+  privateDiscoveryNote?: string
+  photoUrl?: string
 }
 
 export function InventoryPage() {
@@ -34,6 +43,9 @@ export function InventoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [showFastEntry, setShowFastEntry] = useState(false)
+  const [editItem, setEditItem] = useState<InventoryRow | null>(null)
+  const [linkItem, setLinkItem] = useState<InventoryRow | null>(null)
+  const [detailsItem, setDetailsItem] = useState<InventoryRow | null>(null)
 
   async function loadItems(query?: string): Promise<void> {
     setIsLoading(true)
@@ -45,10 +57,16 @@ export function InventoryPage() {
           code: string
           title: string
           category: string
+          color: string
           foundAtUtc: string
           foundLocation: string
           status: string
           storageLocation?: string | null
+          privateDiscoveryNote?: string | null
+          privateData?: unknown
+          aiEvidenceLogs?: Array<{
+            snapshotPath: string
+          }>
         }>
       }>("/items/admin", { params: query ? { search: query } : undefined })
 
@@ -58,10 +76,15 @@ export function InventoryPage() {
           code: item.code,
           title: item.title,
           category: item.category,
+          color: item.color,
+          foundAtUtc: item.foundAtUtc,
+          foundLocation: item.foundLocation,
           date: new Date(item.foundAtUtc).toLocaleDateString(),
           location: item.foundLocation,
           status: item.status,
           storage: item.storageLocation ?? "Not assigned",
+          privateDiscoveryNote: item.privateDiscoveryNote ?? undefined,
+          photoUrl: resolveImageUrl(extractPhotoPath(item.privateData) ?? item.aiEvidenceLogs?.[0]?.snapshotPath),
         }))
       )
     } catch {
@@ -83,6 +106,22 @@ export function InventoryPage() {
     return () => window.clearTimeout(timeoutId)
   }, [search])
 
+  useEffect(() => {
+    const socket = getRealtimeSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleItemUpdated = () => {
+      void loadItems(search.trim() || undefined)
+    }
+
+    socket.on("item.updated", handleItemUpdated)
+    return () => {
+      socket.off("item.updated", handleItemUpdated)
+    }
+  }, [search])
+
   const visibleItems = useMemo(() => inventoryItems, [inventoryItems])
 
   return (
@@ -96,6 +135,48 @@ export function InventoryPage() {
               onSaved={() => {
                 void loadItems(search.trim() || undefined)
               }}
+            />
+          </div>
+        </div>
+      )}
+
+      {editItem && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setEditItem(null)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+            <EditInventoryItemModal
+              item={editItem}
+              onClose={() => setEditItem(null)}
+              onSaved={() => {
+                void loadItems(search.trim() || undefined)
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {linkItem && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setLinkItem(null)} />
+          <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+            <InventoryLinkReportModal
+              item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category }}
+              onClose={() => setLinkItem(null)}
+              onLinked={() => {
+                void loadItems(search.trim() || undefined)
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {detailsItem && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setDetailsItem(null)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+            <InventoryItemDetailsModal
+              item={detailsItem}
+              onClose={() => setDetailsItem(null)}
             />
           </div>
         </div>
@@ -162,8 +243,12 @@ export function InventoryPage() {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                        <Package className="w-5 h-5 text-slate-400" />
+                      <div className="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+                        {item.photoUrl ? (
+                          <img src={item.photoUrl} alt={item.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="w-5 h-5 text-slate-400" />
+                        )}
                       </div>
                       <div>
                         <div className="font-bold text-slate-900 tracking-tight">{item.title}</div>
@@ -193,15 +278,25 @@ export function InventoryPage() {
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2.5 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all shadow-sm bg-white border border-slate-100" title="Modify Entry">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100" title="Link Report">
-                        <Link2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all shadow-sm bg-white border border-slate-100">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                      <ActionIconButton
+                        label="Edit item"
+                        icon={<Edit className="w-4 h-4" />}
+                        buttonClassName="text-slate-400 hover:text-brand hover:bg-brand/5"
+                        onClick={() => setEditItem(item)}
+                      />
+                      <ActionIconButton
+                        label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
+                        icon={<Link2 className="w-4 h-4" />}
+                        buttonClassName="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                        onClick={() => setLinkItem(item)}
+                        disabled={item.status !== "AVAILABLE"}
+                      />
+                      <ActionIconButton
+                        label="View item details"
+                        icon={<Eye className="w-4 h-4" />}
+                        buttonClassName="text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        onClick={() => setDetailsItem(item)}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -248,6 +343,62 @@ export function InventoryPage() {
       </div>
     </div>
   )
+}
+
+function ActionIconButton({
+  label,
+  icon,
+  onClick,
+  disabled,
+  buttonClassName,
+}: {
+  label: string
+  icon: React.ReactNode
+  onClick: () => void
+  disabled?: boolean
+  buttonClassName: string
+}) {
+  return (
+    <div className="relative group/tooltip">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className={cn(
+          "p-2.5 rounded-xl transition-all shadow-sm bg-white border border-slate-100 disabled:opacity-40 disabled:cursor-not-allowed",
+          buttonClassName
+        )}
+      >
+        {icon}
+      </button>
+      <span className="pointer-events-none absolute bottom-full right-0 mb-2 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-white opacity-0 translate-y-1 transition-all group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 whitespace-nowrap">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function extractPhotoPath(privateData: unknown): string | undefined {
+  if (!privateData || typeof privateData !== "object") {
+    return undefined
+  }
+
+  const maybePhoto = (privateData as { photoUrl?: unknown }).photoUrl
+  return typeof maybePhoto === "string" ? maybePhoto : undefined
+}
+
+function resolveImageUrl(path?: string): string | undefined {
+  if (!path) {
+    return undefined
+  }
+
+  if (/^https?:\/\//i.test(path)) {
+    return path
+  }
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
+  const origin = apiBase.endsWith("/api") ? apiBase.slice(0, -4) : apiBase
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`
 }
 
 function StatusBadge({ status }: { status: string }) {
