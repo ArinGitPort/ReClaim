@@ -9,6 +9,7 @@ import { GalleryPage } from "@/pages/user/GalleryPage"
 import { ReportLostPage } from "@/pages/user/ReportLostPage"
 import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
 import { MyReportsPage } from "@/pages/user/MyReportsPage"
+import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
 import { NotificationsPage } from "@/pages/user/NotificationsPage"
 
 // Layouts
@@ -88,6 +89,7 @@ function App() {
               <Route path="/report-lost" element={<ReportLostPage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/my-reports" element={<MyReportsPage />} />
+              <Route path="/ready-to-claim" element={<ReadyToClaimPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               {/* Placeholder routes */}
               <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />

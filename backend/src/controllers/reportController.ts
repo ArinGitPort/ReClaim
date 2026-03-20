@@ -82,12 +82,20 @@ export async function postReport(req: Request, res: Response): Promise<void> {
 
 export async function getReports(req: Request, res: Response): Promise<void> {
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
+  const statusInQuery = typeof req.query.statusIn === "string" ? req.query.statusIn : undefined;
   const status = statusQuery && Object.values(ReportStatus).includes(statusQuery as ReportStatus)
     ? (statusQuery as ReportStatus)
     : undefined;
 
+  const statusIn = statusInQuery
+    ? statusInQuery
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value): value is ReportStatus => Object.values(ReportStatus).includes(value as ReportStatus))
+    : undefined;
+
   const userScoped = req.user?.role === "STUDENT" ? req.user.id : undefined;
-  const reports = await listReports({ userId: userScoped, status });
+  const reports = await listReports({ userId: userScoped, status, statusIn });
   res.json({ reports });
 }
 
@@ -127,7 +135,7 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
     userId: report.reporterUserId,
     title: "Lost Report Updated",
     message: `${report.reportCode} is now ${report.status.replaceAll("_", " ")}.`,
-    route: "/my-reports",
+    route: report.status === ReportStatus.MATCHED ? "/ready-to-claim" : "/my-reports",
   });
 
   emitNotificationCreated({

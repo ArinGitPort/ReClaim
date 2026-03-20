@@ -4,6 +4,7 @@ import {
   Search, 
   PlusCircle, 
   Hand, 
+  Ticket,
   FileText, 
   Settings, 
   MapPin, 
@@ -72,6 +73,13 @@ export function Sidebar() {
           to="/my-claims" 
           icon={<Hand className="w-5 h-5 flex-shrink-0" />} 
           label="My Claims" 
+          isCollapsed={isCollapsed} 
+        />
+
+        <SidebarItem 
+          to="/ready-to-claim" 
+          icon={<Ticket className="w-5 h-5 flex-shrink-0" />} 
+          label="Ready to Claim" 
           isCollapsed={isCollapsed} 
         />
 

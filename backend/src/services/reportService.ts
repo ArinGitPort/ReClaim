@@ -29,12 +29,16 @@ export async function submitLostReport(input: {
   });
 }
 
-export async function listReports(filters: { userId?: string; status?: ReportStatus }) {
+export async function listReports(filters: { userId?: string; status?: ReportStatus; statusIn?: ReportStatus[] }) {
+  const statusWhere = filters.statusIn && filters.statusIn.length > 0
+    ? { in: filters.statusIn }
+    : filters.status
+
   if (filters.userId) {
     const studentReports = await prisma.lostReport.findMany({
       where: {
         reporterUserId: filters.userId,
-        status: filters.status,
+        status: statusWhere,
       },
       include: {
         reporterUser: {
@@ -76,7 +80,7 @@ export async function listReports(filters: { userId?: string; status?: ReportSta
   return prisma.lostReport.findMany({
     where: {
       reporterUserId: filters.userId,
-      status: filters.status,
+      status: statusWhere,
     },
     include: {
       reporterUser: {

@@ -80,12 +80,20 @@ export async function postClaim(req: Request, res: Response): Promise<void> {
 
 export async function getClaims(req: Request, res: Response): Promise<void> {
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
+  const statusInQuery = typeof req.query.statusIn === "string" ? req.query.statusIn : undefined;
   const status = statusQuery && Object.values(ClaimStatus).includes(statusQuery as ClaimStatus)
     ? (statusQuery as ClaimStatus)
     : undefined;
 
+  const statusIn = statusInQuery
+    ? statusInQuery
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value): value is ClaimStatus => Object.values(ClaimStatus).includes(value as ClaimStatus))
+    : undefined;
+
   const userScoped = req.user?.role === "STUDENT" ? req.user.id : undefined;
-  const claims = await listClaims({ status, userId: userScoped });
+  const claims = await listClaims({ status, statusIn, userId: userScoped });
   res.json({ claims });
 }
 
@@ -119,7 +127,7 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
     userId: claim.claimantUserId,
     title: "Claim Status Updated",
     message: `${claim.claimCode} is now ${claim.status.replaceAll("_", " ")}.`,
-    route: "/my-claims",
+    route: claim.status === "APPROVED" ? "/ready-to-claim" : "/my-claims",
   });
 
   emitNotificationCreated({

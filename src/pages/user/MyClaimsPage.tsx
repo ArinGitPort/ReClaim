@@ -46,7 +46,11 @@ export function MyClaimsPage() {
           foundLocation: string
         }
       }>
-    }>("/claims")
+    }>("/claims", {
+      params: {
+        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,DENIED",
+      },
+    })
 
     setClaims(
       response.data.claims.map((claim) => ({
@@ -204,17 +208,6 @@ export function MyClaimsPage() {
                   </div>
                 )}
 
-                {claim.status === "Ready for Pickup" && claim.pickupToken && (
-                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                    <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-1">Pickup Authorization</div>
-                    <div className="text-lg font-black text-emerald-800 tracking-wide">{claim.pickupToken}</div>
-                    <p className="text-xs font-semibold text-emerald-700 mt-1">
-                      Present this token and your ID at the Admin Office.
-                      {claim.pickupTokenExpires ? ` Expires: ${new Date(claim.pickupTokenExpires).toLocaleString()}` : ""}
-                    </p>
-                  </div>
-                )}
-
                 {isClosableClaimStatus(claim.rawStatus) && (
                   <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
                     <button
@@ -279,18 +272,10 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 function formatClaimStatus(rawStatus: string): string {
-  if (rawStatus === "APPROVED") {
-    return "Ready for Pickup"
-  }
-
   return rawStatus.replaceAll("_", " ")
 }
 
 function claimStatusMessage(status: string): string {
-  if (status === "Ready for Pickup") {
-    return "Claim approved. Bring your token and ID to claim the item"
-  }
-
   if (status === "Inquiry Required") {
     return "Admin requires additional proof details"
   }

@@ -35,10 +35,12 @@ export async function submitClaim(input: {
   return claim;
 }
 
-export async function listClaims(filters: { status?: ClaimStatus; userId?: string }) {
+export async function listClaims(filters: { status?: ClaimStatus; statusIn?: ClaimStatus[]; userId?: string }) {
   return prisma.claim.findMany({
     where: {
-      status: filters.status,
+        status: filters.statusIn && filters.statusIn.length > 0
+          ? { in: filters.statusIn }
+          : filters.status,
       claimantUserId: filters.userId,
     },
     include: {

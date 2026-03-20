@@ -12,6 +12,7 @@ import { handoverRoutes } from "@/routes/handoverRoutes.js";
 import { itemRoutes } from "@/routes/itemRoutes.js";
 import { notificationRoutes } from "@/routes/notificationRoutes.js";
 import { reportRoutes } from "@/routes/reportRoutes.js";
+import { userRoutes } from "@/routes/userRoutes.js";
 
 export const app = express();
 
@@ -55,6 +56,7 @@ app.get("/api", (_req, res) => {
       items: "/api/items",
       claims: "/api/claims",
       reports: "/api/reports",
+      user: "/api/user",
       notifications: "/api/notifications",
       handover: "/api/handover",
       evidence: "/api/evidence",
@@ -66,6 +68,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/handover", handoverRoutes);
 app.use("/api/evidence", evidenceRoutes);

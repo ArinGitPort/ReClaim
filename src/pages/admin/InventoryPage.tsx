@@ -427,7 +427,7 @@ function resolveImageUrl(path?: string): string | undefined {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const label = status === "CLAIM_PENDING" ? "READY FOR PICKUP" : status.replaceAll("_", " ")
+  const label = status === "CLAIM_PENDING" ? "CLAIM PENDING" : status.replaceAll("_", " ")
 
   const getStyles = () => {
     switch(status) {

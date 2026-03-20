@@ -1,416 +1,325 @@
-import { useState } from "react"
-import { 
-  Package,
-  User,
-  AlertCircle,
-  CheckCircle2,
-  ShieldCheck,
-  ArrowRight,
-  Eye,
-  FileSearch
-} from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { CheckCircle2, Clock3, Search, ShieldAlert, User, XCircle } from "lucide-react"
+import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
-import { ClaimSuccessModal } from "@/features/claims/ClaimSuccessModal"
-import { DenyClaimModal } from "@/features/claims/DenyClaimModal"
 
-const CLAIMS_DATA: Array<{
+type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
+
+type ClaimRow = {
   id: string
-  category: string
-  student: string
-  studentId: string
-  timeAgo: string
-  isHighValue: boolean
-  item: string
-  inventoryId: string
-  physicalDetails: { color: string; condition: string; storage: string; serialNumber: string; deviceName: string }
-  studentProof: { marks: string; serialNumber: string; deviceName: string; privateNote: string }
-}> = []
+  claimCode: string
+  status: ClaimStatus
+  createdAt: string
+  reviewerNote?: string | null
+  submittedProof: Record<string, unknown>
+  claimantUser: {
+    name: string
+    studentId?: string | null
+    email: string
+  }
+  foundItem: {
+    id: string
+    code: string
+    title: string
+    category: string
+    color: string
+    foundLocation: string
+  }
+}
 
 export function ClaimsVerificationPage() {
-  const [selectedClaimId, setSelectedClaimId] = useState(CLAIMS_DATA[0]?.id ?? "")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("All")
-  const [status, setStatus] = useState<"review" | "denying" | "success">("review")
-  const [denyReason, setDenyReason] = useState("")
-  const [revealDeviceName, setRevealDeviceName] = useState(false)
-  const [revealSerial, setRevealSerial] = useState(false)
-  
-  // Selection change states
-  const [isDirty, setIsDirty] = useState(false)
-  const [pendingSelection, setPendingSelection] = useState<string | null>(null)
+  const [claims, setClaims] = useState<ClaimRow[]>([])
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [note, setNote] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
-  const selectedClaim = CLAIMS_DATA.find(c => c.id === selectedClaimId)
+  async function loadClaims(): Promise<void> {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await api.get<{ claims: ClaimRow[] }>("/claims", {
+        params: {
+          statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED",
+        },
+      })
 
-  const handleClaimSelect = (id: string) => {
-    if (id === selectedClaimId) return
-    if (isDirty) {
-      setPendingSelection(id)
+      setClaims(response.data.claims)
+      setSelectedClaimId((previous) => {
+        if (previous && response.data.claims.some((claim) => claim.id === previous)) {
+          return previous
+        }
+        return response.data.claims[0]?.id ?? null
+      })
+    } catch {
+      setError("Unable to load claims queue.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadClaims()
+  }, [])
+
+  const filteredClaims = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+
+    return claims.filter((claim) => {
+      if (statusFilter && claim.status !== statusFilter) {
+        return false
+      }
+
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const haystack = [
+        claim.claimCode,
+        claim.foundItem.title,
+        claim.foundItem.code,
+        claim.claimantUser.name,
+        claim.claimantUser.studentId ?? "",
+      ]
+        .join(" ")
+        .toLowerCase()
+
+      return haystack.includes(normalizedSearch)
+    })
+  }, [claims, search, statusFilter])
+
+  const selectedClaim = useMemo(
+    () => filteredClaims.find((claim) => claim.id === selectedClaimId) ?? claims.find((claim) => claim.id === selectedClaimId) ?? null,
+    [claims, filteredClaims, selectedClaimId]
+  )
+
+  useEffect(() => {
+    if (!selectedClaimId && filteredClaims.length > 0) {
+      setSelectedClaimId(filteredClaims[0].id)
+    }
+  }, [filteredClaims, selectedClaimId])
+
+  useEffect(() => {
+    if (selectedClaim?.reviewerNote) {
+      setNote(selectedClaim.reviewerNote)
     } else {
-      setSelectedClaimId(id)
-      setRevealDeviceName(false)
-      setRevealSerial(false)
-      setDenyReason("")
-      setStatus("review")
+      setNote("")
     }
-  }
+  }, [selectedClaim?.id, selectedClaim?.reviewerNote])
 
-  const confirmSwitch = () => {
-    if (pendingSelection) {
-      setSelectedClaimId(pendingSelection)
-      setPendingSelection(null)
-      setIsDirty(false)
-      setRevealDeviceName(false)
-      setRevealSerial(false)
-      setDenyReason("")
-      setStatus("review")
+  async function decide(status: "APPROVED" | "DENIED" | "INQUIRY_REQUIRED"): Promise<void> {
+    if (!selectedClaim) {
+      return
     }
-  }
 
-  const filteredClaims = CLAIMS_DATA.filter(c => {
-    const matchesSearch = c.student.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          c.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.id.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = categoryFilter === "All" || c.category === categoryFilter
-    return matchesSearch && matchesCategory
-  })
+    if ((status === "DENIED" || status === "INQUIRY_REQUIRED") && !note.trim()) {
+      setError("A reviewer note is required for deny or inquiry.")
+      return
+    }
 
-
-  if (!selectedClaim) {
-    return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">Final review workspace to validate ownership proof against physical inventory records.</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500 font-semibold">
-          No claim records available.
-        </div>
-      </div>
-    )
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      await api.patch(`/claims/${selectedClaim.id}/decision`, {
+        status,
+        reviewerNote: note.trim() || undefined,
+      })
+      await loadClaims()
+    } catch {
+      setError("Failed to update claim decision.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Page Header (Moved Outside for Alignment) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Final review workspace to validate ownership proof against physical inventory records. Cross-reference student-provided identifiers to authorize or deny item handovers.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-            PRIORITY: {selectedClaim.isHighValue ? "URGENT" : "STANDARD"}
-          </span>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
+        <p className="text-slate-500 text-sm font-medium mt-1">Review incoming gallery claims before any pickup handover is allowed.</p>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-6 items-start">
-        {/* Unsaved Changes Prompt (Modal Style) */}
-        {pendingSelection && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-slate-900/80" onClick={() => setPendingSelection(null)} />
-            <div className="relative bg-white rounded-xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 fill-mode-both">
-              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-6">
-                <AlertCircle className="w-8 h-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mb-2">Unsaved Changes</h3>
-              <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8">You are currently reviewing a claim. Switching will discard your progress on this item. Hold your current view or proceed?</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-12 font-bold rounded-xl border-slate-200" onClick={() => setPendingSelection(null)}>Stay Here</Button>
-                <Button className="h-12 bg-slate-900 hover:bg-black text-white font-bold rounded-xl" onClick={confirmSwitch}>Switch Claim</Button>
-              </div>
-            </div>
-          </div>
-        )}
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {error}
+        </div>
+      )}
 
-        {/* LEFT PANEL: Claims Navigation (Fixed width) */}
-        <div className="w-full xl:w-[380px] xl:sticky xl:top-[1.5rem] flex flex-col gap-4">
-          {/* Filters - Design Synced */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-            <div className="relative group">
-              <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
-              <input 
-                type="text"
-                placeholder="Search claims..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div className="xl:col-span-4 space-y-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by code, item, or claimant"
+                className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium"
               />
             </div>
-            <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar">
-              {["All", "Electronics", "Wallets/IDs", "Everyday Items"].map(cat => (
+
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {["", "PENDING_VERIFICATION", "INQUIRY_REQUIRED"].map((status) => (
                 <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
+                  key={status || "ALL"}
+                  type="button"
+                  onClick={() => setStatusFilter(status)}
                   className={cn(
-                    "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border shadow-sm",
-                    categoryFilter === cat 
-                      ? "bg-brand text-white border-brand shadow-brand/20" 
-                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 active:scale-95"
+                    "h-8 px-3 rounded-full border text-[10px] font-bold uppercase tracking-widest whitespace-nowrap",
+                    statusFilter === status ? "bg-brand text-white border-brand" : "bg-white text-slate-600 border-slate-200"
                   )}
                 >
-                  {cat}
+                  {status ? status.replaceAll("_", " ") : "All"}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Scrollable List */}
-          <div className="bg-white/50 rounded-3xl border border-slate-200 p-2 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar flex flex-col gap-2">
-            {filteredClaims.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No matching claims found</div>
-            ) : (
-              filteredClaims.map((claim) => (
-                <button
-                  key={claim.id}
-                  onClick={() => handleClaimSelect(claim.id)}
-                  className={cn(
-                    "w-full text-left p-4 rounded-2xl transition-all border group relative overflow-hidden",
-                    selectedClaimId === claim.id
-                      ? "bg-white border-brand shadow-md"
-                      : "bg-white border-transparent hover:border-slate-200 hover:shadow-sm"
-                  )}
-                >
-                  {claim.isHighValue && (
-                     <div className={cn(
-                       "absolute top-0 left-0 bottom-0 w-1",
-                       selectedClaimId === claim.id ? "bg-brand" : "bg-rose-500"
-                     )} />
-                  )}
-                  
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none truncate group-hover:text-brand transition-colors">
-                      {claim.category} • {claim.id}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none font-mono">
-                      {claim.timeAgo}
-                    </span>
-                  </div>
-                  <div className="text-sm font-extrabold text-slate-900 tracking-tight truncate mb-0.5">{claim.item}</div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-                    <User className="w-3 h-3" />
-                    {claim.student}
-                  </div>
+          <div className="space-y-3">
+            {isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">Loading claims...</div>}
+            {!isLoading && filteredClaims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
 
-                  {claim.isHighValue && (
-                    <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-rose-600 uppercase tracking-widest">
-                      <AlertCircle className="w-3 h-3" /> Priority Review
-                    </div>
-                  )}
-                </button>
-              ))
-            )}
+            {filteredClaims.map((claim) => (
+              <button
+                key={claim.id}
+                type="button"
+                onClick={() => setSelectedClaimId(claim.id)}
+                className={cn(
+                  "w-full text-left bg-white rounded-xl border p-4 transition-all",
+                  selectedClaimId === claim.id ? "border-brand ring-2 ring-brand/10" : "border-slate-200 hover:border-slate-300"
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{claim.claimCode}</span>
+                  <StatusPill status={claim.status} />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 truncate">{claim.foundItem.title}</h3>
+                <p className="mt-1 text-xs font-semibold text-slate-500">{claim.claimantUser.name}</p>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* RIGHT PANEL: Verification Workspace (Fluid) */}
-        <div className="flex-1 w-full space-y-6">
-          {/* Main Verification Grid */}
-          <div className={cn(
-            "grid grid-cols-1 xl:grid-cols-2 gap-px bg-slate-200 rounded-xl overflow-hidden shadow-sm border border-slate-200 transition-all",
-            status === "denying" && "opacity-40 grayscale pointer-events-none scale-[0.99]"
-          )}>
-            {/* System Record */}
-            <div className="bg-white p-8 xl:p-12 space-y-10">
-              <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-                 <div className="w-10 h-10 bg-brand/5 border border-brand/10 rounded-xl flex items-center justify-center">
-                    <Package className="w-5 h-5 text-brand" />
-                 </div>
-                 <div>
-                    <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-widest">System Record</h3>
-                    <p className="text-xs font-semibold text-slate-400 font-mono leading-none mt-1">Found Item: {selectedClaim.item}</p>
-                 </div>
-              </div>
+        <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          {!selectedClaim && !isLoading && (
+            <div className="p-10 text-center text-sm font-semibold text-slate-500">Select a claim to review.</div>
+          )}
 
-              <div className="space-y-8">
-                <VerifiedField label="External Condition" value={selectedClaim.physicalDetails.condition} />
-                <VerifiedField label="Location/Storage" value={selectedClaim.physicalDetails.storage} />
-                
-                <div className="space-y-4 pt-4">
-                  <div className="text-[10px] font-bold text-brand uppercase tracking-widest flex items-center gap-2">
-                    <ShieldCheck className="w-3 h-3" />
-                    Admin Private Data
-                  </div>
-                  <div className="grid grid-cols-1 gap-6">
-                   <AdminOnlyField label="Serial Number" value={selectedClaim.physicalDetails.serialNumber} />
-                   <AdminOnlyField label="Device Name / BT Name" value={selectedClaim.physicalDetails.deviceName} />
-                  </div>
+          {selectedClaim && (
+            <>
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Claim Reference</div>
+                  <div className="text-lg font-black text-slate-900">{selectedClaim.claimCode}</div>
                 </div>
-              </div>
-            </div>
-
-            {/* Student Proof Comparison */}
-            <div className="bg-slate-50/50 p-8 xl:p-12 space-y-10 relative">
-              <div className="flex items-center gap-4 pb-6 border-b border-brand/10">
-                 <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-                    <User className="w-5 h-5 text-white" />
-                 </div>
-                 <div>
-                    <h3 className="text-sm font-extrabold text-brand uppercase tracking-widest">Student Submission</h3>
-                    <p className="text-xs font-semibold text-brand/60 leading-none mt-1">{selectedClaim.student} ({selectedClaim.studentId})</p>
-                 </div>
+                <StatusPill status={selectedClaim.status} />
               </div>
 
-              <div className="space-y-8">
-                <SubmissionField 
-                  label="Distinguishing Marks" 
-                  value={selectedClaim.studentProof.marks} 
-                  isMatch 
-                />
-
-                <div className="space-y-4 pt-4">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verification Matching</div>
-                  <div className="grid grid-cols-1 gap-6">
-                    <SubmissionField
-                      label="Claimed Serial"
-                      value={selectedClaim.studentProof.serialNumber}
-                      isRevealed={revealSerial}
-                      onReveal={() => setRevealSerial(true)}
-                      isMatch={selectedClaim.studentProof.serialNumber === selectedClaim.physicalDetails.serialNumber}
-                    />
-                    <SubmissionField
-                      label="Device / BT Name"
-                      value={selectedClaim.studentProof.deviceName}
-                      isRevealed={revealDeviceName}
-                      onReveal={() => setRevealDeviceName(true)}
-                      isMatch={selectedClaim.studentProof.deviceName === selectedClaim.physicalDetails.deviceName}
-                    />
-                  </div>
+              <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                    <User className="w-3.5 h-3.5" /> Claimant
+                  </h3>
+                  <InfoRow label="Name" value={selectedClaim.claimantUser.name} />
+                  <InfoRow label="Student ID" value={selectedClaim.claimantUser.studentId ?? "N/A"} />
+                  <InfoRow label="Email" value={selectedClaim.claimantUser.email} />
                 </div>
 
-                <div className="p-6 bg-white rounded-2xl border border-brand/10 shadow-sm space-y-3">
-                   <h5 className="text-[10px] font-bold text-brand/60 uppercase tracking-widest flex items-center gap-2 font-mono">
-                     <AlertCircle className="w-3 h-3" /> Student Private Note
-                   </h5>
-                   <p className="text-sm text-slate-600 font-medium leading-relaxed border-l-2 border-brand/20 pl-4">
-                     "{selectedClaim.studentProof.privateNote}"
-                   </p>
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                    <ShieldAlert className="w-3.5 h-3.5" /> Item
+                  </h3>
+                  <InfoRow label="Inventory Code" value={selectedClaim.foundItem.code} />
+                  <InfoRow label="Title" value={selectedClaim.foundItem.title} />
+                  <InfoRow label="Category" value={selectedClaim.foundItem.category} />
+                  <InfoRow label="Color" value={selectedClaim.foundItem.color} />
+                  <InfoRow label="Found Location" value={selectedClaim.foundItem.foundLocation} />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Bottom Actions */}
-          <div className="bg-white p-6 md:px-10 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4 group cursor-help">
-              <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-brand/5 group-hover:border-brand/20 group-hover:text-brand transition-all">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-slate-800 text-[15px]">Manual Review Required</h4>
-                  <span className="text-[10px] px-2 py-0.5 bg-brand/5 text-brand border border-brand/10 rounded-full font-bold uppercase font-mono tracking-tighter shadow-sm">Pending Auth</span>
+              <div className="px-6 pb-6 space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Submitted Proof</h3>
+                <pre className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700 overflow-x-auto">
+{JSON.stringify(selectedClaim.submittedProof, null, 2)}
+                </pre>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note</label>
+                  <textarea
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder="Required for deny or inquiry"
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                  />
                 </div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ensure student ID matches official records before approval.</p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button variant="outline" className="flex-1 md:flex-none h-12 px-8 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold uppercase tracking-widest text-xs rounded-xl" onClick={() => setIsDirty(true)}>
-                Inquiry Request
-              </Button>
-              <Button 
-                onClick={() => setStatus("denying")}
-                variant="outline" 
-                className="flex-1 md:flex-none h-12 px-8 border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-xs rounded-xl"
-              >
-                Deny Claim
-              </Button>
-              <Button 
-                onClick={() => {
-                  setStatus("success")
-                  setIsDirty(false)
-                }}
-                className="flex-1 md:flex-none h-12 px-10 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs rounded-xl transition-all active:scale-95 shadow-sm"
-              >
-                Approve Claim <ArrowRight className="w-4 h-4 ml-2 text-white/50" />
-              </Button>
-            </div>
-          </div>
+                <div className="flex flex-wrap gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+                    onClick={() => void decide("INQUIRY_REQUIRED")}
+                    className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
+                  >
+                    <Clock3 className="w-4 h-4 mr-2" /> Request Inquiry
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+                    onClick={() => void decide("DENIED")}
+                    className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" /> Deny
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+                    onClick={() => void decide("APPROVED")}
+                    className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
-
-      <DenyClaimModal 
-        isOpen={status === "denying"}
-        onClose={() => setStatus("review")}
-        onConfirm={(reason) => {
-          console.log("Denying with reason:", reason)
-          setStatus("review")
-          setDenyReason("")
-          setIsDirty(false)
-        }}
-        denyReason={denyReason}
-        setDenyReason={setDenyReason}
-      />
-
-      <ClaimSuccessModal 
-        isOpen={status === "success"}
-        onClose={() => setStatus("review")}
-        claimId={selectedClaim.id}
-      />
     </div>
   )
 }
 
-function VerifiedField({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group/field border-l-2 border-brand/5 pl-4 hover:border-brand/30 transition-colors">
-      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none transition-colors">{label}</div>
-      <div className="text-[15px] font-bold text-slate-800 tracking-tight">{value}</div>
+    <div>
+      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</div>
+      <div className="text-sm font-semibold text-slate-800">{value}</div>
     </div>
   )
 }
 
-function AdminOnlyField({ label, value }: { label: string, value: string }) {
+function StatusPill({ status }: { status: ClaimStatus }) {
+  const styles: Record<ClaimStatus, string> = {
+    PENDING_VERIFICATION: "bg-amber-50 text-amber-700 border-amber-200",
+    INQUIRY_REQUIRED: "bg-orange-50 text-orange-700 border-orange-200",
+    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    DENIED: "bg-rose-50 text-rose-700 border-rose-200",
+    CANCELLED: "bg-slate-100 text-slate-600 border-slate-300",
+  }
+
   return (
-    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl group/field transition-all hover:bg-white hover:border-brand/20 hover:shadow-sm">
-      <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] mb-1 font-mono">{label}</div>
-      <div className="text-sm font-bold text-slate-700 font-mono tracking-tight">{value}</div>
-    </div>
+    <span className={cn("px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest", styles[status])}>
+      {status.replaceAll("_", " ")}
+    </span>
   )
 }
 
-function SubmissionField({ label, value, isRevealed = true, onReveal, isMatch }: { 
-  label: string; 
-  value: string; 
-  isRevealed?: boolean; 
-  onReveal?: () => void;
-  isMatch?: boolean;
-}) {
-  return (
-    <div className="group/field">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none transition-colors">{label}</div>
-        {isMatch && isRevealed && (
-          <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-mono uppercase shadow-sm">
-            <CheckCircle2 className="w-2.5 h-2.5" /> Direct Match
-          </span>
-        )}
-      </div>
-      
-      {!isRevealed ? (
-        <div className="h-12 bg-slate-100 rounded-xl border border-slate-200 border-dashed flex items-center justify-center group/btn relative overflow-hidden">
-          <div className="absolute inset-0 bg-slate-200/50 backdrop-blur-sm group-hover/btn:backdrop-blur-none transition-all" />
-          <Button 
-            onClick={onReveal}
-            size="sm" 
-            variant="outline" 
-            className="h-8 bg-white border-slate-300 text-[9px] font-bold tracking-widest rounded-lg px-4 uppercase shadow-sm relative z-10 transition-all hover:border-brand/40 hover:text-brand"
-          >
-            <Eye className="w-3 h-3 mr-1.5" /> Reveal Input
-          </Button>
-        </div>
-      ) : (
-        <div className={cn(
-          "p-4 rounded-xl border transition-all text-[15px] font-extrabold tracking-tight shadow-sm",
-          isMatch ? "bg-emerald-50/30 border-emerald-100 text-emerald-800" : "bg-white border-slate-200 text-slate-800"
-        )}>
-          {value}
-        </div>
-      )}
-    </div>
-  )
+function isPendingState(status: ClaimStatus): boolean {
+  return status === "PENDING_VERIFICATION" || status === "INQUIRY_REQUIRED"
 }
