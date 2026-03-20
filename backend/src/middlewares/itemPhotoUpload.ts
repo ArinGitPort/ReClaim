@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import multer from "multer";
+import { itemUploadsRoot } from "@/config/paths.js";
 import { HttpError } from "@/utils/errors.js";
 
-const uploadsDir = path.resolve(process.cwd(), "..", "uploads", "items");
-fs.mkdirSync(uploadsDir, { recursive: true });
+fs.mkdirSync(itemUploadsRoot, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, uploadsDir);
+    cb(null, itemUploadsRoot);
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";

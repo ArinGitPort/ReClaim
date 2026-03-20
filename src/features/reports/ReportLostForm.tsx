@@ -8,18 +8,18 @@ import { Label } from "@/components/ui/Label"
 import { useAuth } from "@/contexts/AuthContext"
 import { ReportConfirmationModal } from "./ReportConfirmationModal"
 import { api } from "@/lib/api"
-
-type Category = "electronics" | "bags" | "wallets" | "clothing" | "keys" | "others" | ""
+import { CAMPUS_LOCATIONS, ITEM_CATEGORIES, ITEM_COLORS } from "@/features/admin/itemFormOptions"
 
 export function ReportLostForm() {
   const { user } = useAuth()
-  const [category, setCategory] = useState<Category>("")
+  const [category, setCategory] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Form State
   const [formData, setFormData] = useState({
+    itemName: "",
     category: "",
     color: "",
     brand: "",
@@ -55,8 +55,8 @@ export function ReportLostForm() {
       }
 
       await api.post("/reports", {
-        title: `${formData.color} ${formData.category}`.trim(),
-        category: formData.category || "others",
+        title: formData.itemName.trim(),
+        category: formData.category,
         color: formData.color,
         location: formData.location,
         reportedLostAtUtc: new Date(`${formData.date || new Date().toISOString().slice(0, 10)}T00:00:00.000Z`).toISOString(),
@@ -109,6 +109,19 @@ export function ReportLostForm() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="itemName">Item Name</Label>
+                <Input
+                  id="itemName"
+                  name="itemName"
+                  required
+                  placeholder="e.g. Steam Card, Black JBL Earbuds Case"
+                  value={formData.itemName}
+                  onChange={handleInputChange}
+                  className="bg-white shadow-sm border-slate-200"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
                 <Select 
@@ -118,17 +131,14 @@ export function ReportLostForm() {
                   className="bg-white shadow-sm border-slate-200"
                   value={category} 
                   onChange={(e) => {
-                    setCategory(e.target.value as Category)
+                    setCategory(e.target.value)
                     handleInputChange(e)
                   }}
                 >
                   <option value="">Select a category</option>
-                  <option value="electronics">Electronics (Phone, Laptop, etc.)</option>
-                  <option value="bags">Bags & Backpacks</option>
-                  <option value="wallets">Wallets/IDs & Documents</option>
-                  <option value="clothing">Clothing & Apparel</option>
-                  <option value="keys">Keys & Keychains</option>
-                  <option value="others">Others</option>
+                  {ITEM_CATEGORIES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </Select>
               </div>
 
@@ -136,12 +146,9 @@ export function ReportLostForm() {
                 <Label htmlFor="color">Primary Color</Label>
                 <Select id="color" name="color" required value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
                   <option value="">Select color</option>
-                  <option value="black">Black</option>
-                  <option value="silver">Silver/Gray</option>
-                  <option value="white">White</option>
-                  <option value="blue">Blue</option>
-                  <option value="red">Red</option>
-                  <option value="gold">Gold/Tan</option>
+                  {ITEM_COLORS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </Select>
               </div>
 
@@ -154,11 +161,9 @@ export function ReportLostForm() {
                 <Label htmlFor="location">Campus Location</Label>
                 <Select id="location" name="location" required value={formData.location} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
                   <option value="">Select building/zone</option>
-                  <option value="lib">Main Library</option>
-                  <option value="eng">Engineering Building</option>
-                  <option value="caf">Campus Cafeteria</option>
-                  <option value="gym">University Gym</option>
-                  <option value="park">Central Park</option>
+                  {CAMPUS_LOCATIONS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </Select>
               </div>
 
@@ -201,19 +206,19 @@ export function ReportLostForm() {
           </section>
 
           {/* Section 2: Conditional Verification Data */}
-          {category && (category === "electronics" || category === "bags" || category === "wallets") && (
+          {category && isConditionalProofCategory(category) && (
             <section className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                {category === "electronics" && <Laptop className="w-4 h-4 text-brand" />}
-                {category === "bags" && <Wallet className="w-4 h-4 text-brand" />}
-                {category === "wallets" && <FileText className="w-4 h-4 text-brand" />}
+                {isElectronicsCategory(category) && <Laptop className="w-4 h-4 text-brand" />}
+                {isBagCategory(category) && <Wallet className="w-4 h-4 text-brand" />}
+                {isDocumentCategory(category) && <FileText className="w-4 h-4 text-brand" />}
                 <h3 className="font-bold text-slate-800 uppercase tracking-widest text-xs">
                   Section 2: Conditional verification
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-                {category === "electronics" && (
+                {isElectronicsCategory(category) && (
                   <div className="space-y-2">
                     <Label htmlFor="deviceName">Device Name / Bluetooth Name</Label>
                     <Input id="deviceName" name="deviceName" placeholder="e.g. Mika's iPhone, My Macbook Pro" value={formData.deviceName} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
@@ -221,7 +226,7 @@ export function ReportLostForm() {
                   </div>
                 )}
 
-                {category === "wallets" && (
+                {isDocumentCategory(category) && (
                   <div className="space-y-2">
                     <Label htmlFor="nameOnDoc">Full Name Printed on the Document</Label>
                     <Input id="nameOnDoc" name="nameOnDoc" placeholder="Enter the exact name shown" value={formData.nameOnDoc} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200" />
@@ -229,7 +234,7 @@ export function ReportLostForm() {
                   </div>
                 )}
 
-                {category === "bags" && (
+                {isBagCategory(category) && (
                   <div className="space-y-2">
                     <Label htmlFor="contents">Specific Contents (Interior)</Label>
                     <Textarea 
@@ -339,4 +344,21 @@ export function ReportLostForm() {
       />
     </>
   )
+}
+
+function isElectronicsCategory(category: string): boolean {
+  return category.toLowerCase() === "electronics"
+}
+
+function isBagCategory(category: string): boolean {
+  return category.toLowerCase() === "bags & backpacks"
+}
+
+function isDocumentCategory(category: string): boolean {
+  const normalized = category.toLowerCase()
+  return normalized === "wallets & ids" || normalized === "documents"
+}
+
+function isConditionalProofCategory(category: string): boolean {
+  return isElectronicsCategory(category) || isBagCategory(category) || isDocumentCategory(category)
 }

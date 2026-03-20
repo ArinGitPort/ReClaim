@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { api } from "@/lib/api"
+import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
 
 interface ClaimView {
   id: string
@@ -20,6 +21,8 @@ interface ClaimView {
 
 export function MyClaimsPage() {
   const [claims, setClaims] = useState<ClaimView[]>([])
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
 
   useEffect(() => {
     async function loadClaims(): Promise<void> {
@@ -59,6 +62,33 @@ export function MyClaimsPage() {
     void loadClaims()
   }, [])
 
+  const filteredClaims = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+
+    return claims.filter((claim) => {
+      if (statusFilter && claim.status !== statusFilter) {
+        return false
+      }
+
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const haystack = [claim.id, claim.item, claim.category, claim.inventoryId, claim.location]
+        .join(" ")
+        .toLowerCase()
+
+      return haystack.includes(normalizedSearch)
+    })
+  }, [claims, search, statusFilter])
+
+  const statusOptions = useMemo(() => {
+    return Array.from(new Set(claims.map((claim) => claim.status))).map((status) => ({
+      label: status,
+      value: status,
+    }))
+  }, [claims])
+
   return (
     <div className="w-full min-h-full pb-24">
       <TopNavBar title="My Claims" />
@@ -76,13 +106,29 @@ export function MyClaimsPage() {
           </Link>
         </div>
 
+        <RecordsFilterBar
+          searchValue={search}
+          onSearchChange={setSearch}
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={statusOptions}
+          searchPlaceholder="Search by claim code, item, inventory code, category, or location"
+          resultCount={filteredClaims.length}
+        />
+
+        <RecordsStatusChips
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={statusOptions}
+        />
+
         <div className="space-y-4">
-          {claims.map((claim) => (
-            <div key={claim.id} className="space-y-3">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5">
+          {filteredClaims.map((claim) => (
+            <div key={claim.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                 {/* Icon */}
-                <div className="w-14 h-14 bg-brand/5 border border-brand/10 rounded-2xl flex items-center justify-center shrink-0">
-                  <Package className="w-7 h-7 text-brand" />
+                <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
+                  <Package className="w-7 h-7 text-slate-400" />
                 </div>
 
                 {/* Details */}
@@ -91,7 +137,10 @@ export function MyClaimsPage() {
                     <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                       {claim.id}
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
+                      {claim.category}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                       {claim.inventoryId}
                     </span>
                   </div>
@@ -111,29 +160,40 @@ export function MyClaimsPage() {
                 {/* Status */}
                 <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
                   <ClaimStatusBadge status={claim.status} />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {claimStatusMessage(claim.status)}
-                  </p>
+                  <ClaimStatusMessage status={claim.status} />
                 </div>
               </div>
-              {claim.status === "Inquiry Required" && claim.reviewerNote && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
-                <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
-                </div>
-              )}
-              {claim.status === "Ready for Pickup" && claim.pickupToken && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-1">Pickup Token</div>
-                  <div className="text-lg font-black text-emerald-800 tracking-wider">{claim.pickupToken}</div>
-                  <p className="text-xs font-semibold text-emerald-700 mt-1">
-                    Present this token and your ID at the Admin Office.
-                    {claim.pickupTokenExpires ? ` Expires: ${new Date(claim.pickupTokenExpires).toLocaleString()}` : ""}
-                  </p>
-                </div>
-              )}
+
+              <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <DetailField label="Submitted Date" value={claim.submittedDate} />
+                <DetailField label="Category" value={claim.category} />
+                <DetailField label="Inventory Code" value={claim.inventoryId} />
+
+                {claim.status === "Inquiry Required" && claim.reviewerNote && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
+                    <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
+                  </div>
+                )}
+
+                {claim.status === "Ready for Pickup" && claim.pickupToken && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-1">Pickup Authorization</div>
+                    <div className="text-lg font-black text-emerald-800 tracking-wide">{claim.pickupToken}</div>
+                    <p className="text-xs font-semibold text-emerald-700 mt-1">
+                      Present this token and your ID at the Admin Office.
+                      {claim.pickupTokenExpires ? ` Expires: ${new Date(claim.pickupTokenExpires).toLocaleString()}` : ""}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
+          {filteredClaims.length === 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
+              No claims match your current filters.
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -157,6 +217,23 @@ function ClaimStatusBadge({ status }: { status: string }) {
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70 animate-pulse" />
       {status}
     </span>
+  )
+}
+
+function ClaimStatusMessage({ status }: { status: string }) {
+  return (
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+      <Clock className="w-3 h-3" /> {claimStatusMessage(status)}
+    </p>
+  )
+}
+
+function DetailField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</div>
+      <div className="text-sm font-semibold text-slate-700">{value}</div>
+    </div>
   )
 }
 

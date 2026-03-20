@@ -160,7 +160,7 @@ export function InventoryPage() {
           <div className="fixed inset-0 bg-slate-900/80" onClick={() => setLinkItem(null)} />
           <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
             <InventoryLinkReportModal
-              item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category }}
+              item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category, color: linkItem.color }}
               onClose={() => setLinkItem(null)}
               onLinked={() => {
                 void loadItems(search.trim() || undefined)

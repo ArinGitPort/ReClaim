@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
 
 type ReportRealtimeEvent = {
   reportId: string
@@ -34,6 +35,8 @@ interface ReportView {
 export function MyReportsPage() {
   const [reports, setReports] = useState<ReportView[]>([])
   const [liveNotice, setLiveNotice] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
@@ -111,6 +114,33 @@ export function MyReportsPage() {
     }
   }, [loadReports])
 
+  const filteredReports = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+
+    return reports.filter((report) => {
+      if (statusFilter && report.status !== statusFilter) {
+        return false
+      }
+
+      if (!normalizedSearch) {
+        return true
+      }
+
+      const haystack = [report.id, report.item, report.category, report.color, report.location]
+        .join(" ")
+        .toLowerCase()
+
+      return haystack.includes(normalizedSearch)
+    })
+  }, [reports, search, statusFilter])
+
+  const statusOptions = useMemo(() => {
+    return Array.from(new Set(reports.map((report) => report.status))).map((status) => ({
+      label: status,
+      value: status,
+    }))
+  }, [reports])
+
   useEffect(() => {
     const socket = getRealtimeSocket()
     if (!socket) {
@@ -153,8 +183,24 @@ export function MyReportsPage() {
           </Link>
         </div>
 
+        <RecordsFilterBar
+          searchValue={search}
+          onSearchChange={setSearch}
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={statusOptions}
+          searchPlaceholder="Search by report code, item, category, color, or location"
+          resultCount={filteredReports.length}
+        />
+
+        <RecordsStatusChips
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusOptions={statusOptions}
+        />
+
         <div className="space-y-4">
-          {reports.map((report) => (
+          {filteredReports.map((report) => (
             <div
               key={report.id}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
@@ -222,6 +268,11 @@ export function MyReportsPage() {
               </div>
             </div>
           ))}
+          {filteredReports.length === 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
+              No reports match your current filters.
+            </div>
+          )}
         </div>
       </div>
     </div>

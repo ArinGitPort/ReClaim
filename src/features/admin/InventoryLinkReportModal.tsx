@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ArrowRightLeft, CheckCircle2, Search, User, X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
@@ -10,6 +10,7 @@ type InventoryItemLite = {
   code: string
   title: string
   category: string
+  color: string
 }
 
 type CandidateReport = {
@@ -35,20 +36,13 @@ export function InventoryLinkReportModal({
   const [reports, setReports] = useState<CandidateReport[]>([])
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [search, setSearch] = useState(`${item.title} ${item.category}`)
+  const [strictMatch, setStrictMatch] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [isLinking, setIsLinking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadReports(search)
-    }, 250)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [search])
-
-  async function loadReports(query: string): Promise<void> {
+  const loadReports = useCallback(async (query: string): Promise<void> => {
     setIsLoading(true)
     setError(null)
     try {
@@ -70,6 +64,14 @@ export function InventoryLinkReportModal({
       const normalizedQuery = query.trim().toLowerCase()
       const filtered = response.data.reports
         .filter((report) => {
+          if (strictMatch) {
+            const sameCategory = normalize(report.category) === normalize(item.category)
+            const sameColor = normalize(report.color) === normalize(item.color)
+            if (!sameCategory || !sameColor) {
+              return false
+            }
+          }
+
           if (!normalizedQuery) {
             return true
           }
@@ -97,7 +99,15 @@ export function InventoryLinkReportModal({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [strictMatch, item.category, item.color])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadReports(search)
+    }, 250)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [search, loadReports])
 
   const selected = useMemo(
     () => reports.find((report) => report.id === selectedReportId),
@@ -171,6 +181,33 @@ export function InventoryLinkReportModal({
             className="pl-12 h-11 bg-slate-50 border-slate-200"
           />
         </div>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-[auto,1fr] items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setStrictMatch((prev) => !prev)}
+            className={cn(
+              "h-10 px-4 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer active:scale-[0.98] inline-flex items-center gap-3",
+              strictMatch
+                ? "bg-brand/10 border-brand/40 text-brand shadow-sm"
+                : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
+            )}
+            aria-pressed={strictMatch}
+          >
+            <span>Strict Match</span>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-md", strictMatch ? "bg-brand/20" : "bg-slate-100")}>{strictMatch ? "ON" : "OFF"}</span>
+            <span className={cn("relative w-11 h-6 rounded-full transition-colors", strictMatch ? "bg-brand" : "bg-slate-300")}>
+              <span
+                className={cn(
+                  "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
+                  strictMatch ? "left-5" : "left-0.5"
+                )}
+              />
+            </span>
+          </button>
+          <span className="text-[11px] font-bold tracking-wide text-slate-500">
+            {strictMatch ? "Exact category + color filtering is enabled." : "Broad search mode is enabled."} Click the switch to toggle.
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-slate-50/70">
@@ -218,4 +255,8 @@ export function InventoryLinkReportModal({
       </div>
     </div>
   )
+}
+
+function normalize(value: string): string {
+  return value.trim().toLowerCase()
 }

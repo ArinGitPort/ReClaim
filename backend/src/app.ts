@@ -1,8 +1,8 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import path from "node:path";
 import { env } from "@/config/env.js";
+import { uploadsRoot } from "@/config/paths.js";
 import { errorHandler } from "@/middlewares/errorHandler.js";
 import { notFound } from "@/middlewares/notFound.js";
 import { authRoutes } from "@/routes/authRoutes.js";
@@ -15,7 +15,11 @@ import { reportRoutes } from "@/routes/reportRoutes.js";
 
 export const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -37,7 +41,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: "2mb" }));
-app.use("/uploads", express.static(path.resolve(process.cwd(), "..", "uploads")));
+app.use("/uploads", express.static(uploadsRoot));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "reclaim-backend" });
