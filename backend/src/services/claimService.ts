@@ -139,3 +139,46 @@ export async function updateClaimProof(input: {
     },
   });
 }
+
+export async function closeClaimByStudent(input: {
+  claimId: string;
+  userId: string;
+}) {
+  const claim = await prisma.claim.findUnique({ where: { id: input.claimId }, include: { foundItem: true } });
+  if (!claim) {
+    throw new HttpError(404, "Claim not found");
+  }
+
+  if (claim.claimantUserId !== input.userId) {
+    throw new HttpError(403, "You can only close your own claim");
+  }
+
+  if (
+    claim.status === ClaimStatus.APPROVED ||
+    claim.status === ClaimStatus.DENIED ||
+    claim.status === ClaimStatus.CANCELLED
+  ) {
+    throw new HttpError(400, "This claim can no longer be closed");
+  }
+
+  const updated = await prisma.claim.update({
+    where: { id: claim.id },
+    data: {
+      status: ClaimStatus.CANCELLED,
+      reviewerNote: "Closed by claimant",
+      decisionAtUtc: null,
+      verifiedByAdminId: null,
+      pickupToken: null,
+      pickupTokenExpires: null,
+    },
+  });
+
+  if (claim.foundItem.status === ItemStatus.CLAIM_PENDING) {
+    await prisma.foundItem.update({
+      where: { id: claim.foundItemId },
+      data: { status: ItemStatus.AVAILABLE },
+    });
+  }
+
+  return updated;
+}

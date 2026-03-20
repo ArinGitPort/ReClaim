@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
@@ -16,6 +16,7 @@ type ReportRealtimeEvent = {
 }
 
 interface ReportView {
+  ticketId: string
   id: string
   item: string
   category: string
@@ -27,21 +28,26 @@ interface ReportView {
   brand: string
   marks: string
   privateNote: string
+  rawStatus: string
   status: string
   pickupToken?: string
   pickupTokenExpires?: string
 }
 
 export function MyReportsPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
   const [reports, setReports] = useState<ReportView[]>([])
   const [liveNotice, setLiveNotice] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+  const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
       const response = await api.get<{
         reports: Array<{
+          id: string
           reportCode: string
           title: string
           category: string
@@ -63,6 +69,7 @@ export function MyReportsPage() {
         response.data.reports.map((report) => {
           const proof = report.proofData ?? {}
           return {
+            ticketId: report.id,
             id: report.reportCode,
             item: report.title,
             category: report.category,
@@ -74,6 +81,7 @@ export function MyReportsPage() {
             brand: String(proof.brand ?? "Not specified"),
             marks: String(proof.marks ?? "Not provided"),
             privateNote: String(proof.privateNote ?? "Not provided"),
+            rawStatus: report.status,
             status: toStudentStatusLabel(report.status),
             pickupToken: report.pickupClaim?.pickupToken ?? undefined,
             pickupTokenExpires: report.pickupClaim?.pickupTokenExpires ?? undefined,
@@ -113,6 +121,20 @@ export function MyReportsPage() {
       document.removeEventListener("visibilitychange", handleVisibility)
     }
   }, [loadReports])
+
+  async function handleCloseTicket(report: ReportView): Promise<void> {
+    if (!isClosableReportStatus(report.rawStatus)) {
+      return
+    }
+
+    setClosingTicketId(report.ticketId)
+    try {
+      await api.patch(`/reports/${report.ticketId}/close`)
+      await loadReports()
+    } finally {
+      setClosingTicketId(null)
+    }
+  }
 
   const filteredReports = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -203,7 +225,10 @@ export function MyReportsPage() {
           {filteredReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+              className={cn(
+                "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
+                report.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/[0.03]"
+              )}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                 {/* Icon */}
@@ -263,6 +288,19 @@ export function MyReportsPage() {
                       Present this token at the Admin Office to claim your item.
                       {report.pickupTokenExpires ? ` Expires: ${new Date(report.pickupTokenExpires).toLocaleString()}` : ""}
                     </p>
+                  </div>
+                )}
+
+                {isClosableReportStatus(report.rawStatus) && (
+                  <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
+                    <button
+                      type="button"
+                      disabled={closingTicketId === report.ticketId}
+                      onClick={() => void handleCloseTicket(report)}
+                      className="h-10 px-4 rounded-lg border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {closingTicketId === report.ticketId ? "Closing..." : "Close Ticket"}
+                    </button>
                   </div>
                 )}
               </div>
@@ -332,4 +370,8 @@ function DetailField({ label, value }: { label: string; value: string }) {
       <div className="text-sm font-semibold text-slate-700">{value}</div>
     </div>
   )
+}
+
+function isClosableReportStatus(status: string): boolean {
+  return status === "SUBMITTED" || status === "UNDER_REVIEW" || status === "ACTIVE_SEARCH"
 }

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { useSearchParams } from "react-router-dom"
 
 type ReportStatus = "SUBMITTED" | "UNDER_REVIEW" | "ACTIVE_SEARCH" | "MATCHED" | "RESOLVED" | "REJECTED"
 
@@ -51,6 +52,8 @@ type ReportRow = {
 }
 
 export function MissingItemsPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
   const [reports, setReports] = useState<ReportRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -181,6 +184,17 @@ export function MissingItemsPage() {
     }
   }, [loadReports])
 
+  useEffect(() => {
+    if (!focusCode || reports.length === 0) {
+      return
+    }
+
+    const matchedReport = reports.find((row) => row.code.toUpperCase() === focusCode)
+    if (matchedReport) {
+      setSelectedReport(matchedReport.id)
+    }
+  }, [focusCode, reports])
+
   const filteredReports = useMemo(
     () => reports.filter((row) => {
       const matchesSearch =
@@ -292,7 +306,8 @@ export function MissingItemsPage() {
                   "p-5 bg-white rounded-2xl border transition-all cursor-pointer group shadow-sm relative overflow-hidden",
                   selectedReport === r.id
                     ? "border-brand ring-2 ring-brand/10 scale-[1.01] shadow-sm"
-                    : "border-slate-100 hover:border-brand/20 hover:shadow-sm"
+                    : "border-slate-100 hover:border-brand/20 hover:shadow-sm",
+                  r.code.toUpperCase() === focusCode && "ring-2 ring-brand/30 border-brand/50"
                 )}
               >
                 {selectedReport === r.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}

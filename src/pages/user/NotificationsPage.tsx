@@ -1,7 +1,7 @@
 import { Bell, CheckCheck } from "lucide-react"
 import { Link } from "react-router-dom"
 import { TopNavBar } from "@/layouts/TopNavBar"
-import { useNotifications } from "@/contexts/NotificationContext"
+import { type AppNotification, useNotifications } from "@/contexts/NotificationContext"
 
 export function NotificationsPage() {
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
@@ -49,7 +49,7 @@ export function NotificationsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Link
-                    to={item.route}
+                    to={buildNotificationOpenRoute(item)}
                     onClick={() => markRead(item.id)}
                     className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 inline-flex items-center"
                   >
@@ -71,4 +71,18 @@ export function NotificationsPage() {
       </main>
     </div>
   )
+}
+
+function buildNotificationOpenRoute(item: AppNotification): string {
+  const codeMatch = `${item.title} ${item.message}`.match(/\b([A-Z]{3}-\d+)\b/i)
+  if (!codeMatch) {
+    return item.route
+  }
+
+  const [path, query = ""] = item.route.split("?")
+  const params = new URLSearchParams(query)
+  params.set("focus", codeMatch[1].toUpperCase())
+
+  const queryString = params.toString()
+  return queryString ? `${path}?${queryString}` : path
 }

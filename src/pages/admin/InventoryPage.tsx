@@ -7,6 +7,7 @@ import {
   Eye,
   Edit,
   Link2,
+  ShieldCheck,
   Package,
   MapPin,
   Calendar
@@ -20,6 +21,7 @@ import { getRealtimeSocket } from "@/lib/realtime"
 import { EditInventoryItemModal } from "@/features/admin/EditInventoryItemModal"
 import { InventoryLinkReportModal } from "@/features/admin/InventoryLinkReportModal"
 import { InventoryItemDetailsModal } from "@/features/admin/InventoryItemDetailsModal"
+import { InventoryHandoverModal } from "@/features/admin/InventoryHandoverModal"
 
 type InventoryRow = {
   id: string
@@ -46,6 +48,7 @@ export function InventoryPage() {
   const [editItem, setEditItem] = useState<InventoryRow | null>(null)
   const [linkItem, setLinkItem] = useState<InventoryRow | null>(null)
   const [detailsItem, setDetailsItem] = useState<InventoryRow | null>(null)
+  const [handoverItem, setHandoverItem] = useState<InventoryRow | null>(null)
 
   async function loadItems(query?: string): Promise<void> {
     setIsLoading(true)
@@ -182,6 +185,21 @@ export function InventoryPage() {
         </div>
       )}
 
+      {handoverItem && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setHandoverItem(null)} />
+          <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+            <InventoryHandoverModal
+              item={{ id: handoverItem.id, code: handoverItem.code, title: handoverItem.title, status: handoverItem.status }}
+              onClose={() => setHandoverItem(null)}
+              onCompleted={() => {
+                void loadItems(search.trim() || undefined)
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Consistent Header Pattern */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -224,13 +242,13 @@ export function InventoryPage() {
         <div className="overflow-x-auto overflow-y-hidden">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-400">
+              <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
                 <th className="px-8 py-5">Item Identifier</th>
                 <th className="px-8 py-5">Found Item Specifications</th>
                 <th className="px-8 py-5">Detection Record</th>
                 <th className="px-8 py-5">Storage Facility</th>
                 <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5 text-right">Administrative</th>
+                <th className="px-8 py-5 text-right">Item Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -277,24 +295,31 @@ export function InventoryPage() {
                     <StatusBadge status={item.status} />
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <div className="flex items-center justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2">
                       <ActionIconButton
                         label="Edit item"
                         icon={<Edit className="w-4 h-4" />}
-                        buttonClassName="text-slate-400 hover:text-brand hover:bg-brand/5"
+                        buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
                         onClick={() => setEditItem(item)}
+                      />
+                      <ActionIconButton
+                        label={item.status === "CLAIM_PENDING" ? "Start handover" : "Handover starts when claim is pending"}
+                        icon={<ShieldCheck className="w-4 h-4" />}
+                        buttonClassName="bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900"
+                        onClick={() => setHandoverItem(item)}
+                        disabled={item.status !== "CLAIM_PENDING"}
                       />
                       <ActionIconButton
                         label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
                         icon={<Link2 className="w-4 h-4" />}
-                        buttonClassName="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                        buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
                         onClick={() => setLinkItem(item)}
                         disabled={item.status !== "AVAILABLE"}
                       />
                       <ActionIconButton
                         label="View item details"
                         icon={<Eye className="w-4 h-4" />}
-                        buttonClassName="text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        buttonClassName="bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300 hover:text-slate-900"
                         onClick={() => setDetailsItem(item)}
                       />
                     </div>
@@ -365,13 +390,13 @@ function ActionIconButton({
         disabled={disabled}
         aria-label={label}
         className={cn(
-          "p-2.5 rounded-xl transition-all shadow-sm bg-white border border-slate-100 disabled:opacity-40 disabled:cursor-not-allowed",
+          "p-2.5 rounded-xl transition-all shadow-sm border disabled:opacity-45 disabled:cursor-not-allowed",
           buttonClassName
         )}
       >
         {icon}
       </button>
-      <span className="pointer-events-none absolute bottom-full right-0 mb-2 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-white opacity-0 translate-y-1 transition-all group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 whitespace-nowrap">
+      <span className="pointer-events-none absolute bottom-full right-0 mb-2 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-extrabold text-white opacity-0 translate-y-1 transition-all group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 whitespace-nowrap">
         {label}
       </span>
     </div>

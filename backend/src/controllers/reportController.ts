@@ -1,7 +1,7 @@
 import { AuditAction, ReportStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { listReports, submitLostReport, updateReportStatus } from "@/services/reportService.js";
+import { closeReportByStudent, listReports, submitLostReport, updateReportStatus } from "@/services/reportService.js";
 import { logAudit } from "@/services/auditService.js";
 import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
@@ -155,6 +155,51 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
       status: "CLAIM_PENDING",
     });
   }
+
+  res.json({ report });
+}
+
+export async function patchReportClose(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+
+  const report = await closeReportByStudent({
+    reportId: id,
+    userId: req.user!.id,
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.REPORT_UPDATED,
+    targetType: "lost_report",
+    targetId: report.id,
+    description: "Student closed lost report ticket",
+    payload: {
+      status: report.status,
+      matchedItemId: report.matchedItemId,
+    },
+  });
+
+  emitReportStatusUpdated({
+    reportId: report.id,
+    reportCode: report.reportCode,
+    status: report.status,
+    reporterUserId: report.reporterUserId,
+    matchedItemId: report.matchedItemId,
+  });
+
+  const adminNotifications = await createNotificationsForRoles({
+    roles: ["ADMIN", "STAFF"],
+    title: "Report Closed by Student",
+    message: `${report.reportCode} was closed by the reporter.`,
+    route: "/admin/reports",
+  });
+
+  adminNotifications.forEach((notification: NotificationPayload) => {
+    emitNotificationCreated({
+      userId: notification.userId,
+      notification,
+    });
+  });
 
   res.json({ report });
 }

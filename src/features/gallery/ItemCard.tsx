@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { ShieldAlert, Laptop, MapPin, CalendarClock } from "lucide-react"
-import { ClaimVerificationModal } from "@/features/claims/ClaimVerificationModal"
+import { ClaimThisItemModal } from "@/features/claims/ClaimThisItemModal"
 
 // Ensure we have our shared types in place (will create types/index.ts later)
 export interface FoundItem {
@@ -74,11 +74,12 @@ export function ItemCard({ item }: ItemCardProps) {
         </div>
       </div>
 
-      <ClaimVerificationModal 
+      <ClaimThisItemModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         itemId={item.id}
         itemTitle={item.title}
+        itemCategory={item.category}
       />
     </>
   )

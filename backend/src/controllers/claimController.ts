@@ -1,7 +1,7 @@
 import { AuditAction, ClaimStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { decideClaim, listClaims, submitClaim, updateClaimProof } from "@/services/claimService.js";
+import { closeClaimByStudent, decideClaim, listClaims, submitClaim, updateClaimProof } from "@/services/claimService.js";
 import { logAudit } from "@/services/auditService.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated } from "@/realtime/socket.js";
@@ -168,6 +168,47 @@ export async function patchClaimProof(req: Request, res: Response): Promise<void
       userId: notification.userId,
       notification,
     });
+  });
+
+  res.json({ claim });
+}
+
+export async function patchClaimClose(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+
+  const claim = await closeClaimByStudent({
+    claimId: id,
+    userId: req.user!.id,
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.CLAIM_REVIEWED,
+    targetType: "claim",
+    targetId: claim.id,
+    description: "Student closed claim ticket",
+    payload: {
+      status: claim.status,
+    },
+  });
+
+  const adminNotifications = await createNotificationsForRoles({
+    roles: ["ADMIN", "STAFF"],
+    title: "Claim Closed by Student",
+    message: `${claim.claimCode} was closed by the claimant.`,
+    route: "/admin/claims",
+  });
+
+  adminNotifications.forEach((notification: NotificationPayload) => {
+    emitNotificationCreated({
+      userId: notification.userId,
+      notification,
+    });
+  });
+
+  emitItemUpdated({
+    itemId: claim.foundItemId,
+    status: "AVAILABLE",
   });
 
   res.json({ claim });

@@ -196,3 +196,33 @@ export async function updateReportStatus(input: {
     },
   });
 }
+
+export async function closeReportByStudent(input: {
+  reportId: string;
+  userId: string;
+}) {
+  const report = await prisma.lostReport.findUnique({ where: { id: input.reportId } });
+  if (!report) {
+    throw new HttpError(404, "Lost report not found");
+  }
+
+  if (report.reporterUserId !== input.userId) {
+    throw new HttpError(403, "You can only close your own report");
+  }
+
+  if (
+    report.status === ReportStatus.REJECTED ||
+    report.status === ReportStatus.RESOLVED ||
+    report.status === ReportStatus.MATCHED
+  ) {
+    throw new HttpError(400, "This report can no longer be closed");
+  }
+
+  return prisma.lostReport.update({
+    where: { id: report.id },
+    data: {
+      status: ReportStatus.RESOLVED,
+      matchedItemId: null,
+    },
+  });
+}

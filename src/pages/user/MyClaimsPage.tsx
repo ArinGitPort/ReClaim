@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
 
 interface ClaimView {
+  ticketId: string
   id: string
   item: string
   category: string
   inventoryId: string
   location: string
   submittedDate: string
+  rawStatus: string
   status: string
   reviewerNote?: string | null
   pickupToken?: string | null
@@ -20,45 +22,51 @@ interface ClaimView {
 }
 
 export function MyClaimsPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
   const [claims, setClaims] = useState<ClaimView[]>([])
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+  const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
+
+  async function loadClaims(): Promise<void> {
+    const response = await api.get<{
+      claims: Array<{
+        id: string
+        claimCode: string
+        status: string
+        createdAt: string
+        reviewerNote?: string | null
+        pickupToken?: string | null
+        pickupTokenExpires?: string | null
+        foundItem: {
+          code: string
+          title: string
+          category: string
+          foundLocation: string
+        }
+      }>
+    }>("/claims")
+
+    setClaims(
+      response.data.claims.map((claim) => ({
+        ticketId: claim.id,
+        id: claim.claimCode,
+        item: claim.foundItem.title,
+        category: claim.foundItem.category,
+        inventoryId: claim.foundItem.code,
+        location: claim.foundItem.foundLocation,
+        submittedDate: new Date(claim.createdAt).toLocaleDateString(),
+        rawStatus: claim.status,
+        status: formatClaimStatus(claim.status),
+        reviewerNote: claim.reviewerNote,
+        pickupToken: claim.pickupToken,
+        pickupTokenExpires: claim.pickupTokenExpires,
+      }))
+    )
+  }
 
   useEffect(() => {
-    async function loadClaims(): Promise<void> {
-      const response = await api.get<{
-        claims: Array<{
-          claimCode: string
-          status: string
-          createdAt: string
-          reviewerNote?: string | null
-          pickupToken?: string | null
-          pickupTokenExpires?: string | null
-          foundItem: {
-            code: string
-            title: string
-            category: string
-            foundLocation: string
-          }
-        }>
-      }>("/claims")
-
-      setClaims(
-        response.data.claims.map((claim) => ({
-          id: claim.claimCode,
-          item: claim.foundItem.title,
-          category: claim.foundItem.category,
-          inventoryId: claim.foundItem.code,
-          location: claim.foundItem.foundLocation,
-          submittedDate: new Date(claim.createdAt).toLocaleDateString(),
-          status: formatClaimStatus(claim.status),
-          reviewerNote: claim.reviewerNote,
-          pickupToken: claim.pickupToken,
-          pickupTokenExpires: claim.pickupTokenExpires,
-        }))
-      )
-    }
-
     void loadClaims()
   }, [])
 
@@ -81,6 +89,20 @@ export function MyClaimsPage() {
       return haystack.includes(normalizedSearch)
     })
   }, [claims, search, statusFilter])
+
+  async function handleCloseTicket(claim: ClaimView): Promise<void> {
+    if (!isClosableClaimStatus(claim.rawStatus)) {
+      return
+    }
+
+    setClosingTicketId(claim.ticketId)
+    try {
+      await api.patch(`/claims/${claim.ticketId}/close`)
+      await loadClaims()
+    } finally {
+      setClosingTicketId(null)
+    }
+  }
 
   const statusOptions = useMemo(() => {
     return Array.from(new Set(claims.map((claim) => claim.status))).map((status) => ({
@@ -124,7 +146,13 @@ export function MyClaimsPage() {
 
         <div className="space-y-4">
           {filteredClaims.map((claim) => (
-            <div key={claim.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div
+              key={claim.id}
+              className={cn(
+                "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
+                claim.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/[0.03]"
+              )}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                 {/* Icon */}
                 <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
@@ -184,6 +212,19 @@ export function MyClaimsPage() {
                       Present this token and your ID at the Admin Office.
                       {claim.pickupTokenExpires ? ` Expires: ${new Date(claim.pickupTokenExpires).toLocaleString()}` : ""}
                     </p>
+                  </div>
+                )}
+
+                {isClosableClaimStatus(claim.rawStatus) && (
+                  <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
+                    <button
+                      type="button"
+                      disabled={closingTicketId === claim.ticketId}
+                      onClick={() => void handleCloseTicket(claim)}
+                      className="h-10 px-4 rounded-lg border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {closingTicketId === claim.ticketId ? "Closing..." : "Close Ticket"}
+                    </button>
                   </div>
                 )}
               </div>
@@ -259,4 +300,8 @@ function claimStatusMessage(status: string): string {
   }
 
   return "Awaiting admin review"
+}
+
+function isClosableClaimStatus(status: string): boolean {
+  return status === "PENDING_VERIFICATION" || status === "INQUIRY_REQUIRED"
 }
