@@ -30,8 +30,6 @@ interface ReportView {
   privateNote: string
   rawStatus: string
   status: string
-  pickupToken?: string
-  pickupTokenExpires?: string
 }
 
 export function MyReportsPage() {
@@ -56,10 +54,6 @@ export function MyReportsPage() {
           reportedLostAtUtc: string
           timeWindow?: string
           proofData?: Record<string, unknown>
-          pickupClaim?: {
-            pickupToken?: string | null
-            pickupTokenExpires?: string | null
-          } | null
           createdAt: string
           status: string
         }>
@@ -87,8 +81,6 @@ export function MyReportsPage() {
             privateNote: String(proof.privateNote ?? "Not provided"),
             rawStatus: report.status,
             status: toStudentStatusLabel(report.status),
-            pickupToken: undefined,
-            pickupTokenExpires: undefined,
           }
         })
       )
@@ -175,7 +167,7 @@ export function MyReportsPage() {
 
     const handleStatusUpdated = (event: ReportRealtimeEvent) => {
       if (event.status === "MATCHED") {
-        setLiveNotice(`Good news! ${event.reportCode} is now ready for pickup.`)
+        setLiveNotice(`Good news! ${event.reportCode} has a match. Use Ready to Claim to view your pickup token.`)
       }
       void loadReports()
     }

@@ -17,8 +17,6 @@ interface ClaimView {
   rawStatus: string
   status: string
   reviewerNote?: string | null
-  pickupToken?: string | null
-  pickupTokenExpires?: string | null
 }
 
 export function MyClaimsPage() {
@@ -37,8 +35,6 @@ export function MyClaimsPage() {
         status: string
         createdAt: string
         reviewerNote?: string | null
-        pickupToken?: string | null
-        pickupTokenExpires?: string | null
         foundItem: {
           code: string
           title: string
@@ -64,8 +60,6 @@ export function MyClaimsPage() {
         rawStatus: claim.status,
         status: formatClaimStatus(claim.status),
         reviewerNote: claim.reviewerNote,
-        pickupToken: claim.pickupToken,
-        pickupTokenExpires: claim.pickupTokenExpires,
       }))
     )
   }
