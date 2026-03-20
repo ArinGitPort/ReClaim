@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { ArrowRightLeft, CheckCircle2, Search, User, X } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -260,3 +260,4 @@ export function InventoryLinkReportModal({
 function normalize(value: string): string {
   return value.trim().toLowerCase()
 }
+

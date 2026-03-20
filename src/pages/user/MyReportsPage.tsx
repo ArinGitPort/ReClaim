@@ -6,6 +6,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 type ReportRealtimeEvent = {
   reportId: string
@@ -40,6 +41,8 @@ export function MyReportsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
@@ -152,6 +155,17 @@ export function MyReportsPage() {
     })
   }, [reports, search, statusFilter])
 
+  useEffect(() => {
+    setPage(1)
+  }, [search, statusFilter, rowsPerPage])
+
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(filteredReports.length / rowsPerPage)), [filteredReports.length, rowsPerPage])
+
+  const visibleReports = useMemo(() => {
+    const start = (page - 1) * rowsPerPage
+    return filteredReports.slice(start, start + rowsPerPage)
+  }, [filteredReports, page, rowsPerPage])
+
   const statusOptions = useMemo(() => {
     return Array.from(new Set(reports.map((report) => report.status))).map((status) => ({
       label: status,
@@ -203,9 +217,15 @@ export function MyReportsPage() {
 
         <RecordsFilterBar
           searchValue={search}
-          onSearchChange={setSearch}
+          onSearchChange={(value) => {
+            setSearch(value)
+            setPage(1)
+          }}
           statusValue={statusFilter}
-          onStatusChange={setStatusFilter}
+          onStatusChange={(value) => {
+            setStatusFilter(value)
+            setPage(1)
+          }}
           statusOptions={statusOptions}
           searchPlaceholder="Search by report code, item, category, color, or location"
         />
@@ -218,7 +238,7 @@ export function MyReportsPage() {
         />
 
         <div className="space-y-4">
-          {filteredReports.map((report) => (
+          {visibleReports.map((report) => (
             <div
               key={report.id}
               className={cn(
@@ -291,12 +311,26 @@ export function MyReportsPage() {
               </div>
             </div>
           ))}
-          {filteredReports.length === 0 && (
+          {visibleReports.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
               No reports match your current filters.
             </div>
           )}
         </div>
+
+        <AdminPaginationControls
+          page={page}
+          pageCount={pageCount}
+          total={filteredReports.length}
+          visibleCount={visibleReports.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(nextRows) => {
+            setRowsPerPage(nextRows)
+            setPage(1)
+          }}
+          itemLabel="reports"
+        />
       </div>
     </div>
   )

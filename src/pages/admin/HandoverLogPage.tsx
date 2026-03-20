@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Eye, Search, ShieldCheck, X } from "lucide-react"
 import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { api } from "@/lib/api"
 
@@ -33,30 +33,10 @@ export function HandoverLogPage() {
   const [logsSearch, setLogsSearch] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
   const [selectedLog, setSelectedLog] = useState<HandoverLogRow | null>(null)
-
-  async function loadHandoverLogs(search?: string): Promise<void> {
-    setIsLoadingLogs(true)
-    try {
-      const response = await api.get<{ handovers: HandoverLogRow[] }>("/handover/logs", {
-        params: search ? { search } : undefined,
-      })
-      setLogs(response.data.handovers)
-    } finally {
-      setIsLoadingLogs(false)
-    }
-  }
-
-  useEffect(() => {
-    void loadHandoverLogs()
-  }, [])
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadHandoverLogs(logsSearch.trim() || undefined)
-    }, 350)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [logsSearch])
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const sourceOptions = useMemo(
     () => [
@@ -66,15 +46,54 @@ export function HandoverLogPage() {
     []
   )
 
-  const visibleLogs = useMemo(() => {
-    return logs.filter((log) => {
-      if (sourceFilter && getLogSource(log) !== sourceFilter) {
-        return false
-      }
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadHandoverLogs({
+        search: logsSearch.trim() || undefined,
+        source: sourceFilter || undefined,
+        page,
+        limit: rowsPerPage,
+      })
+    }, 250)
 
-      return true
-    })
-  }, [logs, sourceFilter])
+    return () => window.clearTimeout(timeoutId)
+  }, [logsSearch, sourceFilter, page, rowsPerPage])
+
+  useEffect(() => {
+    setPage(1)
+  }, [logsSearch, sourceFilter, rowsPerPage])
+
+  async function loadHandoverLogs(input: { search?: string; source?: string; page: number; limit: number }): Promise<void> {
+    setIsLoadingLogs(true)
+    try {
+      const response = await api.get<{
+        handovers: HandoverLogRow[]
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/handover/logs", {
+        params: {
+          search: input.search,
+          source: input.source,
+          page: input.page,
+          limit: input.limit,
+        },
+      })
+
+      setLogs(response.data.handovers)
+      setTotal(response.data.pagination.total)
+      setPageCount(response.data.pagination.pageCount)
+    } finally {
+      setIsLoadingLogs(false)
+    }
+  }
+
+  const resultLabel = useMemo(() => {
+    return `Showing ${logs.length} of ${total} result${total === 1 ? "" : "s"}`
+  }, [logs.length, total])
 
   return (
     <div className="space-y-8">
@@ -167,15 +186,14 @@ export function HandoverLogPage() {
             onClick={() => {
               setLogsSearch("")
               setSourceFilter("")
+              setPage(1)
             }}
           >
             Reset
           </Button>
         </div>
 
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">
-          Showing {visibleLogs.length} result{visibleLogs.length === 1 ? "" : "s"}
-        </p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">{resultLabel}</p>
       </div>
 
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
@@ -193,7 +211,7 @@ export function HandoverLogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {visibleLogs.map((log) => (
+              {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/70">
                   <td className="px-4 py-3 text-xs font-semibold text-slate-600">{new Date(log.releasedAtUtc).toLocaleString()}</td>
                   <td className="px-4 py-3">
@@ -224,7 +242,7 @@ export function HandoverLogPage() {
                   <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">Loading handover logs...</td>
                 </tr>
               )}
-              {!isLoadingLogs && visibleLogs.length === 0 && (
+              {!isLoadingLogs && logs.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">No returned-item handover logs found for current filters.</td>
                 </tr>
@@ -233,12 +251,45 @@ export function HandoverLogPage() {
           </table>
         </div>
       </div>
+
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Rows per page</span>
+          <Select
+            value={String(rowsPerPage)}
+            onChange={(event) => setRowsPerPage(Number(event.target.value))}
+            className="h-9 w-24 border-slate-200 bg-white text-xs font-bold"
+          >
+            {[10, 25, 50, 100].map((size) => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            disabled={page <= 1}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Page {page} of {pageCount}</span>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            disabled={page >= pageCount}
+            onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   )
-}
-
-function getLogSource(log: HandoverLogRow): "CLAIM" | "REPORT_MATCH" {
-  return log.claim?.claimCode ? "CLAIM" : "REPORT_MATCH"
 }
 
 function DetailBlock({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
@@ -249,3 +300,4 @@ function DetailBlock({ label, value, mono }: { label: string; value: string; mon
     </div>
   )
 }
+

@@ -65,6 +65,70 @@ export async function listClaims(filters: { status?: ClaimStatus; statusIn?: Cla
   });
 }
 
+export async function listClaimsPaginated(filters: {
+  status?: ClaimStatus;
+  statusIn?: ClaimStatus[];
+  userId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const page = Math.max(filters.page ?? 1, 1);
+  const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
+
+  const where: Prisma.ClaimWhereInput = {
+    status: filters.statusIn && filters.statusIn.length > 0
+      ? { in: filters.statusIn }
+      : filters.status,
+    claimantUserId: filters.userId,
+    OR: filters.search
+      ? [
+          { claimCode: { contains: filters.search, mode: "insensitive" as const } },
+          { foundItem: { title: { contains: filters.search, mode: "insensitive" as const } } },
+          { foundItem: { code: { contains: filters.search, mode: "insensitive" as const } } },
+          { claimantUser: { name: { contains: filters.search, mode: "insensitive" as const } } },
+          { claimantUser: { studentId: { contains: filters.search, mode: "insensitive" as const } } },
+        ]
+      : undefined,
+  };
+
+  const [claims, total] = await Promise.all([
+    prisma.claim.findMany({
+      where,
+      include: {
+        foundItem: true,
+        claimantUser: {
+          select: {
+            id: true,
+            name: true,
+            studentId: true,
+            email: true,
+          },
+        },
+        verifiedByAdmin: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.claim.count({ where }),
+  ]);
+
+  return {
+    claims,
+    total,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
 export async function decideClaim(input: {
   claimId: string;
   adminId: string;

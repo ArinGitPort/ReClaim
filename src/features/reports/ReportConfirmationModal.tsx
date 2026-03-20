@@ -1,5 +1,5 @@
 import { CheckCircle, ArrowRight, FileText, X } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 
@@ -85,3 +85,4 @@ export function ReportConfirmationModal({ isOpen, onClose }: ReportConfirmationM
     </div>
   )
 }
+

@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { User, Lock } from "lucide-react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
@@ -98,3 +98,5 @@ export function LoginForm() {
     </div>
   )
 }
+
+

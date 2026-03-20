@@ -2,6 +2,7 @@ import { AuditAction, ItemStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { env } from "@/config/env.js";
+import { prisma } from "@/lib/prisma.js";
 import { createFoundItem, listAdminItems, listPublicItems, updateFoundItem } from "@/services/itemService.js";
 import { logAudit } from "@/services/auditService.js";
 import { HttpError } from "@/utils/errors.js";
@@ -57,18 +58,55 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const category = typeof req.query.category === "string" ? req.query.category : undefined;
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
+  const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
+  const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
   const status = statusQuery && Object.values(ItemStatus).includes(statusQuery as ItemStatus)
     ? (statusQuery as ItemStatus)
     : undefined;
+  const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : 1;
+  const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 12;
 
-  const items = await listPublicItems({ search, category, status });
-  res.json({ items });
+  const result = await listPublicItems({ search, category, status, page, limit });
+  res.json({
+    items: result.items,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pageCount: result.pageCount,
+    },
+  });
 }
 
 export async function getAdminItems(req: Request, res: Response): Promise<void> {
-  const search = typeof req.query.search === "string" ? req.query.search : undefined;
-  const items = await listAdminItems(search);
-  res.json({ items });
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+  const category = typeof req.query.category === "string" ? req.query.category : undefined;
+  const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
+  const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
+  const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
+  const status = statusQuery && Object.values(ItemStatus).includes(statusQuery as ItemStatus)
+    ? (statusQuery as ItemStatus)
+    : undefined;
+  const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : 1;
+  const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 25;
+
+  const result = await listAdminItems({
+    search: search || undefined,
+    category,
+    status,
+    page,
+    limit,
+  });
+
+  res.json({
+    items: result.items,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pageCount: result.pageCount,
+    },
+  });
 }
 
 export async function postItem(req: Request, res: Response): Promise<void> {
@@ -108,7 +146,9 @@ export async function postItem(req: Request, res: Response): Promise<void> {
     targetType: "found_item",
     targetId: item.id,
     description: "Admin logged a new found item",
+    targetReferenceCode: item.code,
     payload: {
+      targetReferenceCode: item.code,
       code: item.code,
       category: item.category,
       status: item.status,
@@ -131,6 +171,25 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
     throw new HttpError(400, "At least one updatable field is required");
   }
 
+  const beforeItem = await prisma.foundItem.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      category: true,
+      color: true,
+      foundLocation: true,
+      foundAtUtc: true,
+      storageLocation: true,
+      privateDiscoveryNote: true,
+      status: true,
+      code: true,
+    },
+  });
+
+  if (!beforeItem) {
+    throw new HttpError(404, "Item not found");
+  }
+
   const item = await updateFoundItem({
     itemId: id,
     title: body.title,
@@ -149,9 +208,30 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
     targetType: "found_item",
     targetId: item.id,
     description: "Admin updated found item record",
+    targetReferenceCode: item.code,
     payload: {
-      code: item.code,
-      status: item.status,
+      targetReferenceCode: item.code,
+      changes: buildChangePayload(beforeItem, item),
+      before: {
+        title: beforeItem.title,
+        category: beforeItem.category,
+        color: beforeItem.color,
+        foundLocation: beforeItem.foundLocation,
+        foundAtUtc: beforeItem.foundAtUtc,
+        storageLocation: beforeItem.storageLocation,
+        privateDiscoveryNote: beforeItem.privateDiscoveryNote,
+        status: beforeItem.status,
+      },
+      after: {
+        title: item.title,
+        category: item.category,
+        color: item.color,
+        foundLocation: item.foundLocation,
+        foundAtUtc: item.foundAtUtc,
+        storageLocation: item.storageLocation,
+        privateDiscoveryNote: item.privateDiscoveryNote,
+        status: item.status,
+      },
     },
   });
 
@@ -196,7 +276,9 @@ export async function postAiItem(req: Request, res: Response): Promise<void> {
     targetType: "found_item",
     targetId: item.id,
     description: "AI ingestion created a new found item",
+    targetReferenceCode: item.code,
     payload: {
+      targetReferenceCode: item.code,
       code: item.code,
       category: item.category,
       status: item.status,
@@ -209,4 +291,46 @@ export async function postAiItem(req: Request, res: Response): Promise<void> {
   });
 
   res.status(201).json({ item });
+}
+
+function buildChangePayload(
+  beforeItem: {
+    title: string;
+    category: string;
+    color: string;
+    foundLocation: string;
+    foundAtUtc: Date;
+    storageLocation: string | null;
+    privateDiscoveryNote: string | null;
+    status: ItemStatus;
+  },
+  afterItem: {
+    title: string;
+    category: string;
+    color: string;
+    foundLocation: string;
+    foundAtUtc: Date;
+    storageLocation: string | null;
+    privateDiscoveryNote: string | null;
+    status: ItemStatus;
+  }
+) {
+  const fields = [
+    ["title", beforeItem.title, afterItem.title],
+    ["category", beforeItem.category, afterItem.category],
+    ["color", beforeItem.color, afterItem.color],
+    ["foundLocation", beforeItem.foundLocation, afterItem.foundLocation],
+    ["foundAtUtc", beforeItem.foundAtUtc.toISOString(), afterItem.foundAtUtc.toISOString()],
+    ["storageLocation", beforeItem.storageLocation ?? null, afterItem.storageLocation ?? null],
+    ["privateDiscoveryNote", beforeItem.privateDiscoveryNote ?? null, afterItem.privateDiscoveryNote ?? null],
+    ["status", beforeItem.status, afterItem.status],
+  ] as const;
+
+  return fields
+    .filter((field) => field[1] !== field[2])
+    .map((field) => ({
+      changedField: field[0],
+      oldValue: field[1],
+      newValue: field[2],
+    }));
 }

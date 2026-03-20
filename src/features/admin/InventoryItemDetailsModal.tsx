@@ -1,5 +1,5 @@
 import { Image as ImageIcon, Info, MapPin, Package, X } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 
 type InventoryItemDetails = {
   code: string
@@ -81,3 +81,4 @@ function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string
     </div>
   )
 }
+

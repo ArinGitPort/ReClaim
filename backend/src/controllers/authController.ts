@@ -29,6 +29,10 @@ export async function register(req: Request, res: Response): Promise<void> {
     targetType: "user",
     targetId: user.id,
     description: "User registered",
+    targetReferenceCode: user.studentId ?? user.email,
+    payload: {
+      targetReferenceCode: user.studentId ?? user.email,
+    },
   });
 
   res.status(201).json({ user });
@@ -44,6 +48,10 @@ export async function login(req: Request, res: Response): Promise<void> {
     targetType: "user",
     targetId: result.user.id,
     description: "User logged in",
+    targetReferenceCode: result.user.email,
+    payload: {
+      targetReferenceCode: result.user.email,
+    },
   });
 
   res.json(result);

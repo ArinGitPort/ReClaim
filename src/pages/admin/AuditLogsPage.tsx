@@ -1,153 +1,564 @@
-import { History as HistoryIcon, Globe, Filter, ShieldCheck, Search, Database, Lock as LockIcon, Zap } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { useEffect, useMemo, useState } from "react"
+import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
-import { cn } from "@/lib/utils"
+import { Select } from "@/components/ui/Select"
+import { api } from "@/lib/api"
 
-const logs: Array<{ id: string; event: string; detail: string; user: string; role: string; timestamp: string; ip: string; status: string }> = []
+type AuditAction =
+  | "ITEM_CREATED"
+  | "ITEM_UPDATED"
+  | "CLAIM_SUBMITTED"
+  | "CLAIM_REVIEWED"
+  | "CLAIM_APPROVED"
+  | "CLAIM_DENIED"
+  | "REPORT_SUBMITTED"
+  | "REPORT_UPDATED"
+  | "REPORT_LINKED"
+  | "HANDOVER_COMPLETED"
+  | "AUTH_LOGIN"
+
+type AuditLogRow = {
+  id: string
+  action: AuditAction
+  targetType: string
+  targetId: string
+  targetReferenceCode: string
+  actionSentence: string
+  description?: string | null
+  payload?: unknown
+  createdAt: string
+  actorUser: {
+    id: string
+    name: string
+    email: string
+    role: "STUDENT" | "STAFF" | "ADMIN"
+    studentId?: string | null
+  }
+}
+
+type ChangeRow = {
+  changedField: string
+  oldValue: unknown
+  newValue: unknown
+}
+
+const actionOptions: Array<{ label: string; value: AuditAction | "" }> = [
+  { label: "All Actions", value: "" },
+  { label: "Item Created", value: "ITEM_CREATED" },
+  { label: "Item Updated", value: "ITEM_UPDATED" },
+  { label: "Claim Submitted", value: "CLAIM_SUBMITTED" },
+  { label: "Claim Reviewed", value: "CLAIM_REVIEWED" },
+  { label: "Claim Approved", value: "CLAIM_APPROVED" },
+  { label: "Claim Denied", value: "CLAIM_DENIED" },
+  { label: "Report Submitted", value: "REPORT_SUBMITTED" },
+  { label: "Report Updated", value: "REPORT_UPDATED" },
+  { label: "Report Linked", value: "REPORT_LINKED" },
+  { label: "Handover Completed", value: "HANDOVER_COMPLETED" },
+  { label: "Auth Login", value: "AUTH_LOGIN" },
+]
 
 export function AuditLogsPage() {
+  const [logs, setLogs] = useState<AuditLogRow[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [actionFilter, setActionFilter] = useState<AuditAction | "">("")
+  const [selectedLog, setSelectedLog] = useState<AuditLogRow | null>(null)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
+  const [total, setTotal] = useState(0)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadLogs({
+        search: searchQuery.trim() || undefined,
+        action: actionFilter || undefined,
+        page,
+        limit: rowsPerPage,
+      })
+    }, 300)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [searchQuery, actionFilter, page, rowsPerPage])
+
+  async function loadLogs(filters: { search?: string; action?: AuditAction; page: number; limit: number }): Promise<void> {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await api.get<{
+        logs: AuditLogRow[]
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/audit/logs", {
+        params: {
+          search: filters.search,
+          action: filters.action,
+          page: filters.page,
+          limit: filters.limit,
+        },
+      })
+
+      setLogs(response.data.logs)
+      setTotal(response.data.pagination.total)
+      setPageCount(response.data.pagination.pageCount)
+    } catch {
+      setError("Unable to load audit records.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const resultLabel = useMemo(() => {
+    return `Showing ${logs.length} of ${total} log${total === 1 ? "" : "s"}`
+  }, [logs.length, total])
+
   return (
     <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Audit Archive</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Permanent record of system interactions and admin decisions.</p>
+      {selectedLog && (
+        <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto px-4 py-10">
+          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setSelectedLog(null)} />
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+              <div>
+                <h3 className="text-base font-extrabold uppercase tracking-tight text-slate-900">Activity Details</h3>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{selectedLog.id}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6 p-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <InfoRow label="Log ID" value={selectedLog.id} mono />
+                <InfoRow label="Date & Time" value={new Date(selectedLog.createdAt).toLocaleString()} />
+                <InfoRow label="User" value={selectedLog.actorUser.name} />
+                <InfoRow label="Role" value={selectedLog.actorUser.role} />
+                <InfoRow label="Email" value={selectedLog.actorUser.email} />
+                <InfoRow label="Record" value={`${toRecordLabel(selectedLog.targetType)} (${selectedLog.targetReferenceCode})`} />
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</div>
+                <p className="mt-2 text-sm font-semibold text-slate-700">{renderNarrativeSentence(selectedLog)}</p>
+                {selectedLog.description && (
+                  <p className="mt-1 text-xs font-medium text-slate-500">{selectedLog.description}</p>
+                )}
+              </div>
+
+              <PayloadPanel payload={selectedLog.payload} />
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-10 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl px-4">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter Logs
-          </Button>
-        </div>
+      )}
+
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Audit Archive</h1>
+        <p className="mt-1 text-sm font-medium text-slate-500">Activity feed of verified system actions and administrative updates.</p>
       </div>
 
-      {/* Filters Area */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
-          <Input 
-            placeholder="Search by Event, User, or Transaction ID..." 
-            className="pl-12 h-12 bg-white border-slate-200 shadow-sm focus:ring-brand/10 rounded-xl font-medium text-sm" 
-          />
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {error}
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-500 hover:text-brand">
-            <Filter className="w-4 h-4 mr-2" /> Status: All
-          </Button>
-        </div>
-      </div>
+      )}
 
-      {/* Logs Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-400">
-                <th className="px-8 py-5">Event Identifier</th>
-                <th className="px-8 py-5">Action Specifications</th>
-                <th className="px-8 py-5">Initiator</th>
-                <th className="px-8 py-5">Network Origin</th>
-                <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5 text-right">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/50 transition-colors group cursor-default">
-                  <td className="px-8 py-5 whitespace-nowrap">
-                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 group-hover:bg-slate-100 group-hover:text-slate-900 transition-all">
-                      {log.id}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                       <EventIcon event={log.event} />
-                       <div>
-                         <span className="font-semibold text-slate-900 text-sm leading-tight">{log.event}</span>
-                         {log.detail && <p className="text-[10px] font-medium text-slate-400 mt-0.5">{log.detail}</p>}
-                       </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="font-bold text-slate-900 tracking-tight">{log.user}</div>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{log.role}</div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200/50 text-[11px] font-bold text-slate-400 font-mono tracking-tight group-hover:bg-white group-hover:shadow-sm transition-all">
-                      <Globe className="w-3 h-3" />
-                      {log.ip}
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <LogStatusBadge status={log.status} />
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="text-[12px] font-bold text-slate-400 font-mono tracking-tighter whitespace-nowrap">
-                      {log.timestamp}
-                    </div>
-                  </td>
-                </tr>
+      <div className="space-y-3">
+        <div className="flex flex-col gap-4 md:flex-row">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors" />
+            <Input
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value)
+                setPage(1)
+              }}
+              placeholder="Search by action, user, record code, or details"
+              className="h-12 rounded-xl border-slate-200 bg-white pl-12 text-sm font-medium shadow-sm focus:ring-brand/10"
+            />
+          </div>
+          <div className="w-full md:w-60">
+            <Select
+              value={actionFilter}
+              onChange={(event) => {
+                setActionFilter(event.target.value as AuditAction | "")
+                setPage(1)
+              }}
+              className="h-12 rounded-xl border-slate-200 bg-white text-sm font-semibold shadow-sm"
+            >
+              {actionOptions.map((option) => (
+                <option key={option.label} value={option.value}>{option.label}</option>
               ))}
-              {logs.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
-                    No audit log records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl border-slate-200 bg-white px-6 text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm hover:text-brand"
+            onClick={() => {
+              setSearchQuery("")
+              setActionFilter("")
+              setPage(1)
+            }}
+            disabled={!searchQuery.length && !actionFilter.length}
+          >
+            <Filter className="mr-2 h-4 w-4" /> Reset
+          </Button>
+        </div>
+
+        <p className="text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">{resultLabel}</p>
+      </div>
+
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {logs.length > 0 && !isLoading && <div className="absolute bottom-8 left-12 top-8 w-px bg-slate-200" />}
+
+        <div className="space-y-6 p-6">
+          {logs.map((log) => {
+            const visual = getTimelineVisual(log.action)
+            const Icon = visual.icon
+
+            return (
+              <div key={log.id} className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-4">
+                <div className="flex justify-center pt-1">
+                  <div className={visual.nodeClass}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/50">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatTimelineDate(log.createdAt)}</p>
+                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
+                      Log ID: {log.id.slice(0, 8)}
+                    </span>
+                  </div>
+
+                  <p className="text-sm font-semibold leading-6 text-slate-800">
+                    {renderNarrativeSentence(log)}
+                  </p>
+
+                  {log.description && <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>}
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="text-[11px] font-semibold text-slate-500">
+                      {log.actorUser.role} · {log.actorUser.email}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setSelectedLog(log)}
+                      className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+                    >
+                      View Changes
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+
+          {isLoading && (
+            <div className="py-12 text-center text-sm font-semibold text-slate-500">
+              Loading activity timeline...
+            </div>
+          )}
+
+          {!isLoading && logs.length === 0 && (
+            <div className="py-12 text-center text-sm font-semibold text-slate-500">
+              No activity found for current filters.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Database Integrity Alert */}
-      <div className="p-8 bg-brand rounded-xl text-white overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-8 transform translate-x-8 -translate-y-8 opacity-10 group-hover:opacity-20 transition-all rotate-12">
-           <Database className="w-48 h-48" />
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Rows per page</span>
+          <Select
+            value={String(rowsPerPage)}
+            onChange={(event) => {
+              setRowsPerPage(Number(event.target.value))
+              setPage(1)
+            }}
+            className="h-9 w-24 border-slate-200 bg-white text-xs font-bold"
+          >
+            {[10, 25, 50, 100].map((size) => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </Select>
         </div>
-        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 text-center md:text-left">
-           <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 border border-white/20">
-              <ShieldCheck className="w-8 h-8 text-emerald-400" />
-           </div>
-           <div className="space-y-1 flex-1">
-              <h4 className="text-xl font-extrabold tracking-tight uppercase">Ledger Integrity Verified</h4>
-              <p className="text-white/70 text-sm font-medium">All logs are tamper-proof and cryptographically hashed for institutional accountability.</p>
-           </div>
-           <Button className="h-12 px-10 bg-white text-brand hover:bg-slate-100 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-95 rounded-xl shadow-sm">
-              Verify Chain Hash
-           </Button>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            disabled={page <= 1}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Page {page} of {pageCount}</span>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            disabled={page >= pageCount}
+            onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>
   )
 }
 
-function EventIcon({ event }: { event: string }) {
-  if (event.includes("Login")) return <LockIcon className="w-4 h-4 text-amber-500" />
-  if (event.includes("Item")) return <Database className="w-4 h-4 text-blue-500" />
-  if (event.includes("Update")) return <Zap className="w-4 h-4 text-emerald-500" />
-  return <HistoryIcon className="w-4 h-4 text-slate-400" />
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</div>
+      <div className={mono ? "mt-1 text-sm font-bold text-slate-700 font-mono" : "mt-1 text-sm font-semibold text-slate-700"}>{value}</div>
+    </div>
+  )
 }
 
-function LogStatusBadge({ status }: { status: string }) {
-  const getStyles = () => {
-    switch(status) {
-      case 'Success': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      case 'Access Denied': return 'bg-rose-50 text-rose-700 border-rose-100'
-      case 'System': return 'bg-slate-100 text-slate-700 border-slate-200'
-      default: return 'bg-slate-50 text-slate-600 border-slate-100'
-    }
+function PayloadPanel({ payload }: { payload: unknown }) {
+  const payloadObject = toObject(payload)
+  const changes = Array.isArray(payloadObject?.changes) ? (payloadObject?.changes as ChangeRow[]) : []
+
+  return (
+    <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Before &amp; After Payload</div>
+
+      {changes.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-180 border-collapse text-left">
+            <thead>
+              <tr className="border-b border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <th className="py-2 pr-3">Field</th>
+                <th className="px-3 py-2">Before</th>
+                <th className="px-3 py-2">After</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {changes.map((change, index) => (
+                <tr key={`${change.changedField}-${index}`}>
+                  <td className="py-2 pr-3 text-xs font-bold text-slate-700">{change.changedField}</td>
+                  <td className="px-3 py-2 text-xs font-semibold text-slate-600">{stringifyValue(change.oldValue)}</td>
+                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{stringifyValue(change.newValue)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-xs font-semibold text-slate-500">No field delta metadata is available for this log entry.</p>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Before</div>
+          <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap text-xs font-semibold text-slate-600">
+            {JSON.stringify(payloadObject?.before ?? {}, null, 2)}
+          </pre>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">After</div>
+          <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap text-xs font-semibold text-slate-700">
+            {JSON.stringify(payloadObject?.after ?? {}, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function toRecordLabel(targetType: string): string {
+  if (targetType === "found_item") return "Found Item"
+  if (targetType === "claim") return "Claim"
+  if (targetType === "lost_report") return "Lost Report"
+  if (targetType === "handover") return "Handover"
+  if (targetType === "user") return "User"
+  return targetType
+}
+
+function toObject(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined
+  }
+
+  return value as Record<string, unknown>
+}
+
+function stringifyValue(value: unknown): string {
+  if (value === null) return "null"
+  if (typeof value === "undefined") return "undefined"
+  if (typeof value === "string") return value
+  if (typeof value === "number" || typeof value === "boolean") return String(value)
+  return JSON.stringify(value)
+}
+
+function formatTimelineDate(value: string): string {
+  const date = new Date(value)
+  const datePart = date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  })
+  const timePart = date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+
+  return `${datePart} - ${timePart}`
+}
+
+function renderNarrativeSentence(log: AuditLogRow) {
+  const recordLabel = toRecordLabel(log.targetType)
+  const reference = `(${log.targetReferenceCode})`
+
+  if (log.action === "REPORT_LINKED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        linked {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span> to a Found Item.
+      </>
+    )
+  }
+
+  if (log.action === "REPORT_UPDATED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        updated the status of {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "ITEM_UPDATED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        updated details for {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "ITEM_CREATED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        logged {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "CLAIM_DENIED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        denied {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "CLAIM_APPROVED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        approved {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "CLAIM_SUBMITTED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        submitted {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "CLAIM_REVIEWED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        reviewed {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "HANDOVER_COMPLETED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        completed handover for {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "AUTH_LOGIN") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        logged in to the system.
+      </>
+    )
   }
 
   return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border shadow-sm",
-      getStyles()
-    )}>
-      {status}
-    </span>
+    <>
+      <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>
+      {" "}
+      updated {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+    </>
   )
 }
+
+function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeClass: string } {
+  if (action === "ITEM_CREATED" || action === "REPORT_SUBMITTED" || action === "CLAIM_SUBMITTED") {
+    return {
+      icon: Plus,
+      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 shadow-sm",
+    }
+  }
+
+  if (action === "HANDOVER_COMPLETED" || action === "REPORT_LINKED" || action === "CLAIM_APPROVED") {
+    return {
+      icon: Check,
+      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm",
+    }
+  }
+
+  if (action === "CLAIM_DENIED") {
+    return {
+      icon: TriangleAlert,
+      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
+    }
+  }
+
+  if (action.includes("DELETE")) {
+    return {
+      icon: Trash2,
+      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
+    }
+  }
+
+  return {
+    icon: RefreshCcw,
+    nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600 shadow-sm",
+  }
+}
+

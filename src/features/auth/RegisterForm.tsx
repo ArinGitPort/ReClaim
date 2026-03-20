@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Mail, Phone, Lock, Hash, User, AlertCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
@@ -297,3 +297,4 @@ export function RegisterForm() {
     </div>
   )
 }
+

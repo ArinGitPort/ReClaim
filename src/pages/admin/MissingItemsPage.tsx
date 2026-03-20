@@ -13,10 +13,11 @@ import {
   HelpCircle,
   MessageSquare
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
 import { api } from "@/lib/api"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { useSearchParams } from "react-router-dom"
 
@@ -63,6 +64,10 @@ export function MissingItemsPage() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [revealedPrivateNotes, setRevealedPrivateNotes] = useState<Record<string, boolean>>({})
   const [showLinker, setShowLinker] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
+  const [totalReports, setTotalReports] = useState(0)
 
   const loadReports = useCallback(async (silent = false): Promise<void> => {
     if (!silent) {
@@ -71,7 +76,7 @@ export function MissingItemsPage() {
 
     setError(null)
     try {
-      const response = await api.get<{
+      const pagedResponse = await api.get<{
         reports: Array<{
           id: string
           reportCode: string
@@ -94,9 +99,22 @@ export function MissingItemsPage() {
             status: string
           } | null
         }>
-      }>("/reports")
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/reports", {
+        params: {
+          statusIn: "SUBMITTED,UNDER_REVIEW,ACTIVE_SEARCH",
+          search: searchQuery.trim() || undefined,
+          page,
+          limit: rowsPerPage,
+        },
+      })
 
-      const mapped = response.data.reports.map((entry) => {
+      const mapped = pagedResponse.data.reports.map((entry) => {
         const proof = entry.proofData ?? {}
         return {
           id: entry.id,
@@ -131,6 +149,8 @@ export function MissingItemsPage() {
       })
 
       setReports(mapped)
+      setTotalReports(pagedResponse.data.pagination.total)
+      setPageCount(pagedResponse.data.pagination.pageCount)
       setSelectedReport((prev) => {
         if (prev && mapped.some((row) => row.id === prev)) {
           return prev
@@ -146,7 +166,7 @@ export function MissingItemsPage() {
         setIsLoading(false)
       }
     }
-  }, [])
+  }, [page, rowsPerPage, searchQuery])
 
   useEffect(() => {
     void loadReports()
@@ -185,6 +205,10 @@ export function MissingItemsPage() {
   }, [loadReports])
 
   useEffect(() => {
+    setPage(1)
+  }, [searchQuery, rowsPerPage])
+
+  useEffect(() => {
     if (!focusCode || reports.length === 0) {
       return
     }
@@ -197,15 +221,24 @@ export function MissingItemsPage() {
 
   const filteredReports = useMemo(
     () => reports.filter((row) => {
-      const matchesSearch =
-        row.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.student.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.code.toLowerCase().includes(searchQuery.toLowerCase())
+      const normalizedRowCategory = row.category.toLowerCase()
+      const normalizedFilterCategory = categoryFilter.toLowerCase()
 
-      const matchesCategory = categoryFilter === "All" || row.category.toLowerCase() === categoryFilter.toLowerCase()
-      return matchesSearch && matchesCategory
+      if (categoryFilter === "All") {
+        return true
+      }
+
+      if (normalizedFilterCategory === "wallets/ids") {
+        return normalizedRowCategory.includes("wallet") || normalizedRowCategory.includes("id")
+      }
+
+      if (normalizedFilterCategory === "everyday items") {
+        return normalizedRowCategory.includes("everyday")
+      }
+
+      return normalizedRowCategory.includes(normalizedFilterCategory)
     }),
-    [reports, searchQuery, categoryFilter]
+    [reports, categoryFilter]
   )
 
   const triageReports = useMemo(
@@ -235,7 +268,7 @@ export function MissingItemsPage() {
   return (
     <div className="space-y-8">
       {showLinker && selectedReport && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+        <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowLinker(false)} />
           <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
             <MatchLinkingModal
@@ -275,7 +308,10 @@ export function MissingItemsPage() {
                 type="text"
                 placeholder="Search reports..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(1)
+                }}
                 className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
               />
             </div>
@@ -283,7 +319,10 @@ export function MissingItemsPage() {
               {["All", "Electronics", "Wallets/IDs", "Everyday Items"].map(cat => (
                 <button
                   key={cat}
-                  onClick={() => setCategoryFilter(cat)}
+                  onClick={() => {
+                    setCategoryFilter(cat)
+                    setPage(1)
+                  }}
                   className={cn(
                     "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border shadow-sm",
                     cat === categoryFilter
@@ -344,11 +383,25 @@ export function MissingItemsPage() {
                 No active reports in triage queue.
               </div>
             )}
+
+            <AdminPaginationControls
+              page={page}
+              pageCount={pageCount}
+              total={totalReports}
+              visibleCount={triageReports.length}
+              rowsPerPage={rowsPerPage}
+              onPageChange={setPage}
+              onRowsPerPageChange={(nextRows) => {
+                setRowsPerPage(nextRows)
+                setPage(1)
+              }}
+              itemLabel="reports"
+            />
           </div>
         </div>
 
         {/* Detailed Workspace Area */}
-        <div className="xl:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[700px] flex flex-col relative">
+        <div className="xl:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-175 flex flex-col relative">
           {report ? (
             <div className="flex flex-col h-full">
               {/* Workspace Header */}
@@ -595,3 +648,4 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   )
 }
+

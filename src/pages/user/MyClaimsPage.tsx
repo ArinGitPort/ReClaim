@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 interface ClaimView {
   ticketId: string
@@ -26,6 +27,8 @@ export function MyClaimsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
 
   async function loadClaims(): Promise<void> {
     const response = await api.get<{
@@ -88,6 +91,17 @@ export function MyClaimsPage() {
     })
   }, [claims, search, statusFilter])
 
+  useEffect(() => {
+    setPage(1)
+  }, [search, statusFilter, rowsPerPage])
+
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(filteredClaims.length / rowsPerPage)), [filteredClaims.length, rowsPerPage])
+
+  const visibleClaims = useMemo(() => {
+    const start = (page - 1) * rowsPerPage
+    return filteredClaims.slice(start, start + rowsPerPage)
+  }, [filteredClaims, page, rowsPerPage])
+
   async function handleCloseTicket(claim: ClaimView): Promise<void> {
     if (!isClosableClaimStatus(claim.rawStatus)) {
       return
@@ -128,9 +142,15 @@ export function MyClaimsPage() {
 
         <RecordsFilterBar
           searchValue={search}
-          onSearchChange={setSearch}
+          onSearchChange={(value) => {
+            setSearch(value)
+            setPage(1)
+          }}
           statusValue={statusFilter}
-          onStatusChange={setStatusFilter}
+          onStatusChange={(value) => {
+            setStatusFilter(value)
+            setPage(1)
+          }}
           statusOptions={statusOptions}
           searchPlaceholder="Search by claim code, item, inventory code, category, or location"
         />
@@ -143,7 +163,7 @@ export function MyClaimsPage() {
         />
 
         <div className="space-y-4">
-          {filteredClaims.map((claim) => (
+          {visibleClaims.map((claim) => (
             <div
               key={claim.id}
               className={cn(
@@ -217,12 +237,26 @@ export function MyClaimsPage() {
               </div>
             </div>
           ))}
-          {filteredClaims.length === 0 && (
+          {visibleClaims.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
               No claims match your current filters.
             </div>
           )}
         </div>
+
+        <AdminPaginationControls
+          page={page}
+          pageCount={pageCount}
+          total={filteredClaims.length}
+          visibleCount={visibleClaims.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(nextRows) => {
+            setRowsPerPage(nextRows)
+            setPage(1)
+          }}
+          itemLabel="claims"
+        />
       </div>
     </div>
   )

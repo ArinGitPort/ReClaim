@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
 
@@ -30,6 +31,10 @@ type ClaimRow = {
 
 export function ClaimsVerificationPage() {
   const [claims, setClaims] = useState<ClaimRow[]>([])
+  const [totalClaims, setTotalClaims] = useState(0)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,17 +43,31 @@ export function ClaimsVerificationPage() {
   const [note, setNote] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  async function loadClaims(): Promise<void> {
+  const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await api.get<{ claims: ClaimRow[] }>("/claims", {
+      const response = await api.get<{
+        claims: ClaimRow[]
+        pagination?: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/claims", {
         params: {
           statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED",
+          status: statusFilter || undefined,
+          search: search.trim() || undefined,
+          page,
+          limit: rowsPerPage,
         },
       })
 
       setClaims(response.data.claims)
+      setTotalClaims(response.data.pagination?.total ?? response.data.claims.length)
+      setPageCount(response.data.pagination?.pageCount ?? 1)
       setSelectedClaimId((previous) => {
         if (previous && response.data.claims.some((claim) => claim.id === previous)) {
           return previous
@@ -60,37 +79,21 @@ export function ClaimsVerificationPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, rowsPerPage, search, statusFilter])
 
   useEffect(() => {
-    void loadClaims()
-  }, [])
+    const timeoutId = window.setTimeout(() => {
+      void loadClaims()
+    }, 350)
 
-  const filteredClaims = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
+    return () => window.clearTimeout(timeoutId)
+  }, [loadClaims])
 
-    return claims.filter((claim) => {
-      if (statusFilter && claim.status !== statusFilter) {
-        return false
-      }
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter, rowsPerPage])
 
-      if (!normalizedSearch) {
-        return true
-      }
-
-      const haystack = [
-        claim.claimCode,
-        claim.foundItem.title,
-        claim.foundItem.code,
-        claim.claimantUser.name,
-        claim.claimantUser.studentId ?? "",
-      ]
-        .join(" ")
-        .toLowerCase()
-
-      return haystack.includes(normalizedSearch)
-    })
-  }, [claims, search, statusFilter])
+  const filteredClaims = useMemo(() => claims, [claims])
 
   const selectedClaim = useMemo(
     () => filteredClaims.find((claim) => claim.id === selectedClaimId) ?? claims.find((claim) => claim.id === selectedClaimId) ?? null,
@@ -156,7 +159,10 @@ export function ClaimsVerificationPage() {
               <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value)
+                  setPage(1)
+                }}
                 placeholder="Search by code, item, or claimant"
                 className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
               />
@@ -221,6 +227,20 @@ export function ClaimsVerificationPage() {
                 </div>
               </button>
             ))}
+
+            <AdminPaginationControls
+              page={page}
+              pageCount={pageCount}
+              total={totalClaims}
+              visibleCount={filteredClaims.length}
+              rowsPerPage={rowsPerPage}
+              onPageChange={setPage}
+              onRowsPerPageChange={(nextRows) => {
+                setRowsPerPage(nextRows)
+                setPage(1)
+              }}
+              itemLabel="claims"
+            />
           </div>
         </div>
 
@@ -410,3 +430,4 @@ function prettifyProofKey(key: string): string {
 function isPendingState(status: ClaimStatus): boolean {
   return status === "PENDING_VERIFICATION" || status === "INQUIRY_REQUIRED"
 }
+

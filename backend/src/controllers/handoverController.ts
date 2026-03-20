@@ -39,8 +39,24 @@ const handoverConfirmSchema = z.object({
 
 export async function getHandoverLogs(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
-  const handovers = await listHandoverLogs({ search });
-  res.json({ handovers });
+  const sourceQuery = typeof req.query.source === "string" ? req.query.source : undefined;
+  const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
+  const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
+
+  const source = sourceQuery === "CLAIM" || sourceQuery === "REPORT_MATCH" ? sourceQuery : undefined;
+  const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : 1;
+  const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 25;
+
+  const result = await listHandoverLogs({ search, source, page, limit });
+  res.json({
+    handovers: result.handovers,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pageCount: result.pageCount,
+    },
+  });
 }
 
 export async function getHandoverPreview(req: Request, res: Response): Promise<void> {
@@ -60,7 +76,9 @@ export async function postHandover(req: Request, res: Response): Promise<void> {
     targetType: "handover",
     targetId: handover.id,
     description: "Item handover completed",
+    targetReferenceCode: body.pickupTokenPresented,
     payload: {
+      targetReferenceCode: body.pickupTokenPresented,
       foundItemId: handover.foundItemId,
       releasedToUserId: handover.releasedToUserId,
     },
@@ -110,7 +128,9 @@ export async function postHandoverConfirm(req: Request, res: Response): Promise<
     targetType: "handover",
     targetId: result.handover.id,
     description: "Item handover completed via pickup token validation",
+    targetReferenceCode: result.claim.claimCode,
     payload: {
+      targetReferenceCode: result.claim.claimCode,
       foundItemId: result.handover.foundItemId,
       releasedToUserId: result.handover.releasedToUserId,
       claimId: result.handover.claimId,

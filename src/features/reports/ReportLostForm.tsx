@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react"
 import { Package, Laptop, Wallet, FileText, CheckCircle2, Loader2, Upload, ShieldCheck, AlertCircle, Calendar, Clock } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Textarea } from "@/components/ui/Textarea"
@@ -399,3 +399,4 @@ export function ReportLostForm() {
     </>
   )
 }
+

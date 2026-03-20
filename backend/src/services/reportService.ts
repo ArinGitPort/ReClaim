@@ -29,17 +29,40 @@ export async function submitLostReport(input: {
   });
 }
 
-export async function listReports(filters: { userId?: string; status?: ReportStatus; statusIn?: ReportStatus[] }) {
+export async function listReports(filters: {
+  userId?: string;
+  status?: ReportStatus;
+  statusIn?: ReportStatus[];
+  search?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+}) {
   const statusWhere = filters.statusIn && filters.statusIn.length > 0
     ? { in: filters.statusIn }
     : filters.status
 
-  if (filters.userId) {
-    return prisma.lostReport.findMany({
-      where: {
-        reporterUserId: filters.userId,
-        status: statusWhere,
-      },
+  const where = {
+    reporterUserId: filters.userId,
+    status: statusWhere,
+    category: filters.category,
+    OR: filters.search
+      ? [
+          { reportCode: { contains: filters.search, mode: "insensitive" as const } },
+          { title: { contains: filters.search, mode: "insensitive" as const } },
+          { reporterUser: { name: { contains: filters.search, mode: "insensitive" as const } } },
+          { reporterUser: { studentId: { contains: filters.search, mode: "insensitive" as const } } },
+        ]
+      : undefined,
+  }
+
+  const page = filters.page && filters.page > 0 ? filters.page : undefined
+  const limit = filters.limit && filters.limit > 0 ? Math.min(filters.limit, 100) : undefined
+  const skip = page && limit ? (page - 1) * limit : undefined
+
+  const [reports, total] = await Promise.all([
+    prisma.lostReport.findMany({
+      where,
       include: {
         reporterUser: {
           select: {
@@ -52,27 +75,18 @@ export async function listReports(filters: { userId?: string; status?: ReportSta
         matchedItem: true,
       },
       orderBy: { createdAt: "desc" },
-    });
-  }
+      ...(typeof skip === "number" && typeof limit === "number" ? { skip, take: limit } : {}),
+    }),
+    prisma.lostReport.count({ where }),
+  ])
 
-  return prisma.lostReport.findMany({
-    where: {
-      reporterUserId: filters.userId,
-      status: statusWhere,
-    },
-    include: {
-      reporterUser: {
-        select: {
-          id: true,
-          name: true,
-          studentId: true,
-          email: true,
-        },
-      },
-      matchedItem: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  return {
+    reports,
+    total,
+    page: page ?? 1,
+    limit: limit ?? reports.length,
+    pageCount: typeof limit === "number" ? Math.max(1, Math.ceil(total / limit)) : 1,
+  }
 }
 
 export async function updateReportStatus(input: {

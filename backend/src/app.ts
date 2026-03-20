@@ -5,6 +5,7 @@ import { env } from "@/config/env.js";
 import { uploadsRoot } from "@/config/paths.js";
 import { errorHandler } from "@/middlewares/errorHandler.js";
 import { notFound } from "@/middlewares/notFound.js";
+import { auditRoutes } from "@/routes/auditRoutes.js";
 import { authRoutes } from "@/routes/authRoutes.js";
 import { claimRoutes } from "@/routes/claimRoutes.js";
 import { evidenceRoutes } from "@/routes/evidenceRoutes.js";
@@ -60,11 +61,13 @@ app.get("/api", (_req, res) => {
       notifications: "/api/notifications",
       handover: "/api/handover",
       evidence: "/api/evidence",
+      audit: "/api/audit",
     },
   });
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/audit", auditRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/reports", reportRoutes);

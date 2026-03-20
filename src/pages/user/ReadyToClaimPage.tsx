@@ -3,6 +3,7 @@ import { TopNavBar } from "@/layouts/TopNavBar"
 import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
@@ -19,6 +20,8 @@ export function ReadyToClaimPage() {
   const [pickups, setPickups] = useState<PickupRow[]>([])
   const [search, setSearch] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
 
   useEffect(() => {
     async function loadPickups(): Promise<void> {
@@ -49,6 +52,17 @@ export function ReadyToClaimPage() {
     })
   }, [pickups, search, sourceFilter])
 
+  useEffect(() => {
+    setPage(1)
+  }, [search, sourceFilter, rowsPerPage])
+
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(filteredPickups.length / rowsPerPage)), [filteredPickups.length, rowsPerPage])
+
+  const visiblePickups = useMemo(() => {
+    const start = (page - 1) * rowsPerPage
+    return filteredPickups.slice(start, start + rowsPerPage)
+  }, [filteredPickups, page, rowsPerPage])
+
   const statusOptions = useMemo(
     () => [
       { label: "Manual Claim", value: "CLAIM" },
@@ -68,9 +82,15 @@ export function ReadyToClaimPage() {
 
         <RecordsFilterBar
           searchValue={search}
-          onSearchChange={setSearch}
+          onSearchChange={(value) => {
+            setSearch(value)
+            setPage(1)
+          }}
           statusValue={sourceFilter}
-          onStatusChange={setSourceFilter}
+          onStatusChange={(value) => {
+            setSourceFilter(value)
+            setPage(1)
+          }}
           statusOptions={statusOptions}
           searchPlaceholder="Search by source code, item, inventory code, or token"
         />
@@ -83,7 +103,7 @@ export function ReadyToClaimPage() {
         />
 
         <div className="space-y-4">
-          {filteredPickups.map((pickup) => (
+          {visiblePickups.map((pickup) => (
             <div key={`${pickup.source}-${pickup.sourceCode}`} className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                 <div className="w-14 h-14 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center shrink-0">
@@ -126,12 +146,26 @@ export function ReadyToClaimPage() {
             </div>
           ))}
 
-          {filteredPickups.length === 0 && (
+          {visiblePickups.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
               No ready-for-pickup items yet.
             </div>
           )}
         </div>
+
+        <AdminPaginationControls
+          page={page}
+          pageCount={pageCount}
+          total={filteredPickups.length}
+          visibleCount={visiblePickups.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(nextRows) => {
+            setRowsPerPage(nextRows)
+            setPage(1)
+          }}
+          itemLabel="items"
+        />
       </div>
     </div>
   )

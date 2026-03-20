@@ -12,7 +12,7 @@ import {
   MapPin,
   Calendar
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
@@ -23,6 +23,7 @@ import { EditInventoryItemModal } from "@/features/admin/EditInventoryItemModal"
 import { InventoryLinkReportModal } from "@/features/admin/InventoryLinkReportModal"
 import { InventoryItemDetailsModal } from "@/features/admin/InventoryItemDetailsModal"
 import { InventoryHandoverModal } from "@/features/admin/InventoryHandoverModal"
+import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 type InventoryRow = {
   id: string
@@ -42,6 +43,10 @@ type InventoryRow = {
 
 export function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryRow[]>([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
@@ -53,7 +58,7 @@ export function InventoryPage() {
   const [detailsItem, setDetailsItem] = useState<InventoryRow | null>(null)
   const [handoverItem, setHandoverItem] = useState<InventoryRow | null>(null)
 
-  async function loadItems(query?: string): Promise<void> {
+  async function loadItems(): Promise<void> {
     setIsLoading(true)
     setError(null)
     try {
@@ -74,7 +79,21 @@ export function InventoryPage() {
             snapshotPath: string
           }>
         }>
-      }>("/items/admin", { params: query ? { search: query } : undefined })
+        pagination?: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/items/admin", {
+        params: {
+          search: search.trim() || undefined,
+          status: statusFilter || undefined,
+          category: categoryFilter || undefined,
+          page,
+          limit: rowsPerPage,
+        },
+      })
 
       setInventoryItems(
         response.data.items.map((item) => ({
@@ -93,6 +112,12 @@ export function InventoryPage() {
           photoUrl: resolveImageUrl(extractPhotoPath(item.privateData) ?? item.aiEvidenceLogs?.[0]?.snapshotPath),
         }))
       )
+      setTotalItems(response.data.pagination?.total ?? response.data.items.length)
+      setPageCount(response.data.pagination?.pageCount ?? 1)
+      const serverPage = response.data.pagination?.page ?? page
+      if (serverPage !== page) {
+        setPage(serverPage)
+      }
     } catch {
       setError("Unable to load inventory records.")
     } finally {
@@ -101,16 +126,16 @@ export function InventoryPage() {
   }
 
   useEffect(() => {
-    void loadItems()
-  }, [])
+    setPage(1)
+  }, [statusFilter, categoryFilter, rowsPerPage])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      void loadItems(search.trim() || undefined)
+      void loadItems()
     }, 350)
 
     return () => window.clearTimeout(timeoutId)
-  }, [search])
+  }, [search, statusFilter, categoryFilter, page, rowsPerPage])
 
   useEffect(() => {
     const socket = getRealtimeSocket()
@@ -119,42 +144,23 @@ export function InventoryPage() {
     }
 
     const handleItemUpdated = () => {
-      void loadItems(search.trim() || undefined)
+      void loadItems()
     }
 
     socket.on("item.updated", handleItemUpdated)
     return () => {
       socket.off("item.updated", handleItemUpdated)
     }
-  }, [search])
+  }, [search, statusFilter, categoryFilter, page, rowsPerPage])
 
-  const statusOptions = useMemo(
-    () => Array.from(new Set(inventoryItems.map((item) => item.status))).filter((status) => status !== "RETURNED"),
-    [inventoryItems]
-  )
+  const statusOptions = useMemo(() => ["AVAILABLE", "CLAIM_PENDING", "ARCHIVED"], [])
 
   const categoryOptions = useMemo(
     () => Array.from(new Set(inventoryItems.map((item) => item.category))).sort((a, b) => a.localeCompare(b)),
     [inventoryItems]
   )
 
-  const visibleItems = useMemo(() => {
-    return inventoryItems.filter((item) => {
-      if (item.status === "RETURNED") {
-        return false
-      }
-
-      if (statusFilter && item.status !== statusFilter) {
-        return false
-      }
-
-      if (categoryFilter && item.category !== categoryFilter) {
-        return false
-      }
-
-      return true
-    })
-  }, [inventoryItems, statusFilter, categoryFilter])
+  const visibleItems = useMemo(() => inventoryItems.filter((item) => item.status !== "RETURNED"), [inventoryItems])
 
   return (
     <div className="space-y-8">
@@ -165,7 +171,7 @@ export function InventoryPage() {
             <LogNewItemModal
               onClose={() => setShowFastEntry(false)}
               onSaved={() => {
-                void loadItems(search.trim() || undefined)
+                void loadItems()
               }}
             />
           </div>
@@ -180,7 +186,7 @@ export function InventoryPage() {
               item={editItem}
               onClose={() => setEditItem(null)}
               onSaved={() => {
-                void loadItems(search.trim() || undefined)
+                void loadItems()
               }}
             />
           </div>
@@ -195,7 +201,7 @@ export function InventoryPage() {
               item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category, color: linkItem.color }}
               onClose={() => setLinkItem(null)}
               onLinked={() => {
-                void loadItems(search.trim() || undefined)
+                void loadItems()
               }}
             />
           </div>
@@ -222,7 +228,7 @@ export function InventoryPage() {
               item={{ id: handoverItem.id, code: handoverItem.code, title: handoverItem.title, status: handoverItem.status }}
               onClose={() => setHandoverItem(null)}
               onCompleted={() => {
-                void loadItems(search.trim() || undefined)
+                void loadItems()
               }}
             />
           </div>
@@ -258,7 +264,10 @@ export function InventoryPage() {
             placeholder="Search by Item ID, Title, or Description..." 
             className="pl-12 h-12 bg-white border-slate-200 shadow-sm focus:ring-brand/10 text-sm font-medium rounded-xl"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
           />
         </div>
         <div className="w-full md:w-52">
@@ -291,6 +300,7 @@ export function InventoryPage() {
             setStatusFilter("")
             setCategoryFilter("")
             setSearch("")
+            setPage(1)
           }}
           className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
         >
@@ -408,27 +418,21 @@ export function InventoryPage() {
         </div>
         {error && <div className="px-8 py-4 text-sm font-semibold text-rose-600 border-t border-slate-100">{error}</div>}
         
-        {/* Compact Table Footer */}
-        <div className="bg-slate-50/50 border-t border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-          <div className="flex items-center gap-2 mb-4 sm:mb-0">
-             <div className="w-2 h-2 rounded-full bg-brand/30" />
-             Showing {visibleItems.length} entries
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="px-4 py-2 hover:text-brand transition-colors disabled:opacity-30 flex items-center gap-2" disabled>
-              Previous
-            </button>
-            <div className="flex items-center gap-1.5">
-               <span className="w-7 h-7 bg-white shadow-sm border border-slate-200 rounded-lg flex items-center justify-center text-brand text-xs">1</span>
-               <span className="text-slate-300">/</span>
-               <span className="text-xs">28</span>
-            </div>
-            <button className="px-4 py-2 hover:text-brand transition-colors flex items-center gap-2">
-              Next
-            </button>
-          </div>
-        </div>
       </div>
+
+      <AdminPaginationControls
+        page={page}
+        pageCount={pageCount}
+        total={totalItems}
+        visibleCount={visibleItems.length}
+        rowsPerPage={rowsPerPage}
+        onPageChange={setPage}
+        onRowsPerPageChange={(nextRows) => {
+          setRowsPerPage(nextRows)
+          setPage(1)
+        }}
+        itemLabel="items"
+      />
     </div>
   )
 }
@@ -512,3 +516,4 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   )
 }
+

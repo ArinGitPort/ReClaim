@@ -5,13 +5,22 @@ import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 
-export function GalleryGrid({ onCountChange }: { onCountChange?: (count: number) => void }) {
+export function GalleryGrid({
+  page,
+  pageSize,
+  onDataChange,
+}: {
+  page: number
+  pageSize: number
+  onDataChange?: (payload: { visibleCount: number; totalCount: number; pageCount: number }) => void
+}) {
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const loadItems = useCallback(async (): Promise<void> => {
+    setIsLoading(true)
     try {
-      const response = await api.get<{
+      const pagedResponse = await api.get<{
         items: Array<{
           id: string
           code: string
@@ -20,9 +29,20 @@ export function GalleryGrid({ onCountChange }: { onCountChange?: (count: number)
           foundLocation: string
           foundAtUtc: string
         }>
-      }>("/items/public")
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pageCount: number
+        }
+      }>("/items/public", {
+        params: {
+          page,
+          limit: pageSize,
+        },
+      })
 
-      const nextItems = response.data.items.map((item) => ({
+      const nextItems = pagedResponse.data.items.map((item) => ({
         id: item.id,
         title: item.title,
         category: item.category,
@@ -32,11 +52,15 @@ export function GalleryGrid({ onCountChange }: { onCountChange?: (count: number)
       }))
 
       setItems(nextItems)
-      onCountChange?.(nextItems.length)
+      onDataChange?.({
+        visibleCount: nextItems.length,
+        totalCount: pagedResponse.data.pagination.total,
+        pageCount: pagedResponse.data.pagination.pageCount,
+      })
     } finally {
       setIsLoading(false)
     }
-  }, [onCountChange])
+  }, [onDataChange, page, pageSize])
 
   useEffect(() => {
     void loadItems()
@@ -75,7 +99,7 @@ export function GalleryGrid({ onCountChange }: { onCountChange?: (count: number)
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
       {items.map(item => (
         <ItemCard key={item.id} item={item} />
       ))}

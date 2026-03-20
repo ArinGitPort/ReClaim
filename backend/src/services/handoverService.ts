@@ -2,49 +2,77 @@ import { ClaimStatus, ItemStatus, ReportStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma.js";
 import { HttpError } from "@/utils/errors.js";
 
-export async function listHandoverLogs(filters: { search?: string }) {
-  return prisma.handoverLog.findMany({
-    where: {
-      OR: filters.search
-        ? [
-            { pickupTokenPresented: { contains: filters.search, mode: "insensitive" } },
-            { note: { contains: filters.search, mode: "insensitive" } },
-            { claim: { claimCode: { contains: filters.search, mode: "insensitive" } } },
-            { foundItem: { code: { contains: filters.search, mode: "insensitive" } } },
-            { foundItem: { title: { contains: filters.search, mode: "insensitive" } } },
-            { releasedToUser: { name: { contains: filters.search, mode: "insensitive" } } },
-            { releasedToUser: { studentId: { contains: filters.search, mode: "insensitive" } } },
-          ]
-        : undefined,
-    },
-    include: {
-      claim: {
-        select: {
-          id: true,
-          claimCode: true,
+export async function listHandoverLogs(filters: {
+  search?: string;
+  source?: "CLAIM" | "REPORT_MATCH";
+  page?: number;
+  limit?: number;
+}) {
+  const page = Math.max(filters.page ?? 1, 1);
+  const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
+
+  const where = {
+    ...(filters.source === "CLAIM"
+      ? { claimId: { not: null } }
+      : filters.source === "REPORT_MATCH"
+        ? { claimId: null }
+        : {}),
+    OR: filters.search
+      ? [
+          { pickupTokenPresented: { contains: filters.search, mode: "insensitive" as const } },
+          { note: { contains: filters.search, mode: "insensitive" as const } },
+          { claim: { claimCode: { contains: filters.search, mode: "insensitive" as const } } },
+          { foundItem: { code: { contains: filters.search, mode: "insensitive" as const } } },
+          { foundItem: { title: { contains: filters.search, mode: "insensitive" as const } } },
+          { releasedToUser: { name: { contains: filters.search, mode: "insensitive" as const } } },
+          { releasedToUser: { studentId: { contains: filters.search, mode: "insensitive" as const } } },
+        ]
+      : undefined,
+  };
+
+  const [handovers, total] = await Promise.all([
+    prisma.handoverLog.findMany({
+      where,
+      include: {
+        claim: {
+          select: {
+            id: true,
+            claimCode: true,
+          },
+        },
+        foundItem: {
+          select: {
+            id: true,
+            code: true,
+            title: true,
+            category: true,
+            status: true,
+            storageLocation: true,
+          },
+        },
+        releasedToUser: {
+          select: {
+            id: true,
+            name: true,
+            studentId: true,
+            email: true,
+          },
         },
       },
-      foundItem: {
-        select: {
-          id: true,
-          code: true,
-          title: true,
-          category: true,
-          status: true,
-          storageLocation: true,
-        },
-      },
-      releasedToUser: {
-        select: {
-          id: true,
-          name: true,
-          studentId: true,
-          email: true,
-        },
-      },
-    },
-    orderBy: { releasedAtUtc: "desc" },
-  });
+      orderBy: { releasedAtUtc: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.handoverLog.count({ where }),
+  ]);
+
+  return {
+    handovers,
+    total,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
 }
 
 export async function createHandoverLog(input: {

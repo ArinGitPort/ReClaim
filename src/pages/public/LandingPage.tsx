@@ -1,7 +1,7 @@
 // @ts-ignore - Local JSX component missing exact declaration map
 import Particles from "@/components/Particles"
 import { LoginForm } from "@/features/auth/LoginForm"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { Link } from "react-router-dom"
 
@@ -78,3 +78,4 @@ export function LandingPage() {
     </div>
   )
 }
+

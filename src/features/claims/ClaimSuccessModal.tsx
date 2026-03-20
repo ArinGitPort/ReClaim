@@ -1,5 +1,5 @@
 import { CheckCircle2, X, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { useEffect } from "react"
 
 interface ClaimSuccessModalProps {
@@ -65,3 +65,4 @@ export function ClaimSuccessModal({ isOpen, onClose, claimId }: ClaimSuccessModa
     </div>
   )
 }
+

@@ -1,8 +1,10 @@
 import { AuditAction, ClaimStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { closeClaimByStudent, decideClaim, listClaims, submitClaim, updateClaimProof } from "@/services/claimService.js";
+import { prisma } from "@/lib/prisma.js";
+import { closeClaimByStudent, decideClaim, listClaims, listClaimsPaginated, submitClaim, updateClaimProof } from "@/services/claimService.js";
 import { logAudit } from "@/services/auditService.js";
+import { HttpError } from "@/utils/errors.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
@@ -50,7 +52,9 @@ export async function postClaim(req: Request, res: Response): Promise<void> {
     targetType: "claim",
     targetId: claim.id,
     description: "Student submitted a claim",
+    targetReferenceCode: claim.claimCode,
     payload: {
+      targetReferenceCode: claim.claimCode,
       claimCode: claim.claimCode,
       foundItemId: claim.foundItemId,
     },
@@ -81,6 +85,9 @@ export async function postClaim(req: Request, res: Response): Promise<void> {
 export async function getClaims(req: Request, res: Response): Promise<void> {
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const statusInQuery = typeof req.query.statusIn === "string" ? req.query.statusIn : undefined;
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+  const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
+  const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
   const status = statusQuery && Object.values(ClaimStatus).includes(statusQuery as ClaimStatus)
     ? (statusQuery as ClaimStatus)
     : undefined;
@@ -93,13 +100,51 @@ export async function getClaims(req: Request, res: Response): Promise<void> {
     : undefined;
 
   const userScoped = req.user?.role === "STUDENT" ? req.user.id : undefined;
-  const claims = await listClaims({ status, statusIn, userId: userScoped });
-  res.json({ claims });
+
+  if (req.user?.role === "STUDENT") {
+    const claims = await listClaims({ status, statusIn, userId: userScoped });
+    res.json({ claims });
+    return;
+  }
+
+  const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : 1;
+  const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 25;
+  const result = await listClaimsPaginated({
+    status,
+    statusIn,
+    search: search || undefined,
+    page,
+    limit,
+  });
+
+  res.json({
+    claims: result.claims,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pageCount: result.pageCount,
+    },
+  });
 }
 
 export async function patchClaimDecision(req: Request, res: Response): Promise<void> {
   const { id } = idParamsSchema.parse(req.params);
   const body = decisionSchema.parse(req.body);
+
+  const previous = await prisma.claim.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      reviewerNote: true,
+      claimCode: true,
+    },
+  });
+
+  if (!previous) {
+    throw new HttpError(404, "Claim not found");
+  }
+
   const claim = await decideClaim({
     claimId: id,
     adminId: req.user!.id,
@@ -117,9 +162,29 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
     targetType: "claim",
     targetId: claim.id,
     description: `Claim updated to ${body.status}`,
+    targetReferenceCode: claim.claimCode,
     payload: {
-      status: claim.status,
-      reviewerNote: claim.reviewerNote,
+      targetReferenceCode: claim.claimCode,
+      changes: [
+        {
+          changedField: "status",
+          oldValue: previous.status,
+          newValue: claim.status,
+        },
+        {
+          changedField: "reviewerNote",
+          oldValue: previous.reviewerNote ?? null,
+          newValue: claim.reviewerNote ?? null,
+        },
+      ].filter((change) => change.oldValue !== change.newValue),
+      before: {
+        status: previous.status,
+        reviewerNote: previous.reviewerNote,
+      },
+      after: {
+        status: claim.status,
+        reviewerNote: claim.reviewerNote,
+      },
     },
   });
 
@@ -147,6 +212,18 @@ export async function patchClaimProof(req: Request, res: Response): Promise<void
   const { id } = idParamsSchema.parse(req.params);
   const body = updateProofSchema.parse(req.body);
 
+  const previous = await prisma.claim.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      claimCode: true,
+    },
+  });
+
+  if (!previous) {
+    throw new HttpError(404, "Claim not found");
+  }
+
   const claim = await updateClaimProof({
     claimId: id,
     userId: req.user!.id,
@@ -159,8 +236,22 @@ export async function patchClaimProof(req: Request, res: Response): Promise<void
     targetType: "claim",
     targetId: claim.id,
     description: "Student submitted additional proof for inquiry",
+    targetReferenceCode: claim.claimCode,
     payload: {
-      status: claim.status,
+      targetReferenceCode: claim.claimCode,
+      changes: [
+        {
+          changedField: "status",
+          oldValue: previous.status,
+          newValue: claim.status,
+        },
+      ],
+      before: {
+        status: previous.status,
+      },
+      after: {
+        status: claim.status,
+      },
     },
   });
 
@@ -184,6 +275,18 @@ export async function patchClaimProof(req: Request, res: Response): Promise<void
 export async function patchClaimClose(req: Request, res: Response): Promise<void> {
   const { id } = idParamsSchema.parse(req.params);
 
+  const previous = await prisma.claim.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      claimCode: true,
+    },
+  });
+
+  if (!previous) {
+    throw new HttpError(404, "Claim not found");
+  }
+
   const claim = await closeClaimByStudent({
     claimId: id,
     userId: req.user!.id,
@@ -195,8 +298,22 @@ export async function patchClaimClose(req: Request, res: Response): Promise<void
     targetType: "claim",
     targetId: claim.id,
     description: "Student closed claim ticket",
+    targetReferenceCode: claim.claimCode,
     payload: {
-      status: claim.status,
+      targetReferenceCode: claim.claimCode,
+      changes: [
+        {
+          changedField: "status",
+          oldValue: previous.status,
+          newValue: claim.status,
+        },
+      ],
+      before: {
+        status: previous.status,
+      },
+      after: {
+        status: claim.status,
+      },
     },
   });
 

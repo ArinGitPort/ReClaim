@@ -1,8 +1,10 @@
 import { AuditAction, ReportStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
+import { prisma } from "@/lib/prisma.js";
 import { closeReportByStudent, listReports, submitLostReport, updateReportStatus } from "@/services/reportService.js";
 import { logAudit } from "@/services/auditService.js";
+import { HttpError } from "@/utils/errors.js";
 import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated } from "@/realtime/socket.js";
@@ -57,7 +59,9 @@ export async function postReport(req: Request, res: Response): Promise<void> {
     targetType: "lost_report",
     targetId: report.id,
     description: "Student submitted a lost report",
+    targetReferenceCode: report.reportCode,
     payload: {
+      targetReferenceCode: report.reportCode,
       reportCode: report.reportCode,
       category: report.category,
     },
@@ -83,6 +87,10 @@ export async function postReport(req: Request, res: Response): Promise<void> {
 export async function getReports(req: Request, res: Response): Promise<void> {
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const statusInQuery = typeof req.query.statusIn === "string" ? req.query.statusIn : undefined;
+  const search = typeof req.query.search === "string" ? req.query.search : undefined;
+  const category = typeof req.query.category === "string" ? req.query.category : undefined;
+  const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
+  const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
   const status = statusQuery && Object.values(ReportStatus).includes(statusQuery as ReportStatus)
     ? (statusQuery as ReportStatus)
     : undefined;
@@ -95,13 +103,47 @@ export async function getReports(req: Request, res: Response): Promise<void> {
     : undefined;
 
   const userScoped = req.user?.role === "STUDENT" ? req.user.id : undefined;
-  const reports = await listReports({ userId: userScoped, status, statusIn });
-  res.json({ reports });
+  const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : undefined;
+  const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : undefined;
+
+  const result = await listReports({ userId: userScoped, status, statusIn, search, category, page, limit });
+  res.json({
+    reports: result.reports,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pageCount: result.pageCount,
+    },
+  });
 }
 
 export async function patchReport(req: Request, res: Response): Promise<void> {
   const { id } = idParamsSchema.parse(req.params);
   const body = updateReportSchema.parse(req.body);
+
+  const previous = await prisma.lostReport.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      matchedItemId: true,
+      reportCode: true,
+    },
+  });
+
+  if (!previous) {
+    throw new HttpError(404, "Report not found");
+  }
+
+  const [previousMatchedItem, nextMatchedItem] = await Promise.all([
+    previous.matchedItemId
+      ? prisma.foundItem.findUnique({ where: { id: previous.matchedItemId }, select: { id: true, code: true } })
+      : Promise.resolve(null),
+    body.matchedItemId
+      ? prisma.foundItem.findUnique({ where: { id: body.matchedItemId }, select: { id: true, code: true } })
+      : Promise.resolve(null),
+  ]);
+
   const report = await updateReportStatus({
     reportId: id,
     status: body.status,
@@ -115,11 +157,38 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
     targetType: "lost_report",
     targetId: report.id,
     description: body.status === ReportStatus.MATCHED
-      ? `Admin linked report ${report.reportCode} to found item ${body.matchedItemId}`
+      ? `Admin linked report ${report.reportCode} to found item ${nextMatchedItem?.code ?? "unknown item"}`
       : `Report updated to ${body.status}`,
+    targetReferenceCode: report.reportCode,
     payload: {
-      status: report.status,
-      matchedItemId: report.matchedItemId,
+      targetReferenceCode: report.reportCode,
+      changes: [
+        {
+          changedField: "status",
+          oldValue: previous.status,
+          newValue: report.status,
+        },
+        {
+          changedField: "matchedItemId",
+          oldValue: previous.matchedItemId ?? null,
+          newValue: report.matchedItemId ?? null,
+        },
+        {
+          changedField: "matchedItemCode",
+          oldValue: previousMatchedItem?.code ?? null,
+          newValue: nextMatchedItem?.code ?? null,
+        },
+      ].filter((change) => change.oldValue !== change.newValue),
+      before: {
+        status: previous.status,
+        matchedItemId: previous.matchedItemId,
+        matchedItemCode: previousMatchedItem?.code ?? null,
+      },
+      after: {
+        status: report.status,
+        matchedItemId: report.matchedItemId,
+        matchedItemCode: nextMatchedItem?.code ?? null,
+      },
     },
   });
 
@@ -170,6 +239,19 @@ export async function patchReport(req: Request, res: Response): Promise<void> {
 export async function patchReportClose(req: Request, res: Response): Promise<void> {
   const { id } = idParamsSchema.parse(req.params);
 
+  const previous = await prisma.lostReport.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      matchedItemId: true,
+      reportCode: true,
+    },
+  });
+
+  if (!previous) {
+    throw new HttpError(404, "Report not found");
+  }
+
   const report = await closeReportByStudent({
     reportId: id,
     userId: req.user!.id,
@@ -181,9 +263,29 @@ export async function patchReportClose(req: Request, res: Response): Promise<voi
     targetType: "lost_report",
     targetId: report.id,
     description: "Student closed lost report ticket",
+    targetReferenceCode: report.reportCode,
     payload: {
-      status: report.status,
-      matchedItemId: report.matchedItemId,
+      targetReferenceCode: report.reportCode,
+      changes: [
+        {
+          changedField: "status",
+          oldValue: previous.status,
+          newValue: report.status,
+        },
+        {
+          changedField: "matchedItemId",
+          oldValue: previous.matchedItemId ?? null,
+          newValue: report.matchedItemId ?? null,
+        },
+      ].filter((change) => change.oldValue !== change.newValue),
+      before: {
+        status: previous.status,
+        matchedItemId: previous.matchedItemId,
+      },
+      after: {
+        status: report.status,
+        matchedItemId: report.matchedItemId,
+      },
     },
   });
 
