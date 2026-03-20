@@ -73,13 +73,13 @@ export function ReadyToClaimPage() {
           onStatusChange={setSourceFilter}
           statusOptions={statusOptions}
           searchPlaceholder="Search by source code, item, inventory code, or token"
-          resultCount={filteredPickups.length}
         />
 
         <RecordsStatusChips
           statusValue={sourceFilter}
           onStatusChange={setSourceFilter}
           statusOptions={statusOptions}
+          resultCount={filteredPickups.length}
         />
 
         <div className="space-y-4">
@@ -113,7 +113,7 @@ export function ReadyToClaimPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-5 border-t border-slate-100 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <div className="mt-5 pt-5 rounded-xl border border-emerald-200 border-t-slate-100 bg-emerald-50 px-4 py-3">
                 <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Pickup Token</div>
                 <div className="text-xl font-black text-emerald-800 tracking-wide flex items-center gap-2">
                   <Ticket className="w-5 h-5" /> {pickup.pickupToken}

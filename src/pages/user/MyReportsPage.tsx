@@ -208,13 +208,13 @@ export function MyReportsPage() {
           onStatusChange={setStatusFilter}
           statusOptions={statusOptions}
           searchPlaceholder="Search by report code, item, category, color, or location"
-          resultCount={filteredReports.length}
         />
 
         <RecordsStatusChips
           statusValue={statusFilter}
           onStatusChange={setStatusFilter}
           statusOptions={statusOptions}
+          resultCount={filteredReports.length}
         />
 
         <div className="space-y-4">
@@ -223,7 +223,7 @@ export function MyReportsPage() {
               key={report.id}
               className={cn(
                 "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
-                report.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/[0.03]"
+                report.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/3"
               )}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">

@@ -133,13 +133,13 @@ export function MyClaimsPage() {
           onStatusChange={setStatusFilter}
           statusOptions={statusOptions}
           searchPlaceholder="Search by claim code, item, inventory code, category, or location"
-          resultCount={filteredClaims.length}
         />
 
         <RecordsStatusChips
           statusValue={statusFilter}
           onStatusChange={setStatusFilter}
           statusOptions={statusOptions}
+          resultCount={filteredClaims.length}
         />
 
         <div className="space-y-4">
@@ -148,7 +148,7 @@ export function MyClaimsPage() {
               key={claim.id}
               className={cn(
                 "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
-                claim.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/[0.03]"
+                claim.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/3"
               )}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">

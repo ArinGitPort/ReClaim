@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { 
   Package, 
   MapPin, 
@@ -22,6 +22,7 @@ import {
   ITEM_COLORS,
   STORAGE_LOCATIONS,
 } from "@/features/admin/itemFormOptions"
+import { requiresColorSelection } from "@/features/shared/itemCategoryRules"
 
 
 export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
@@ -38,6 +39,13 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [notes, setNotes] = useState("")
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const needsColor = requiresColorSelection(category)
+
+  useEffect(() => {
+    if (!needsColor && color) {
+      setColor("")
+    }
+  }, [needsColor, color])
 
   const resetForm = () => {
     setTitle("")
@@ -81,7 +89,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
       const response = await api.post<{ item: { code: string } }>("/items", {
         title,
         category,
-        color,
+        color: needsColor ? color : "Not Specified",
         foundLocation,
         foundAtUtc: foundDate.toISOString(),
         photoUrl,
@@ -166,22 +174,37 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="category" className="text-xs uppercase tracking-wider font-bold text-slate-500">Category</Label>
-                <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
+                <Select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="h-11 bg-slate-50/50 border-slate-200 shadow-sm"
+                  required
+                >
                   <option value="">Select Category</option>
                   {ITEM_CATEGORIES.map((option) => (
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-                <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required>
-                  <option value="">Select Color</option>
-                  {ITEM_COLORS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </Select>
-              </div>
+              {needsColor ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
+                  <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required={needsColor}>
+                    <option value="">Select Color</option>
+                    {ITEM_COLORS.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
+                  <div className="h-11 px-3 rounded-md border border-slate-200 bg-slate-100 text-slate-500 text-sm font-semibold flex items-center">
+                    Not required for this category
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -273,13 +296,13 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
              <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Sensitive Discovery Notes</h4>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="notes" className="text-xs uppercase tracking-wider font-bold text-slate-500">Notes (Only visible to Admin)</Label>
+            <Label htmlFor="notes" className="text-xs uppercase tracking-wider font-bold text-slate-500">Additional Notes (Only for Admin)</Label>
             <Textarea 
               id="notes" 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Found inside the wallet was a student ID for Juan Dela Cruz..."
-              className="min-h-[100px] bg-slate-50 border-slate-200 shadow-sm text-slate-600"
+              placeholder="Add extra intake details for verification and handling."
+              className="min-h-25 bg-slate-50 border-slate-200 shadow-sm text-slate-600"
             />
           </div>
         </div>

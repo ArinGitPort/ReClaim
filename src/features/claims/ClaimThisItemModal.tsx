@@ -1,7 +1,7 @@
 import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
-import { ITEM_COLORS } from "@/features/admin/itemFormOptions"
+import { getClaimFieldGroup } from "@/features/shared/itemCategoryRules"
 
 interface ClaimThisItemModalProps {
   isOpen: boolean
@@ -11,33 +11,20 @@ interface ClaimThisItemModalProps {
   itemCategory: string
 }
 
-type DynamicFieldConfig = {
-  key: string
-  label: string
-  type: "text" | "select" | "textarea"
-  required: boolean
-  placeholder?: string
-  prompt?: string
-  options?: string[]
-}
-
-type DynamicFieldGroup = {
-  heading: string
-  fields: DynamicFieldConfig[]
-}
-
 export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory }: ClaimThisItemModalProps) {
   const [proofValues, setProofValues] = useState<Record<string, string>>({})
+  const [additionalNotes, setAdditionalNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const fieldGroup = getDynamicFieldGroup(itemCategory)
+  const fieldGroup = getClaimFieldGroup(itemCategory)
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
       setError(null)
       setProofValues({})
+      setAdditionalNotes("")
     } else {
       document.body.style.overflow = "unset"
     }
@@ -72,6 +59,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         proof: {
           categoryGroup: fieldGroup.heading,
           ...proofValues,
+          ...(additionalNotes.trim() ? { additionalNotes: additionalNotes.trim() } : {}),
         },
       })
       onClose()
@@ -81,7 +69,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
+    <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
       <div
         className="fixed inset-0 bg-slate-900/80"
         onClick={onClose}
@@ -103,7 +91,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         </div>
 
         <form id="claim-this-item-form" onSubmit={(event) => void handleSubmitClaim(event)} className="p-8 space-y-8">
-          <div className="bg-brand/[0.03] border border-brand/10 rounded-xl p-5 flex gap-4 text-slate-600">
+          <div className="bg-brand/3 border border-brand/10 rounded-xl p-5 flex gap-4 text-slate-600">
             <ShieldCheck className="w-5 h-5 text-brand shrink-0 mt-0.5" />
             <p className="text-[13px] leading-relaxed font-medium">
               For security, we keep identifying details hidden. To claim this <span className="text-slate-900 font-bold">{itemTitle}</span>, please describe any specific marks, engravings, or hidden features.
@@ -157,6 +145,17 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
                   {field.prompt && <p className="text-[11px] text-slate-500">{field.prompt}</p>}
                 </div>
               ))}
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-800">Additional Notes <span className="text-slate-400 font-medium">(Optional)</span></label>
+                <textarea
+                  rows={3}
+                  placeholder="Add any extra details that can help verification."
+                  value={additionalNotes}
+                  onChange={(event) => setAdditionalNotes(event.target.value)}
+                  className="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all text-slate-900 resize-none placeholder:text-slate-400 font-medium shadow-inner"
+                />
+              </div>
             </div>
           </div>
           {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
@@ -183,125 +182,4 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
       </div>
     </div>
   )
-}
-
-function getDynamicFieldGroup(category: string): DynamicFieldGroup {
-  const normalized = category.trim().toLowerCase()
-
-  if (normalized.includes("electronics")) {
-    return {
-      heading: "Group A: Electronics & Tech",
-      fields: [
-        {
-          key: "deviceNameOrUsername",
-          label: "Device Name / Username",
-          type: "text",
-          required: true,
-          placeholder: "e.g., John-iphone-15",
-        },
-        {
-          key: "lockScreenWallpaper",
-          label: "Lock Screen Wallpaper",
-          type: "text",
-          required: true,
-          placeholder: "Describe the lock screen image",
-        },
-        {
-          key: "externalCaseOrColor",
-          label: "External Case / Color",
-          type: "select",
-          required: true,
-          options: [...ITEM_COLORS],
-        },
-        {
-          key: "serialNumberOrMacAddress",
-          label: "Serial Number / MAC Address",
-          type: "text",
-          required: false,
-          placeholder: "Optional",
-        },
-      ],
-    }
-  }
-
-  if (normalized.includes("bags") || normalized.includes("wallet") || normalized.includes("document")) {
-    return {
-      heading: "Group B: Bags, Wallets & Containers",
-      fields: [
-        {
-          key: "brandOrMake",
-          label: "Brand / Make",
-          type: "text",
-          required: true,
-          placeholder: "e.g., Jansport",
-        },
-        {
-          key: "externalColorOrPattern",
-          label: "External Color/Pattern",
-          type: "select",
-          required: true,
-          options: [...ITEM_COLORS],
-        },
-        {
-          key: "specificInternalContents",
-          label: "Specific Internal Contents",
-          type: "textarea",
-          required: true,
-          placeholder: "List specific IDs, cards, or exact items inside.",
-          prompt: "List specific IDs, cards, or exact items inside.",
-        },
-      ],
-    }
-  }
-
-  if (normalized.includes("jewelry") || normalized.includes("accessories")) {
-    return {
-      heading: "Group C: Jewelry & Accessories",
-      fields: [
-        {
-          key: "materialOrColor",
-          label: "Material / Color",
-          type: "select",
-          required: true,
-          options: ["Gold", "Silver", "Leather", "Rose Gold", "Black", "Multi-color"],
-        },
-        {
-          key: "engravingsOrInscriptions",
-          label: "Engravings / Inscriptions",
-          type: "text",
-          required: false,
-          placeholder: "Optional",
-        },
-        {
-          key: "distinctiveDamageOrFeatures",
-          label: "Distinctive Damage / Features",
-          type: "textarea",
-          required: true,
-          placeholder: "e.g., Missing stones, scratched face, specific clasp.",
-          prompt: "e.g., Missing stones, scratched face, specific clasp.",
-        },
-      ],
-    }
-  }
-
-  return {
-    heading: "Group D: Everyday Items",
-    fields: [
-      {
-        key: "brandOrIdentifyingText",
-        label: "Brand or Identifying Text",
-        type: "text",
-        required: true,
-        placeholder: "e.g., HydroFlask or Property of Juan",
-      },
-      {
-        key: "distinctiveFeaturesAndCondition",
-        label: "Distinctive Features & Condition",
-        type: "textarea",
-        required: true,
-        placeholder: "Describe specific scratches, stickers, torn pages, or stains.",
-        prompt: "Describe specific scratches, stickers, torn pages, or stains.",
-      },
-    ],
-  }
 }
