@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
 import { api } from "@/lib/api"
@@ -44,6 +45,8 @@ export function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
   const [showFastEntry, setShowFastEntry] = useState(false)
   const [editItem, setEditItem] = useState<InventoryRow | null>(null)
   const [linkItem, setLinkItem] = useState<InventoryRow | null>(null)
@@ -125,7 +128,33 @@ export function InventoryPage() {
     }
   }, [search])
 
-  const visibleItems = useMemo(() => inventoryItems, [inventoryItems])
+  const statusOptions = useMemo(
+    () => Array.from(new Set(inventoryItems.map((item) => item.status))).filter((status) => status !== "RETURNED"),
+    [inventoryItems]
+  )
+
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(inventoryItems.map((item) => item.category))).sort((a, b) => a.localeCompare(b)),
+    [inventoryItems]
+  )
+
+  const visibleItems = useMemo(() => {
+    return inventoryItems.filter((item) => {
+      if (item.status === "RETURNED") {
+        return false
+      }
+
+      if (statusFilter && item.status !== statusFilter) {
+        return false
+      }
+
+      if (categoryFilter && item.category !== categoryFilter) {
+        return false
+      }
+
+      return true
+    })
+  }, [inventoryItems, statusFilter, categoryFilter])
 
   return (
     <div className="space-y-8">
@@ -232,8 +261,40 @@ export function InventoryPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600">
-          <Filter className="w-4 h-4 mr-2" /> Filters
+        <div className="w-full md:w-52">
+          <Select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
+          >
+            <option value="">All Statuses</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>{status.replaceAll("_", " ")}</option>
+            ))}
+          </Select>
+        </div>
+        <div className="w-full md:w-52">
+          <Select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
+          >
+            <option value="">All Categories</option>
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </Select>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setStatusFilter("")
+            setCategoryFilter("")
+            setSearch("")
+          }}
+          className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
+        >
+          <Filter className="w-4 h-4 mr-2" /> Reset
         </Button>
       </div>
 
@@ -303,13 +364,6 @@ export function InventoryPage() {
                         onClick={() => setEditItem(item)}
                       />
                       <ActionIconButton
-                        label={item.status === "CLAIM_PENDING" ? "Start handover" : "Handover starts when claim is pending"}
-                        icon={<ShieldCheck className="w-4 h-4" />}
-                        buttonClassName="bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900"
-                        onClick={() => setHandoverItem(item)}
-                        disabled={item.status !== "CLAIM_PENDING"}
-                      />
-                      <ActionIconButton
                         label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
                         icon={<Link2 className="w-4 h-4" />}
                         buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
@@ -322,6 +376,15 @@ export function InventoryPage() {
                         buttonClassName="bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300 hover:text-slate-900"
                         onClick={() => setDetailsItem(item)}
                       />
+                      <Button
+                        type="button"
+                        onClick={() => setHandoverItem(item)}
+                        disabled={item.status !== "CLAIM_PENDING"}
+                        className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+                        Start Handover
+                      </Button>
                     </div>
                   </td>
                 </tr>

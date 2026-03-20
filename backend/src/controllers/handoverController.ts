@@ -1,7 +1,7 @@
 import { AuditAction } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken } from "@/services/handoverService.js";
+import { confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken, listHandoverLogs } from "@/services/handoverService.js";
 import { logAudit } from "@/services/auditService.js";
 import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
@@ -36,6 +36,12 @@ const handoverConfirmSchema = z.object({
   idVerified: z.boolean(),
   note: z.string().optional(),
 });
+
+export async function getHandoverLogs(req: Request, res: Response): Promise<void> {
+  const search = typeof req.query.search === "string" ? req.query.search : undefined;
+  const handovers = await listHandoverLogs({ search });
+  res.json({ handovers });
+}
 
 export async function getHandoverPreview(req: Request, res: Response): Promise<void> {
   const { pickupToken } = handoverPreviewSchema.parse(req.query);

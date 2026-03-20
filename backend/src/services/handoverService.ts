@@ -2,6 +2,51 @@ import { ClaimStatus, ItemStatus, ReportStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma.js";
 import { HttpError } from "@/utils/errors.js";
 
+export async function listHandoverLogs(filters: { search?: string }) {
+  return prisma.handoverLog.findMany({
+    where: {
+      OR: filters.search
+        ? [
+            { pickupTokenPresented: { contains: filters.search, mode: "insensitive" } },
+            { note: { contains: filters.search, mode: "insensitive" } },
+            { claim: { claimCode: { contains: filters.search, mode: "insensitive" } } },
+            { foundItem: { code: { contains: filters.search, mode: "insensitive" } } },
+            { foundItem: { title: { contains: filters.search, mode: "insensitive" } } },
+            { releasedToUser: { name: { contains: filters.search, mode: "insensitive" } } },
+            { releasedToUser: { studentId: { contains: filters.search, mode: "insensitive" } } },
+          ]
+        : undefined,
+    },
+    include: {
+      claim: {
+        select: {
+          id: true,
+          claimCode: true,
+        },
+      },
+      foundItem: {
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          category: true,
+          status: true,
+          storageLocation: true,
+        },
+      },
+      releasedToUser: {
+        select: {
+          id: true,
+          name: true,
+          studentId: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: { releasedAtUtc: "desc" },
+  });
+}
+
 export async function createHandoverLog(input: {
   foundItemId: string;
   claimId?: string;
