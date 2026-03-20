@@ -105,19 +105,20 @@ export function AuditLogsPage() {
         },
       })
 
-      setLogs(response.data.logs)
-      setTotal(response.data.pagination.total)
-      setPageCount(response.data.pagination.pageCount)
+      setLogs(response.data.logs || [])
+      setTotal(response.data.pagination?.total || 0)
+      setPageCount(response.data.pagination?.pageCount || 1)
     } catch {
       setError("Unable to load audit records.")
+      setLogs([])
     } finally {
       setIsLoading(false)
     }
   }
 
   const resultLabel = useMemo(() => {
-    return `Showing ${logs.length} of ${total} log${total === 1 ? "" : "s"}`
-  }, [logs.length, total])
+    return `Showing ${logs?.length || 0} of ${total} log${total === 1 ? "" : "s"}`
+  }, [logs?.length, total])
 
   return (
     <div className="space-y-8">

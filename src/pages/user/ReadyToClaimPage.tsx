@@ -24,12 +24,17 @@ export function ReadyToClaimPage() {
   const [rowsPerPage, setRowsPerPage] = useState(25)
 
   useEffect(() => {
-    async function loadPickups(): Promise<void> {
-      const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
-      setPickups(response.data.pickups)
+    async function fetchPickups(): Promise<void> {
+      try {
+        const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
+        setPickups(response.data.pickups || [])
+      } catch (err) {
+        console.error("[PICKUPS] Failed to load pickups:", err)
+        setPickups([])
+      }
     }
 
-    void loadPickups()
+    void fetchPickups()
   }, [])
 
   const filteredPickups = useMemo(() => {

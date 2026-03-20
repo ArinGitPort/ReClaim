@@ -11,7 +11,8 @@ import {
   Settings as SettingsIcon,
   LogOut,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Bot
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +53,7 @@ export function AdminSidebar() {
         </div>
 
         <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/captured-items" icon={<Bot className="w-5 h-5" />} label="Captured Items" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
@@ -77,9 +79,9 @@ export function AdminSidebar() {
       {/* Footer Area */}
       <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0">
         <AdminSidebarItem 
-          to="/" 
+          to="/gallery" 
           icon={<LogOut className="w-5 h-5" />} 
-          label="Exit to Portal" 
+          label="Switch to Student View" 
           isCollapsed={isCollapsed} 
           variant="secondary"
         />

@@ -3,9 +3,27 @@ import Particles from "@/components/Particles"
 import { LoginForm } from "@/features/auth/LoginForm"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
+import { Plus } from "lucide-react"
 
 export function LandingPage() {
+  const { user, isLoading } = useAuth()
+  const navigate = useNavigate()
+  const [showDropOffModal, setShowDropOffModal] = useState(false)
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.role === "ADMIN" || user.role === "STAFF") {
+        navigate("/admin/dashboard")
+      } else {
+        navigate("/gallery")
+      }
+    }
+  }, [user, isLoading, navigate])
+
   return (
     <div className="min-h-screen flex w-full bg-background-app font-sans relative">
       <div className="absolute top-6 right-6 z-50">
@@ -49,12 +67,24 @@ export function LandingPage() {
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="rounded-full h-12 px-6 text-base font-semibold border-brand text-brand shadow-sm transition-colors hover:bg-brand/5 hover:text-brand">
-              <span className="w-2.5 h-2.5 rounded-full bg-status-error shadow-[0_0_8px_rgba(225,29,72,0.8)] animate-pulse mr-2" />
               Report Lost Item
+            </Button>
+            <Button 
+              onClick={() => setShowDropOffModal(true)}
+              variant="ghost" 
+              size="lg" 
+              className="rounded-full h-12 px-6 text-base font-bold text-slate-500 hover:text-brand hover:bg-brand/5 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              I Found an Item
             </Button>
           </div>
         </div>
       </div>
+
+      {showDropOffModal && (
+        <CampusDropOffModal onClose={() => setShowDropOffModal(false)} />
+      )}
 
       {/* Right Side: Login Form */}
       <div className="flex-none w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 xl:p-16 bg-background-app border-l border-border-divider/50 shadow-[-15px_0_30px_-15px_rgba(0,0,0,0.03)] z-20">

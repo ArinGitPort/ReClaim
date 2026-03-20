@@ -1,84 +1,108 @@
-import { Image as ImageIcon, Info, MapPin, Package, X } from "lucide-react"
+import { X, ExternalLink, ShieldCheck, Mail, Calendar, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-type InventoryItemDetails = {
-  code: string
-  title: string
-  category: string
-  color: string
-  foundLocation: string
-  foundAtUtc: string
-  storage: string
-  status: string
-  privateDiscoveryNote?: string
-  photoUrl?: string
+interface InventoryItemDetailsModalProps {
+  item: any
+  onClose: () => void
 }
 
-export function InventoryItemDetailsModal({
-  item,
-  onClose,
-}: {
-  item: InventoryItemDetails
-  onClose: () => void
-}) {
+export function InventoryItemDetailsModal({ item, onClose }: InventoryItemDetailsModalProps) {
   return (
-    <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
-      <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+    <div className="bg-white flex flex-col h-full max-h-[95vh]">
+      <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center shadow-sm">
-            <Info className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Item Details</h2>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">{item.code}</div>
-          </div>
+           <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden">
+             {item.photoUrl ? (
+               <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+             ) : (
+               <ShieldCheck className="w-7 h-7 text-indigo-600" />
+             )}
+           </div>
+           <div>
+             <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{item.title}</h2>
+             <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] font-mono mt-0.5">{item.code}</p>
+           </div>
         </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-all shadow-sm border border-transparent hover:border-slate-100">
+          <X className="w-6 h-6 text-slate-400" />
         </button>
       </div>
 
-      <div className="p-8 overflow-y-auto space-y-6 bg-slate-50/60">
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-          {item.photoUrl ? (
-            <img src={item.photoUrl} alt={item.title} className="w-full h-60 object-cover" />
-          ) : (
-            <div className="h-60 flex flex-col items-center justify-center text-slate-400">
-              <ImageIcon className="w-8 h-8 mb-2" />
-              <p className="text-xs font-bold uppercase tracking-widest">No image uploaded</p>
-            </div>
-          )}
-        </div>
+      <div className="flex-1 overflow-y-auto p-8 lg:p-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Left Column: Core Info */}
+          <div className="space-y-10">
+             <DetailSection title="Record Metadata">
+                <DetailItem icon={<Calendar className="w-4 h-4" />} label="Date Registered" value={item.date} />
+                <DetailItem icon={<ShieldCheck className="w-4 h-4" />} label="Current Status" value={item.status} active />
+                <DetailItem icon={<Mail className="w-4 h-4" />} label="Storage Location" value={item.storage} />
+             </DetailSection>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InfoCard icon={<Package className="w-4 h-4" />} label="Title" value={item.title} />
-          <InfoCard icon={<Package className="w-4 h-4" />} label="Category" value={item.category} />
-          <InfoCard icon={<Package className="w-4 h-4" />} label="Color" value={item.color} />
-          <InfoCard icon={<MapPin className="w-4 h-4" />} label="Found At" value={item.foundLocation} />
-          <InfoCard icon={<MapPin className="w-4 h-4" />} label="Found Date" value={new Date(item.foundAtUtc).toLocaleString()} />
-          <InfoCard icon={<MapPin className="w-4 h-4" />} label="Storage" value={item.storage} />
-          <InfoCard icon={<Info className="w-4 h-4" />} label="Status" value={item.status.replaceAll("_", " ")} />
-        </div>
+             <DetailSection title="Detection Details">
+                <DetailItem icon={<ExternalLink className="w-4 h-4" />} label="Physical Location" value={item.location} />
+                <DetailItem icon={<ShieldCheck className="w-4 h-4" />} label="Discovery Context" value="Found near campus bench, appeared abandoned." />
+             </DetailSection>
+          </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 mb-2">Sensitive Discovery Note</div>
-          <p className="text-sm font-semibold text-amber-900">{item.privateDiscoveryNote || "No sensitive notes recorded."}</p>
+          {/* Right Column: Ownership / Claims */}
+          <div className="space-y-10">
+             <DetailSection title="Claimant Information">
+                {item.status === 'CLAIM_PENDING' ? (
+                   <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                         <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                            <User className="w-6 h-6" />
+                         </div>
+                         <div>
+                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Active Claimant</p>
+                            <p className="text-sm font-bold text-slate-900">Johnathan Doe</p>
+                         </div>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed font-medium">Verified student ID. Claiming ownership of this item based on report #RC-9921.</p>
+                   </div>
+                ) : (
+                   <div className="bg-slate-50 border border-slate-100 border-dashed rounded-3xl p-10 text-center">
+                      <User className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No Active Claims</p>
+                      <p className="text-xs text-slate-400 mt-1">This item is currently unclaimed.</p>
+                   </div>
+                )}
+             </DetailSection>
+          </div>
         </div>
       </div>
 
-      <div className="px-8 py-5 border-t border-slate-100 bg-white">
-        <Button onClick={onClose} className="w-full h-11 bg-brand hover:bg-brand-active text-white">Close</Button>
+      <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+        <Button 
+          onClick={onClose}
+          className="px-8 h-12 rounded-xl bg-slate-900 text-white font-bold hover:bg-black transition-all"
+        >
+          Close Detail View
+        </Button>
       </div>
     </div>
   )
 }
 
-function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function DetailSection({ title, children }: { title: string, children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 mb-1">{icon} {label}</div>
-      <div className="text-sm font-bold text-slate-900">{value}</div>
+    <div className="space-y-5">
+       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">{title}</h3>
+       <div className="space-y-4">
+          {children}
+       </div>
     </div>
   )
 }
 
+function DetailItem({ icon, label, value, active }: { icon: React.ReactNode, label: string, value: string, active?: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-1 border-b border-slate-50 last:border-0 pb-3">
+       <div className="flex items-center gap-3">
+          <div className="text-slate-300">{icon}</div>
+          <span className="text-xs font-bold text-slate-500">{label}</span>
+       </div>
+       <span className={`text-xs font-black ${active ? 'text-indigo-600' : 'text-slate-900'}`}>{value}</span>
+    </div>
+  )
+}

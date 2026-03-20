@@ -31,40 +31,46 @@ export function MyClaimsPage() {
   const [rowsPerPage, setRowsPerPage] = useState(25)
 
   async function loadClaims(): Promise<void> {
-    const response = await api.get<{
-      claims: Array<{
-        id: string
-        claimCode: string
-        status: string
-        createdAt: string
-        reviewerNote?: string | null
-        foundItem: {
-          code: string
-          title: string
-          category: string
-          foundLocation: string
-        }
-      }>
-    }>("/claims", {
-      params: {
-        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,DENIED",
-      },
-    })
+    try {
+      const response = await api.get<{
+        claims: Array<{
+          id: string
+          claimCode: string
+          status: string
+          createdAt: string
+          reviewerNote?: string | null
+          foundItem: {
+            code: string
+            title: string
+            category: string
+            foundLocation: string
+          }
+        }>
+      }>("/claims", {
+        params: {
+          statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,DENIED",
+        },
+      })
 
-    setClaims(
-      response.data.claims.map((claim) => ({
-        ticketId: claim.id,
-        id: claim.claimCode,
-        item: claim.foundItem.title,
-        category: claim.foundItem.category,
-        inventoryId: claim.foundItem.code,
-        location: claim.foundItem.foundLocation,
-        submittedDate: new Date(claim.createdAt).toLocaleDateString(),
-        rawStatus: claim.status,
-        status: formatClaimStatus(claim.status),
-        reviewerNote: claim.reviewerNote,
-      }))
-    )
+      const claimsData = response.data.claims || []
+      setClaims(
+        claimsData.map((claim) => ({
+          ticketId: claim.id,
+          id: claim.claimCode,
+          item: claim.foundItem.title,
+          category: claim.foundItem.category,
+          inventoryId: claim.foundItem.code,
+          location: claim.foundItem.foundLocation,
+          submittedDate: new Date(claim.createdAt).toLocaleDateString(),
+          rawStatus: claim.status,
+          status: formatClaimStatus(claim.status),
+          reviewerNote: claim.reviewerNote,
+        }))
+      )
+    } catch (err) {
+      console.error("[CLAIMS] Failed to load claims:", err)
+      setClaims([])
+    }
   }
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
 import { MyReportsPage } from "@/pages/user/MyReportsPage"
 import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
 import { NotificationsPage } from "@/pages/user/NotificationsPage"
+import { ProfilePage } from "@/pages/user/ProfilePage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -32,6 +33,7 @@ import { UserDirectoryPage } from "@/pages/admin/UserDirectoryPage"
 import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/SettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/NotificationsPage"
+import { CapturedItemsPage } from "@/pages/admin/CapturedItemsPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"
@@ -47,10 +49,7 @@ function ProtectedUserRoutes() {
     return <Navigate to="/" replace />
   }
 
-  if (user.role === "ADMIN" || user.role === "STAFF") {
-    return <Navigate to="/admin/dashboard" replace />
-  }
-
+  // FOR UI SKELETON DEMO: Allow Admin/Staff to view student pages directly
   return <AppLayout />
 }
 
@@ -91,8 +90,8 @@ function App() {
               <Route path="/my-reports" element={<MyReportsPage />} />
               <Route path="/ready-to-claim" element={<ReadyToClaimPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
-              {/* Placeholder routes */}
-              <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
             </Route>
 
@@ -100,6 +99,7 @@ function App() {
             <Route path="/admin" element={<ProtectedAdminRoutes />}>
               <Route index element={<DashboardPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="captured-items" element={<CapturedItemsPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="reports" element={<MissingItemsPage />} />
               <Route path="claims" element={<ClaimsVerificationPage />} />

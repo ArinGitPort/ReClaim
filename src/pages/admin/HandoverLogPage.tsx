@@ -83,17 +83,20 @@ export function HandoverLogPage() {
         },
       })
 
-      setLogs(response.data.handovers)
-      setTotal(response.data.pagination.total)
-      setPageCount(response.data.pagination.pageCount)
+      setLogs(response.data.handovers || [])
+      setTotal(response.data.pagination?.total || 0)
+      setPageCount(response.data.pagination?.pageCount || 1)
+    } catch (err) {
+      console.error("[HANDOVER LOG] Failed to load logs:", err)
+      setLogs([])
     } finally {
       setIsLoadingLogs(false)
     }
   }
 
   const resultLabel = useMemo(() => {
-    return `Showing ${logs.length} of ${total} result${total === 1 ? "" : "s"}`
-  }, [logs.length, total])
+    return `Showing ${logs?.length || 0} of ${total} result${total === 1 ? "" : "s"}`
+  }, [logs?.length, total])
 
   return (
     <div className="space-y-8">

@@ -10,12 +10,17 @@ import {
   MapPin, 
   LogOut,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  User,
+  ShieldAlert
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { user } = useAuth()
+  const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF"
   
   return (
     <aside 
@@ -89,14 +94,35 @@ export function Sidebar() {
           label="My Lost Reports" 
           isCollapsed={isCollapsed} 
         />
+
+        {isAdmin && (
+          <>
+            <div className="mt-6 mb-2 px-3">
+              {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Admin Access</h4>}
+              {isCollapsed && <div className="h-px w-full bg-emerald-500/20 my-2" />}
+            </div>
+            <SidebarItem 
+              to="/admin/dashboard" 
+              icon={<ShieldAlert className="w-5 h-5 flex-shrink-0 text-emerald-400" />} 
+              label="Admin Dashboard" 
+              isCollapsed={isCollapsed} 
+            />
+          </>
+        )}
       </div>
 
       {/* Bottom Navigation Area */}
       <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0 overflow-x-hidden">
         <SidebarItem 
+          to="/profile" 
+          icon={<User className="w-5 h-5 flex-shrink-0" />} 
+          label="My Profile" 
+          isCollapsed={isCollapsed} 
+        />
+        <SidebarItem 
           to="/settings" 
           icon={<Settings className="w-5 h-5 flex-shrink-0" />} 
-          label="Profile Settings" 
+          label="Settings" 
           isCollapsed={isCollapsed} 
         />
         <SidebarItem 

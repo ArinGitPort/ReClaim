@@ -66,8 +66,9 @@ export function MyReportsPage() {
         },
       })
 
+      const reportsData = response.data.reports || []
       setReports(
-        response.data.reports.map((report) => {
+        reportsData.map((report) => {
           const proof = report.proofData ?? {}
           return {
             ticketId: report.id,
@@ -87,8 +88,9 @@ export function MyReportsPage() {
           }
         })
       )
-    } catch {
-      // Keep existing list visible during transient network failures.
+    } catch (err) {
+      console.error("[REPORTS] Failed to load reports:", err)
+      setReports([])
     }
   }, [])
 
