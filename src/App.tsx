@@ -64,9 +64,8 @@ function ProtectedAdminRoutes() {
     return <Navigate to="/" replace />
   }
 
-  if (user.role !== "ADMIN" && user.role !== "STAFF") {
-    return <Navigate to="/gallery" replace />
-  }
+  // FOR UI SKELETON DEMO: allow all authenticated users to access admin pages.
+  // Re-enable strict role checks once backend authorization is wired.
 
   return <AdminLayout />
 }

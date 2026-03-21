@@ -21,7 +21,7 @@ export function SettingsPage() {
       <main className="max-w-4xl mx-auto px-6 mt-8">
         <div className="mb-8 flex items-center gap-4">
           <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center">
-             <SettingsIcon className="w-6 h-6 text-brand" />
+             <SettingsIcon className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Settings</h1>
@@ -33,7 +33,7 @@ export function SettingsPage() {
           {/* Notification Settings */}
           <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-brand" />
+              <Bell className="w-5 h-5 text-indigo-600" />
               Notifications
             </h2>
             <div className="space-y-4">
@@ -55,23 +55,23 @@ export function SettingsPage() {
           {/* Privacy & Security */}
           <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-brand" />
+              <Shield className="w-5 h-5 text-indigo-600" />
               Privacy & Security
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-brand/20 hover:bg-brand/5 transition-all text-left group">
+              <button className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all text-left group">
                 <div>
                   <p className="text-sm font-bold text-slate-800">Change Password</p>
                   <p className="text-xs text-slate-500 font-medium">Update your account security</p>
                 </div>
-                <Shield className="w-4 h-4 text-slate-300 group-hover:text-brand" />
+                <Shield className="w-4 h-4 text-slate-300 group-hover:text-indigo-400" />
               </button>
-              <button className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-brand/20 hover:bg-brand/5 transition-all text-left group">
+              <button className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all text-left group">
                 <div>
                   <p className="text-sm font-bold text-slate-800">Two-Factor Auth</p>
                   <p className="text-xs text-slate-500 font-medium">Add an extra layer of protection</p>
                 </div>
-                <Eye className="w-4 h-4 text-slate-300 group-hover:text-brand" />
+                <Eye className="w-4 h-4 text-slate-300 group-hover:text-indigo-400" />
               </button>
             </div>
           </section>
@@ -79,7 +79,7 @@ export function SettingsPage() {
           {/* Appearance */}
           <section className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Sun className="w-5 h-5 text-brand" />
+              <Sun className="w-5 h-5 text-indigo-600" />
               Appearance
             </h2>
             <div className="flex gap-4">
@@ -106,19 +106,19 @@ export function SettingsPage() {
 
           {user?.role === "ADMIN" && (
              /* Admin Specific Settings */
-            <section className="bg-navy rounded-3xl p-8 text-white">
+            <section className="bg-indigo-900 rounded-3xl p-8 text-white">
               <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <Globe className="w-5 h-5 text-white/80" />
+                <Globe className="w-5 h-5 text-indigo-300" />
                 Administrative Controls
               </h2>
               <div className="space-y-4">
                  <button className="w-full text-left p-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10">
                     <p className="text-sm font-bold">Manage Campus Zones</p>
-                    <p className="text-xs text-white/80 font-medium">Configure pick-up locations and categories</p>
+                    <p className="text-xs text-indigo-200 font-medium">Configure pick-up locations and categories</p>
                  </button>
                  <button className="w-full text-left p-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10">
                     <p className="text-sm font-bold">Staff Role Permissions</p>
-                    <p className="text-xs text-white/80 font-medium">Edit permissions for staff and security personnel</p>
+                    <p className="text-xs text-indigo-200 font-medium">Edit permissions for staff and security personnel</p>
                  </button>
               </div>
             </section>
@@ -127,7 +127,7 @@ export function SettingsPage() {
           <div className="pt-6 flex justify-end">
             <button 
               onClick={handleSave}
-              className="px-8 py-3 bg-brand text-white rounded-2xl font-bold shadow-lg shadow-brand/20 hover:bg-brand-active active:scale-95 transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2"
             >
               {isSaving ? "Saving..." : <><Save className="w-4 h-4" /> Save Changes</>}
             </button>
@@ -147,7 +147,7 @@ function ToggleItem({ title, description, enabled, onChange }: { title: string, 
       </div>
       <button 
         onClick={() => onChange(!enabled)}
-        className={`w-12 h-6 rounded-full p-1 transition-all ${enabled ? 'bg-brand' : 'bg-slate-200'}`}
+        className={`w-12 h-6 rounded-full p-1 transition-all ${enabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
       >
         <div className={`w-4 h-4 rounded-full bg-white transition-all shadow-sm ${enabled ? 'translate-x-6' : 'translate-x-0'}`} />
       </button>
@@ -159,7 +159,7 @@ function AppearanceOption({ icon, label, active, onClick }: { icon: React.ReactN
   return (
     <button 
       onClick={onClick}
-      className={`flex-1 p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${active ? 'border-brand bg-brand/5 text-brand' : 'border-slate-100 hover:border-slate-200 text-slate-500'}`}
+      className={`flex-1 p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${active ? 'border-indigo-600 bg-indigo-50/50 text-indigo-600' : 'border-slate-100 hover:border-slate-200 text-slate-500'}`}
     >
       {icon}
       <span className="text-xs font-bold uppercase tracking-tight">{label}</span>

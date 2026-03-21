@@ -67,7 +67,9 @@ export const api = {
       const page = config?.params?.page || 1;
       const limit = config?.params?.limit || 12;
       const search = config?.params?.search?.toLowerCase();
+      const category = config?.params?.category;
       const categories = config?.params?.categories ? config.params.categories.split(',') : [];
+      const status = config?.params?.status;
       let location = config?.params?.location;
       if (location === "all") location = null;
       let dateLost = config?.params?.dateLost;
@@ -75,12 +77,26 @@ export const api = {
 
       let filteredItems = [...MOCK_ITEMS];
 
+      if (url === "/items/public") {
+        filteredItems = filteredItems.filter((i) => i.status === "AVAILABLE");
+      }
+
       if (search) {
         filteredItems = filteredItems.filter(i => 
-          i.title.toLowerCase().includes(search) || 
-          i.color.toLowerCase().includes(search) || 
-          i.brand?.toLowerCase().includes(search)
+          i.title.toLowerCase().includes(search) ||
+          i.code.toLowerCase().includes(search) ||
+          i.category.toLowerCase().includes(search) ||
+          i.foundLocation.toLowerCase().includes(search) ||
+          (i.description?.toLowerCase().includes(search) ?? false)
         );
+      }
+
+      if (status) {
+        filteredItems = filteredItems.filter((i) => i.status === status);
+      }
+
+      if (category) {
+        filteredItems = filteredItems.filter((i) => i.category === category);
       }
 
       if (categories.length > 0) {

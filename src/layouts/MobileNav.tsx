@@ -6,15 +6,19 @@ import {
   Search, 
   PlusCircle, 
   Hand, 
+  ShieldAlert,
   FileText, 
   Settings, 
   MapPin, 
   LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
+  const { user } = useAuth()
+  const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF"
 
   // Close menu when route changes
   const { pathname } = useLocation()
@@ -52,6 +56,14 @@ export function MobileNav() {
             
             <MobileNavItem to="/my-claims" icon={<Hand className="w-5 h-5" />} label="My Claims" />
             <MobileNavItem to="/my-reports" icon={<FileText className="w-5 h-5" />} label="My Lost Reports" />
+
+            {isAdmin && (
+              <>
+                <div className="h-px w-full bg-emerald-500/20 my-3" />
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-2 px-3">Admin Access</h4>
+                <MobileNavItem to="/admin/dashboard" icon={<ShieldAlert className="w-5 h-5 text-emerald-400" />} label="Admin Dashboard" />
+              </>
+            )}
 
             <div className="h-px w-full bg-white/10 my-3" />
             
