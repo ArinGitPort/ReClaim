@@ -30,13 +30,18 @@ export function ItemCard({ item }: ItemCardProps) {
               <Laptop className="w-16 h-16 mb-2" />
               <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">Secure Match required</span>
             </div>
+          ) : item.imageUrl ? (
+            <img 
+              src={item.imageUrl} 
+              alt={item.title} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
           ) : (
             <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform duration-500">
-              {/* Placeholder for actual low-value image */}
               <span className="text-xs font-medium">No Image Provided</span>
             </div>
           )}
-          
+
           {/* High Value Badge overlay */}
           {item.isHighValue && (
             <div className="absolute top-3 left-3 bg-brand/10 backdrop-blur-md border border-brand/20 px-2.5 py-1 rounded text-[10px] font-bold text-brand flex items-center gap-1.5 shadow-sm">

@@ -114,7 +114,7 @@ export function LandingPage() {
           {/* Mobile Logo Visibility */}
           <div className="mb-12 text-center mt-8">
             <h1 className="text-5xl font-extrabold tracking-tight text-text-primary mb-3">
-              <span className="text-brand">Re</span>Claim
+              <span className="text-brand">NU </span>Return
             </h1>
             <p className="text-sm font-medium text-text-secondary">Lost & Found System</p>
           </div>
@@ -122,7 +122,7 @@ export function LandingPage() {
           <LoginForm />
           
           <div className="mt-8 text-center text-sm text-text-secondary">
-            <p>New to ReClaim? <Link to="/register" className="text-brand font-semibold hover:underline transition-all">Create an Account</Link></p>
+            <p>New to NU Return? <Link to="/register" className="text-brand font-semibold hover:underline transition-all">Create an Account</Link></p>
           </div>
         </div>
       </div>

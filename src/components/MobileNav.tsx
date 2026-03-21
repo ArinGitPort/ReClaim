@@ -26,7 +26,7 @@ export function MobileNav() {
     <div className="md:hidden sticky top-0 z-[60] w-full bg-white border-b border-slate-200 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="font-extrabold text-xl tracking-tight text-slate-900">
-          <span className="text-[#263da8]">Re</span>Claim
+          <span className="text-[#263da8]">NU </span>Return
         </div>
         
         <button 

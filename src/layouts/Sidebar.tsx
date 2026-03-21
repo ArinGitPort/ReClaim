@@ -11,17 +11,16 @@ import {
   LogOut,
   Menu,
   ChevronLeft,
-  User,
-  ShieldAlert
+  User
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/contexts/AuthContext"
+// import { useAuth } from "@/contexts/AuthContext"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF"
-  
+  // const { user } = useAuth()
+  // const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF"
+
   return (
     <aside 
       className={cn(
@@ -33,7 +32,7 @@ export function Sidebar() {
       <div className="h-16 flex items-center justify-between px-4 flex-shrink-0 overflow-hidden mt-2">
         {!isCollapsed && (
           <div className="font-extrabold text-xl tracking-tight text-white overflow-hidden whitespace-nowrap">
-            <span className="text-white/80">Re</span>Claim
+            <span className="text-white/80">NU </span>Return
           </div>
         )}
         <button 
@@ -95,6 +94,7 @@ export function Sidebar() {
           isCollapsed={isCollapsed} 
         />
 
+        {/* Hidden Admin Access section 
         {isAdmin && (
           <>
             <div className="mt-6 mb-2 px-3">
@@ -109,6 +109,7 @@ export function Sidebar() {
             />
           </>
         )}
+        */}
       </div>
 
       {/* Bottom Navigation Area */}

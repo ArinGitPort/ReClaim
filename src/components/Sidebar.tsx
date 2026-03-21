@@ -27,7 +27,7 @@ export function Sidebar() {
       <div className="h-16 flex items-center justify-between px-4 flex-shrink-0 overflow-hidden mt-2">
         {!isCollapsed && (
           <div className="font-extrabold text-xl tracking-tight text-white overflow-hidden whitespace-nowrap">
-            <span className="text-white/80">Re</span>Claim
+            <span className="text-white/80">NU </span>Return
           </div>
         )}
         <button 

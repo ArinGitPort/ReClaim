@@ -30,14 +30,14 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
           </button>
           
           <div className="relative z-10">
-            <h2 className="text-3xl font-black tracking-tight mb-2">Campus Drop-Off Guide</h2>
+            <h2 className="text-3xl font-black tracking-tight mb-2">How to Report a Found Item</h2>
             <p className="text-white/80 font-medium max-w-sm">Found something? Here's how to return it to its rightful owner.</p>
           </div>
         </div>
 
         {/* Instructions Body */}
         <div className="px-8 py-10 space-y-10 bg-white">
-          
+
           {/* Step 1 */}
           <div className="flex gap-6">
             <div className="flex-shrink-0 w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center shadow-sm">
@@ -46,7 +46,7 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
             <div className="space-y-1">
               <h3 className="text-xs font-black uppercase tracking-widest text-brand">Step 1: Secure the Item</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Thank you for helping keep our campus honest! Please hold onto the item and do not leave it unattended.
+                Nice work finding it! Please hold onto the item and keep it safe until you can turn it in.
               </p>
             </div>
           </div>
@@ -57,9 +57,9 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
               <MapPin className="w-6 h-6 text-amber-600" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xs font-black uppercase tracking-widest text-amber-600">Step 2: Go to the Smart Drop-Off Station</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-amber-600">Step 2: Head to the ITSO Office</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Bring the item to the <span className="text-slate-900 font-bold">Lost & Found Desk</span> located at the <span className="text-slate-900 font-bold">Student Affairs Office (Building A, Room 102)</span>.
+                Bring the item to the <span className="text-slate-900 font-bold">ITSO Office</span>. Our staff there is trained to handle the intake process and ensure the item gets back to its rightful owner.
               </p>
             </div>
           </div>
@@ -70,9 +70,9 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
               <Camera className="w-6 h-6 text-emerald-600" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Step 3: Place Under the Camera</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Step 3: Hand it Over</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Place the item under our AI-integrated camera scanner. The system will automatically log the item, snap a photo, and add it to the public gallery.
+                Simply hand the item to the personnel on duty. They will handle the logging process from there so you can get back to your day.
               </p>
             </div>
           </div>

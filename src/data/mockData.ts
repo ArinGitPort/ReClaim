@@ -93,7 +93,7 @@ export const MOCK_ITEMS: FoundItem[] = [
     description: "White 32oz bottle with stickers.",
     status: "AVAILABLE",
     isHighValue: false,
-    image: "https://images.unsplash.com/photo-1602143307185-84487493375e?auto=format&fit=crop&q=80&w=400"
+    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "item4",
