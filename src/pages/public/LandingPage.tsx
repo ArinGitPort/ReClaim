@@ -3,26 +3,13 @@ import Particles from "@/components/Particles"
 import { LoginForm } from "@/features/auth/LoginForm"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
-import { useEffect, useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "@/contexts/AuthContext"
+import { useState } from "react"
+import { Link } from "react-router-dom"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
 import { Plus } from "lucide-react"
 
 export function LandingPage() {
-  const { user, isLoading } = useAuth()
-  const navigate = useNavigate()
   const [showDropOffModal, setShowDropOffModal] = useState(false)
-
-  useEffect(() => {
-    if (!isLoading && user) {
-      if (user.role === "ADMIN" || user.role === "STAFF") {
-        navigate("/admin/dashboard")
-      } else {
-        navigate("/gallery")
-      }
-    }
-  }, [user, isLoading, navigate])
 
   return (
     <div className="min-h-screen flex w-full bg-background-app font-sans relative">
