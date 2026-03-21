@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { X, Save, Edit2, MapPin, Tag, Info, ShieldCheck, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -134,3 +134,4 @@ export function EditInventoryItemModal({ item, onClose, onSaved }: EditInventory
     </div>
   )
 }
+

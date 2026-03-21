@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useCallback, useState } from "react"
 import { GalleryFilters } from "@/features/gallery/GalleryFilters"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { TopNavBar } from "@/layouts/TopNavBar"
@@ -7,12 +7,41 @@ import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
 
+type GalleryFiltersState = {
+  search: string
+  dateLost: string
+  categories: string[]
+  location: string
+}
+
 export function GalleryPage() {
   const [itemCount, setItemCount] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
   const [pageCount, setPageCount] = useState(1)
   const [showDropOffModal, setShowDropOffModal] = useState(false)
+
+  // Filters state
+  const [filters, setFilters] = useState<GalleryFiltersState>({
+    search: "",
+    dateLost: "any",
+    categories: [],
+    location: "all"
+  })
+
+  const handleFiltersChange = useCallback((nextFilters: GalleryFiltersState) => {
+    setFilters(nextFilters)
+    setPage(1)
+  }, [])
+
+  const handleGalleryDataChange = useCallback(
+    ({ visibleCount, totalCount: total, pageCount: totalPages }: { visibleCount: number; totalCount: number; pageCount: number }) => {
+      setItemCount(visibleCount)
+      setTotalCount(total)
+      setPageCount(totalPages)
+    },
+    []
+  )
 
   const pageSize = 12
 
@@ -33,7 +62,7 @@ export function GalleryPage() {
                 Return it to its rightful owner via our AI-integrated Smart Drop-Off station.
               </p>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowDropOffModal(true)}
               className="bg-white text-brand hover:bg-white/90 font-black px-8 py-6 rounded-2xl text-base shadow-lg shadow-black/5 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
             >
@@ -44,8 +73,8 @@ export function GalleryPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          <GalleryFilters />
-          
+          <GalleryFilters filters={filters} setFilters={handleFiltersChange} />
+
           <div className="flex-1 w-full relative">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-text-primary">Found Items</h2>
@@ -53,15 +82,12 @@ export function GalleryPage() {
                 Showing {itemCount} of {totalCount} items
               </span>
             </div>
-            
+
             <GalleryGrid
               page={page}
               pageSize={pageSize}
-              onDataChange={({ visibleCount, totalCount: total, pageCount: totalPages }) => {
-                setItemCount(visibleCount)
-                setTotalCount(total)
-                setPageCount(totalPages)
-              }}
+              filters={filters}
+              onDataChange={handleGalleryDataChange}
             />
 
             <AdminPaginationControls

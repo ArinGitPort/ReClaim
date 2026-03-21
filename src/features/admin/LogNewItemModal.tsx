@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { X, Save, Camera, MapPin, Tag, Info, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -121,3 +121,4 @@ export function LogNewItemModal({ onClose, onSaved }: LogNewItemModalProps) {
     </div>
   )
 }
+

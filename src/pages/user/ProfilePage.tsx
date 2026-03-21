@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/AuthContext"
+﻿import { useAuth } from "@/contexts/AuthContext"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { User, Mail, GraduationCap, Shield, MapPin, Calendar, Camera } from "lucide-react"
 
@@ -128,3 +128,4 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string
     </div>
   )
 }
+

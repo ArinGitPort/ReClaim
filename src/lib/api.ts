@@ -1,4 +1,4 @@
-import { MOCK_ITEMS, MOCK_USERS, MOCK_CAPTURED_ITEMS } from "@/data/mockData";
+﻿import { MOCK_ITEMS, MOCK_USERS, MOCK_CAPTURED_ITEMS } from "@/data/mockData";
 
 const TOKEN_KEY = "reclaim-auth-token";
 
@@ -17,7 +17,7 @@ export function clearStoredToken(): void {
 // Mock API implementation
 export const api = {
   get: async <T>(url: string, config?: any): Promise<{ data: T }> => {
-    console.log(`[MOCK API] GET ${url}`, config);
+    console.log("[MOCK API] GET", url, config);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
 
     if (url === "/auth/me") {
@@ -66,14 +66,49 @@ export const api = {
     if (url === "/items/admin" || url === "/items/public") {
       const page = config?.params?.page || 1;
       const limit = config?.params?.limit || 12;
+      const search = config?.params?.search?.toLowerCase();
+      const categories = config?.params?.categories ? config.params.categories.split(',') : [];
+      let location = config?.params?.location;
+      if (location === "all") location = null;
+      let dateLost = config?.params?.dateLost;
+      if (dateLost === "any") dateLost = null;
+
+      let filteredItems = [...MOCK_ITEMS];
+
+      if (search) {
+        filteredItems = filteredItems.filter(i => 
+          i.title.toLowerCase().includes(search) || 
+          i.color.toLowerCase().includes(search) || 
+          i.brand?.toLowerCase().includes(search)
+        );
+      }
+
+      if (categories.length > 0) {
+        filteredItems = filteredItems.filter(i => categories.includes(i.category));
+      }
+
+      if (location) {
+        // Mock matching logic for location dropdown
+        filteredItems = filteredItems.filter(i => {
+           if (location === "library" && i.foundLocation.toLowerCase().includes("library")) return true;
+           if (location === "student_union" && i.foundLocation.toLowerCase().includes("union")) return true;
+           if (location === "gym" && i.foundLocation.toLowerCase().includes("gym")) return true;
+           return false;
+        });
+      }
+      
+      const st = (page - 1) * limit;
+      const ed = st + limit;
+      const paginatedItems = filteredItems.slice(st, ed);
+
       return {
         data: {
-          items: MOCK_ITEMS,
+          items: paginatedItems,
           pagination: {
             page,
             limit,
-            total: MOCK_ITEMS.length,
-            pageCount: 1,
+            total: filteredItems.length,
+            pageCount: Math.ceil(filteredItems.length / limit) || 1,
           }
         } as any
       };
@@ -208,7 +243,7 @@ export const api = {
   },
 
   post: async <T>(url: string, data?: any): Promise<{ data: T }> => {
-    console.log(`[MOCK API] POST ${url}`, data);
+    console.log("[MOCK API] POST", url, data);
     await new Promise(resolve => setTimeout(resolve, 800));
 
     if (url === "/auth/login") {
@@ -223,13 +258,13 @@ export const api = {
   },
 
   patch: async <T>(url: string, data?: any): Promise<{ data: T }> => {
-    console.log(`[MOCK API] PATCH ${url}`, data);
+    console.log("[MOCK API] PATCH", url, data);
     await new Promise(resolve => setTimeout(resolve, 500));
     return { data: {} as T };
   },
 
   delete: async <T>(url: string): Promise<{ data: T }> => {
-    console.log(`[MOCK API] DELETE ${url}`);
+    console.log("[MOCK API] DELETE", url);
     await new Promise(resolve => setTimeout(resolve, 500));
     return { data: {} as T };
   }

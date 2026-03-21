@@ -1,4 +1,4 @@
-import { X, ExternalLink, ShieldCheck, Mail, Calendar, User } from "lucide-react"
+﻿import { X, ExternalLink, ShieldCheck, Mail, Calendar, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface InventoryItemDetailsModalProps {
@@ -106,3 +106,4 @@ function DetailItem({ icon, label, value, active }: { icon: React.ReactNode, lab
     </div>
   )
 }
+

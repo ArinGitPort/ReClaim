@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+﻿import { useState, useEffect } from "react"
 import { Bot, ShieldCheck } from "lucide-react"
 
 export function SmartSnapCamera({ onCapture }: { onCapture: () => void }) {
@@ -124,7 +124,7 @@ export function SmartSnapCamera({ onCapture }: { onCapture: () => void }) {
         <div className="bg-black/60 backdrop-blur-xl px-10 py-4 rounded-3xl border border-white/10 flex items-center gap-12">
            <StatusItem label="Motion" value="None" color="emerald" />
            <StatusItem label="Stability" value={isStable ? "Locked" : "Variable"} color={isStable ? "indigo" : "slate"} />
-           <StatusItem label="Temp" value="34°C" color="slate" />
+           <StatusItem label="Temp" value="34Â°C" color="slate" />
         </div>
       </div>
     </div>
@@ -147,3 +147,4 @@ function StatusItem({ label, value, color }: { label: string, value: string, col
     </div>
   )
 }
+

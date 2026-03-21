@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+﻿import { useCallback, useEffect, useState } from "react"
 import { ItemCard } from "@/features/gallery/ItemCard"
 import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
@@ -8,11 +8,18 @@ import { getRealtimeSocket } from "@/lib/realtime"
 export function GalleryGrid({
   page,
   pageSize,
+  filters,
   onDataChange,
 }: {
   page: number
   pageSize: number
-  onDataChange?: (payload: { visibleCount: number; totalCount: number; pageCount: number }) => void
+  filters?: {
+    search: string;
+    dateLost: string;
+    categories: string[];
+    location: string;
+  }
+  onDataChange?: (payload: { visibleCount: number; totalCount: number; pageCount: number }) => void 
 }) {
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -39,6 +46,10 @@ export function GalleryGrid({
         params: {
           page,
           limit: pageSize,
+          search: filters?.search,
+          categories: filters?.categories.join(','),
+          dateLost: filters?.dateLost,
+          location: filters?.location,
         },
       })
 
@@ -60,7 +71,7 @@ export function GalleryGrid({
     } finally {
       setIsLoading(false)
     }
-  }, [onDataChange, page, pageSize])
+  }, [onDataChange, page, pageSize, filters])
 
   useEffect(() => {
     void loadItems()
