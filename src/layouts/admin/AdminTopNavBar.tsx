@@ -20,6 +20,7 @@ export function AdminTopNavBar() {
     if (pathname.includes('/expired-inventory')) return 'Expired Inventory'
     if (pathname.includes('/logs')) return 'Audit Archive'
     if (pathname.includes('/settings')) return 'System Settings'
+    if (pathname.includes('/captured-items')) return 'Captured Items Inbox'
     return 'Admin Portal'
   }
 

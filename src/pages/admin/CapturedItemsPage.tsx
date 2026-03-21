@@ -34,7 +34,7 @@ export function CapturedItemsPage() {
         </div>
         <button 
           onClick={() => setShowCamera(!showCamera)}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-brand text-white rounded-2xl font-bold shadow-lg shadow-brand/20 hover:bg-brand/90 transition-all active:scale-95"
         >
           {showCamera ? <Inbox className="w-5 h-5" /> : <CameraIcon className="w-5 h-5" />}
           {showCamera ? "View Inbox" : "Live AI Camera"}
@@ -47,7 +47,7 @@ export function CapturedItemsPage() {
         <>
           {isLoading ? (
             <div className="p-24 text-center">
-              <div className="animate-spin w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Syncing with AI Nodes...</p>
             </div>
           ) : items.length === 0 ? (
@@ -63,13 +63,13 @@ export function CapturedItemsPage() {
               {items.map((item) => (
                 <div 
                   key={item.id} 
-                  className="group bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all cursor-pointer"
+                  className="group bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-brand/10 hover:border-brand/30 transition-all cursor-pointer"
                   onClick={() => setSelectedItem(item)}
                 >
                   <div className="aspect-[4/3] relative overflow-hidden bg-slate-100">
                     <img src={item.imageUrl} alt="Captured Item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute top-3 left-3 flex gap-2">
-                       <span className="px-3 py-1 bg-white/90 backdrop-blur-sm shadow-sm rounded-full text-[10px] font-bold text-indigo-700 flex items-center gap-1 uppercase tracking-tight">
+                       <span className="px-3 py-1 bg-white/90 backdrop-blur-sm shadow-sm rounded-full text-[10px] font-bold text-brand flex items-center gap-1 uppercase tracking-tight">
                          <Bot className="w-3 h-3" />
                          AI Guess: {item.aiPrediction}
                        </span>
@@ -86,7 +86,7 @@ export function CapturedItemsPage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider">{item.confidence * 100}% Fit</span>
                     </div>
                     <h4 className="text-sm font-bold text-slate-800 line-clamp-1 mb-4">Detected at {item.suggestedLocation}</h4>
-                    <button className="w-full py-2.5 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <button className="w-full py-2.5 bg-slate-50 group-hover:bg-brand group-hover:text-white text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                       Review & Publish
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
