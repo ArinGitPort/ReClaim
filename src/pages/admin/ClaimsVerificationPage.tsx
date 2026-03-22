@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
@@ -154,197 +154,33 @@ export function ClaimsVerificationPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
-            <div className="relative group">
-              <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
-              <input
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value)
-                  setPage(1)
-                }}
-                placeholder="Search by code, item, or claimant"
-                className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
-              />
-            </div>
-
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {["", "PENDING_VERIFICATION", "INQUIRY_REQUIRED"].map((status) => (
-                <button
-                  key={status || "ALL"}
-                  type="button"
-                  onClick={() => setStatusFilter(status)}
-                  className={cn(
-                    "h-8 px-4 rounded-full border text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all shadow-sm",
-                    statusFilter === status
-                      ? "bg-brand text-white border-brand shadow-brand/20"
-                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
-                  )}
-                >
-                  {status ? status.replaceAll("_", " ") : "All"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">Loading claims...</div>}
-            {!isLoading && filteredClaims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
-
-            {filteredClaims.map((claim) => (
-              <button
-                key={claim.id}
-                type="button"
-                onClick={() => setSelectedClaimId(claim.id)}
-                className={cn(
-                  "w-full text-left bg-white rounded-2xl border p-5 transition-all cursor-pointer group shadow-sm relative overflow-hidden",
-                  selectedClaimId === claim.id
-                    ? "border-brand ring-2 ring-brand/10 scale-[1.01]"
-                    : "border-slate-100 hover:border-brand/20"
-                )}
-              >
-                {selectedClaimId === claim.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
-
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                    {claim.claimCode}
-                  </span>
-                  <StatusPill status={claim.status} />
-                </div>
-                <h3 className="mt-2 font-bold text-slate-800 text-[15px] whitespace-nowrap overflow-hidden text-ellipsis">
-                  {claim.foundItem.title}
-                </h3>
-                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mt-1.5">
-                  <User className="w-3 h-3 text-slate-300" />
-                  {claim.claimantUser.name}
-                </div>
-                <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-4">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(claim.createdAt).toLocaleDateString()}
-                  </div>
-                  <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{claim.foundItem.category}</span>
-                </div>
-              </button>
-            ))}
-
-            <AdminPaginationControls
-              page={page}
-              pageCount={pageCount}
-              total={totalClaims}
-              visibleCount={filteredClaims.length}
-              rowsPerPage={rowsPerPage}
-              onPageChange={setPage}
-              onRowsPerPageChange={(nextRows) => {
-                setRowsPerPage(nextRows)
-                setPage(1)
-              }}
-              itemLabel="claims"
-            />
-          </div>
+          <ClaimsQueueList
+            search={search}
+            onSearchChange={(val) => { setSearch(val); setPage(1); }}
+            statusFilter={statusFilter}
+            onStatusFilterChange={(val) => { setStatusFilter(val); setPage(1); }}
+            isLoading={isLoading}
+            filteredClaims={filteredClaims}
+            selectedClaimId={selectedClaimId}
+            onSelectClaim={setSelectedClaimId}
+            page={page}
+            pageCount={pageCount}
+            totalClaims={totalClaims}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setPage}
+            onRowsPerPageChange={(val) => { setRowsPerPage(val); setPage(1); }}
+          />
         </div>
 
         <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-175">
-          {!selectedClaim && !isLoading && (
-            <div className="p-10 text-center text-sm font-semibold text-slate-500">Select a claim to review.</div>
-          )}
-
-          {selectedClaim && (
-            <>
-              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-                    <ShieldAlert className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase underline underline-offset-4 decoration-brand/20 decoration-2">Claim Workspace</h2>
-                    <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Reference:</span>
-                    <span className="text-brand font-extrabold tracking-tight">{selectedClaim.claimCode}</span>
-                  </div>
-                </div>
-                <StatusPill status={selectedClaim.status} />
-              </div>
-
-              <div className="p-8 lg:p-12 space-y-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                      <User className="w-3.5 h-3.5" /> Claimant Profile
-                    </h3>
-                    <div className="space-y-5">
-                      <InfoRow label="Name" value={selectedClaim.claimantUser.name} />
-                      <InfoRow label="Student ID" value={selectedClaim.claimantUser.studentId ?? "N/A"} />
-                      <InfoRow label="Email" value={selectedClaim.claimantUser.email} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                      <ShieldAlert className="w-3.5 h-3.5" /> Claimed Item
-                    </h3>
-                    <div className="space-y-5">
-                      <InfoRow label="Inventory Code" value={selectedClaim.foundItem.code} />
-                      <InfoRow label="Title" value={selectedClaim.foundItem.title} />
-                      <InfoRow label="Category" value={selectedClaim.foundItem.category} />
-                      <InfoRow label="Color" value={selectedClaim.foundItem.color} />
-                      <InfoRow label="Found Location" value={selectedClaim.foundItem.foundLocation} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
-                  <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {proofEntries(selectedClaim.submittedProof).map((entry) => (
-                        <ProofField key={entry.label} label={entry.label} value={entry.value} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note</label>
-                  <textarea
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder="Required for deny or inquiry"
-                    rows={4}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm bg-white"
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-3 justify-end pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("INQUIRY_REQUIRED")}
-                    className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
-                  >
-                    <Clock3 className="w-4 h-4 mr-2" /> Request Inquiry
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("DENIED")}
-                    className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" /> Deny
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("APPROVED")}
-                    className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
+          <ClaimWorkspace
+            selectedClaim={selectedClaim}
+            isLoading={isLoading}
+            note={note}
+            onNoteChange={setNote}
+            isSubmitting={isSubmitting}
+            onDecide={decide}
+          />
         </div>
       </div>
     </div>
@@ -359,6 +195,245 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   )
 }
+
+function ClaimsQueueList({
+  search,
+  onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
+  isLoading,
+  filteredClaims,
+  selectedClaimId,
+  onSelectClaim,
+  page,
+  pageCount,
+  totalClaims,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}: {
+  search: string
+  onSearchChange: (val: string) => void
+  statusFilter: string
+  onStatusFilterChange: (val: string) => void
+  isLoading: boolean
+  filteredClaims: ClaimRow[]
+  selectedClaimId: string | null
+  onSelectClaim: (id: string) => void
+  page: number
+  pageCount: number
+  totalClaims: number
+  rowsPerPage: number
+  onPageChange: (page: number) => void
+  onRowsPerPageChange: (rows: number) => void
+}) {
+  return (
+    <>
+      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
+        <div className="relative group">
+          <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
+          <input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search by code, item, or claimant"
+            className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
+          />
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {["", "PENDING_VERIFICATION", "INQUIRY_REQUIRED"].map((status) => (
+            <button
+              key={status || "ALL"}
+              type="button"
+              onClick={() => onStatusFilterChange(status)}
+              className={cn(
+                "h-8 px-4 rounded-full border text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all shadow-sm",
+                statusFilter === status
+                  ? "bg-brand text-white border-brand shadow-brand/20"
+                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+              )}
+            >
+              {status ? status.replaceAll("_", " ") : "All"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">Loading claims...</div>}
+        {!isLoading && filteredClaims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
+
+        {filteredClaims.map((claim) => (
+          <button
+            key={claim.id}
+            type="button"
+            onClick={() => onSelectClaim(claim.id)}
+            className={cn(
+              "w-full text-left bg-white rounded-2xl border p-5 transition-all cursor-pointer group shadow-sm relative overflow-hidden",
+              selectedClaimId === claim.id
+                ? "border-brand ring-2 ring-brand/10 scale-[1.01]"
+                : "border-slate-100 hover:border-brand/20"
+            )}
+          >
+            {selectedClaimId === claim.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                {claim.claimCode}
+              </span>
+              <StatusPill status={claim.status} />
+            </div>
+            <h3 className="mt-2 font-bold text-slate-800 text-[15px] whitespace-nowrap overflow-hidden text-ellipsis">
+              {claim.foundItem.title}
+            </h3>
+            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mt-1.5">
+              <User className="w-3 h-3 text-slate-300" />
+              {claim.claimantUser.name}
+            </div>
+            <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-4">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3 h-3" />
+                {new Date(claim.createdAt).toLocaleDateString()}
+              </div>
+              <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{claim.foundItem.category}</span>
+            </div>
+          </button>
+        ))}
+
+        <AdminPaginationControls
+          page={page}
+          pageCount={pageCount}
+          total={totalClaims}
+          visibleCount={filteredClaims.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={onPageChange}
+          onRowsPerPageChange={onRowsPerPageChange}
+          itemLabel="claims"
+        />
+      </div>
+    </>
+  )
+}
+
+function ClaimWorkspace({
+  selectedClaim,
+  isLoading,
+  note,
+  onNoteChange,
+  isSubmitting,
+  onDecide,
+}: {
+  selectedClaim: ClaimRow | null
+  isLoading: boolean
+  note: string
+  onNoteChange: (val: string) => void
+  isSubmitting: boolean
+  onDecide: (status: "APPROVED" | "DENIED" | "INQUIRY_REQUIRED") => Promise<void>
+}) {
+  if (!selectedClaim && !isLoading) {
+    return <div className="p-10 text-center text-sm font-semibold text-slate-500">Select a claim to review.</div>
+  }
+
+  if (!selectedClaim) return null
+
+  return (
+    <>
+      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
+            <ShieldAlert className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase underline underline-offset-4 decoration-brand/20 decoration-2">Claim Workspace</h2>
+            <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Reference:</span>
+            <span className="text-brand font-extrabold tracking-tight">{selectedClaim.claimCode}</span>
+          </div>
+        </div>
+        <StatusPill status={selectedClaim.status} />
+      </div>
+
+      <div className="p-8 lg:p-12 space-y-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="space-y-6">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <User className="w-3.5 h-3.5" /> Claimant Profile
+            </h3>
+            <div className="space-y-5">
+              <InfoRow label="Name" value={selectedClaim.claimantUser.name} />
+              <InfoRow label="Student ID" value={selectedClaim.claimantUser.studentId ?? "N/A"} />
+              <InfoRow label="Email" value={selectedClaim.claimantUser.email} />
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <ShieldAlert className="w-3.5 h-3.5" /> Claimed Item
+            </h3>
+            <div className="space-y-5">
+              <InfoRow label="Inventory Code" value={selectedClaim.foundItem.code} />
+              <InfoRow label="Title" value={selectedClaim.foundItem.title} />
+              <InfoRow label="Category" value={selectedClaim.foundItem.category} />
+              <InfoRow label="Color" value={selectedClaim.foundItem.color} />
+              <InfoRow label="Found Location" value={selectedClaim.foundItem.foundLocation} />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
+          <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {proofEntries(selectedClaim.submittedProof).map((entry) => (
+                <ProofField key={entry.label} label={entry.label} value={entry.value} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note</label>
+          <textarea
+            value={note}
+            onChange={(event) => onNoteChange(event.target.value)}
+            placeholder="Required for deny or inquiry"
+            rows={4}
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm bg-white"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-3 justify-end pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+            onClick={() => void onDecide("INQUIRY_REQUIRED")}
+            className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
+          >
+            <Clock3 className="w-4 h-4 mr-2" /> Request Inquiry
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+            onClick={() => void onDecide("DENIED")}
+            className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
+          >
+            <XCircle className="w-4 h-4 mr-2" /> Deny
+          </Button>
+          <Button
+            type="button"
+            disabled={isSubmitting || !isPendingState(selectedClaim.status)}
+            onClick={() => void onDecide("APPROVED")}
+            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+          </Button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 
 function StatusPill({ status }: { status: ClaimStatus }) {
   const styles: Record<ClaimStatus, string> = {

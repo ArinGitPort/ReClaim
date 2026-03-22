@@ -1,5 +1,5 @@
 ﻿import { X, ExternalLink, ShieldCheck, Mail, Calendar, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 interface InventoryItemDetailsModalProps {
   item: any

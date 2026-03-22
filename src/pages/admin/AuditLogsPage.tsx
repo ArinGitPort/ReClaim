@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { DataRow } from "@/components/ui/DataRow"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { api } from "@/lib/api"
@@ -123,45 +124,10 @@ export function AuditLogsPage() {
   return (
     <div className="space-y-8">
       {selectedLog && (
-        <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto px-4 py-10">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setSelectedLog(null)} />
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
-              <div>
-                <h3 className="text-base font-extrabold uppercase tracking-tight text-slate-900">Activity Details</h3>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{selectedLog.id}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedLog(null)}
-                className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-6 p-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <InfoRow label="Log ID" value={selectedLog.id} mono />
-                <InfoRow label="Date & Time" value={new Date(selectedLog.createdAt).toLocaleString()} />
-                <InfoRow label="User" value={selectedLog.actorUser.name} />
-                <InfoRow label="Role" value={selectedLog.actorUser.role} />
-                <InfoRow label="Email" value={selectedLog.actorUser.email} />
-                <InfoRow label="Record" value={`${toRecordLabel(selectedLog.targetType)} (${selectedLog.targetReferenceCode})`} />
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</div>
-                <p className="mt-2 text-sm font-semibold text-slate-700">{renderNarrativeSentence(selectedLog)}</p>
-                {selectedLog.description && (
-                  <p className="mt-1 text-xs font-medium text-slate-500">{selectedLog.description}</p>
-                )}
-              </div>
-
-              <PayloadPanel payload={selectedLog.payload} />
-            </div>
-          </div>
-        </div>
+        <AuditDetailModal 
+          log={selectedLog} 
+          onClose={() => setSelectedLog(null)} 
+        />
       )}
 
       <div className="mb-8">
@@ -226,45 +192,14 @@ export function AuditLogsPage() {
         <div className="space-y-6 p-6">
           {logs.map((log) => {
             const visual = getTimelineVisual(log.action)
-            const Icon = visual.icon
 
             return (
-              <div key={log.id} className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-4">
-                <div className="flex justify-center pt-1">
-                  <div className={visual.nodeClass}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/50">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatTimelineDate(log.createdAt)}</p>
-                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
-                      Log ID: {log.id.slice(0, 8)}
-                    </span>
-                  </div>
-
-                  <p className="text-sm font-semibold leading-6 text-slate-800">
-                    {renderNarrativeSentence(log)}
-                  </p>
-
-                  {log.description && <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>}
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="text-[11px] font-semibold text-slate-500">
-                      {log.actorUser.role} · {log.actorUser.email}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setSelectedLog(log)}
-                      className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
-                    >
-                      View Changes
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <ActivityLogCard 
+                key={log.id} 
+                log={log} 
+                visual={visual}
+                onViewChanges={() => setSelectedLog(log)} 
+              />
             )
           })}
 
@@ -325,14 +260,100 @@ export function AuditLogsPage() {
   )
 }
 
-function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function ActivityLogCard({
+  log,
+  visual,
+  onViewChanges
+}: {
+  log: AuditLogRow
+  visual: { icon: LucideIcon; nodeClass: string }
+  onViewChanges: () => void
+}) {
+  const Icon = visual.icon
   return (
-    <div>
-      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</div>
-      <div className={mono ? "mt-1 text-sm font-bold text-slate-700 font-mono" : "mt-1 text-sm font-semibold text-slate-700"}>{value}</div>
+    <div className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-4">
+      <div className="flex justify-center pt-1">
+        <div className={visual.nodeClass}>
+          <Icon className="h-4 w-4" />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/50">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatTimelineDate(log.createdAt)}</p>
+          <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
+            Log ID: {log.id.slice(0, 8)}
+          </span>
+        </div>
+
+        <p className="text-sm font-semibold leading-6 text-slate-800">
+          {renderNarrativeSentence(log)}
+        </p>
+
+        {log.description && <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>}
+
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div className="text-[11px] font-semibold text-slate-500">
+            {log.actorUser.role} · {log.actorUser.email}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onViewChanges}
+            className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+          >
+            View Changes
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
+
+function AuditDetailModal({ log, onClose }: { log: AuditLogRow; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto px-4 py-10">
+      <div className="fixed inset-0 bg-slate-900/80" onClick={onClose} />
+      <div className="relative w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+          <div>
+            <h3 className="text-base font-extrabold uppercase tracking-tight text-slate-900">Activity Details</h3>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{log.id}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-6 p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DataRow label="Log ID" value={log.id} mono />
+            <DataRow label="Date & Time" value={new Date(log.createdAt).toLocaleString()} />
+            <DataRow label="User" value={log.actorUser.name} />
+            <DataRow label="Role" value={log.actorUser.role} />
+            <DataRow label="Email" value={log.actorUser.email} />
+            <DataRow label="Record" value={`${toRecordLabel(log.targetType)} (${log.targetReferenceCode})`} />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</div>
+            <p className="mt-2 text-sm font-semibold text-slate-700">{renderNarrativeSentence(log)}</p>
+            {log.description && (
+              <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>
+            )}
+          </div>
+
+          <PayloadPanel payload={log.payload} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 function PayloadPanel({ payload }: { payload: unknown }) {
   const payloadObject = toObject(payload)

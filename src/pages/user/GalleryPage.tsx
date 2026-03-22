@@ -4,7 +4,7 @@ import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
 
 type GalleryFiltersState = {
@@ -59,7 +59,7 @@ export function GalleryPage() {
             <div className="max-w-xl">
               <h2 className="text-3xl font-black tracking-tight mb-2 italic">Found something?</h2>
               <p className="text-white/80 font-bold text-sm tracking-wide uppercase">
-                Return it to its rightful owner via our AI-integrated Smart Drop-Off station.
+                 Turn in lost items at the ITSO Office and we'll handle the rest.
               </p>
             </div>
             <Button

@@ -2,7 +2,7 @@
 import Particles from "@/components/Particles"
 import CardSwap, { Card } from "@/components/ui/CardSwap"
 import { LoginForm } from "@/features/auth/LoginForm"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useState } from "react"
 import { Link } from "react-router-dom"

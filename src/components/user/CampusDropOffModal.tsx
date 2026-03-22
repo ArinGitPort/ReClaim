@@ -1,5 +1,5 @@
-import { X, Shield, MapPin, Camera, ArrowRight, Info } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { X, Shield, MapPin, ArrowRight, Info } from "lucide-react"
+import { Button } from "@/components/ui/Button"
 
 interface CampusDropOffModalProps {
   onClose: () => void
@@ -46,7 +46,7 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
             <div className="space-y-1">
               <h3 className="text-xs font-black uppercase tracking-widest text-brand">Step 1: Secure the Item</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Thank you for helping keep our campus honest! Please hold onto the item and do not leave it unattended.
+                Please keep the item safe in your possession until you can officially turn it in. Do not leave it unattended in hallways or public areas.
               </p>
             </div>
           </div>
@@ -57,9 +57,9 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
               <MapPin className="w-6 h-6 text-amber-600" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xs font-black uppercase tracking-widest text-amber-600">Step 2: Go to the Smart Drop-Off Station</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-amber-600">Step 2: Visit the ITSO Office</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Bring the item to the <span className="text-slate-900 font-bold">Lost & Found Desk</span> located at the <span className="text-slate-900 font-bold">Student Affairs Office (Building A, Room 102)</span>.
+                Bring the found item directly to the <span className="text-slate-900 font-bold">ITSO Office (Building A)</span>. Our technical staff at this location is the designated team for managing the campus-wide Lost & Found database.
               </p>
             </div>
           </div>
@@ -67,12 +67,12 @@ export function CampusDropOffModal({ onClose }: CampusDropOffModalProps) {
           {/* Step 3 */}
           <div className="flex gap-6">
             <div className="flex-shrink-0 w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
-              <Camera className="w-6 h-6 text-emerald-600" />
+              <ArrowRight className="w-6 h-6 text-emerald-600" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Step 3: Place Under the Camera</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Step 3: Hand it to the Staff</h3>
               <p className="text-slate-600 font-medium text-sm leading-relaxed">
-                Place the item under our AI-integrated camera scanner. The system will automatically log the item, snap a photo, and add it to the public gallery.
+                Simply surrender the item to the personnel on duty. They will handle the technical process of logging the item into the system so the rightful owner can claim it.
               </p>
             </div>
           </div>

@@ -12,10 +12,11 @@ import {
   MapPin,
   Calendar
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
+import { ActionIconButton } from "@/components/ui/ActionIconButton"
+import { StatusBadge } from "@/components/ui/StatusBadge"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
-import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/LogNewItemModal"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
@@ -324,80 +325,14 @@ export function InventoryPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {visibleItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
-                  <td className="px-8 py-5 whitespace-nowrap">
-                    <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
-                      {item.code}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
-                        {item.photoUrl ? (
-                          <img src={item.photoUrl} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="w-5 h-5 text-slate-400" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 tracking-tight">{item.title}</div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.category}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 text-slate-600 text-[12px] font-bold">
-                        <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                        {item.date}
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-400 text-[11px] font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-slate-200 shrink-0" />
-                        <span className="truncate max-w-[120px]">{item.location}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200/50 text-[11px] font-bold text-slate-600 font-mono">
-                      {item.storage}
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <ActionIconButton
-                        label="Edit item"
-                        icon={<Edit className="w-4 h-4" />}
-                        buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
-                        onClick={() => setEditItem(item)}
-                      />
-                      <ActionIconButton
-                        label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
-                        icon={<Link2 className="w-4 h-4" />}
-                        buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
-                        onClick={() => setLinkItem(item)}
-                        disabled={item.status !== "AVAILABLE"}
-                      />
-                      <ActionIconButton
-                        label="View item details"
-                        icon={<Eye className="w-4 h-4" />}
-                        buttonClassName="bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300 hover:text-slate-900"
-                        onClick={() => setDetailsItem(item)}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => setHandoverItem(item)}
-                        disabled={item.status !== "CLAIM_PENDING"}
-                        className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-                        Start Handover
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+                <InventoryTableRow
+                  key={item.id}
+                  item={item}
+                  onEdit={() => setEditItem(item)}
+                  onLink={() => setLinkItem(item)}
+                  onViewDetails={() => setDetailsItem(item)}
+                  onHandover={() => setHandoverItem(item)}
+                />
               ))}
               {isLoading && (
                 <tr>
@@ -437,38 +372,97 @@ export function InventoryPage() {
   )
 }
 
-function ActionIconButton({
-  label,
-  icon,
-  onClick,
-  disabled,
-  buttonClassName,
+function InventoryTableRow({
+  item,
+  onEdit,
+  onLink,
+  onViewDetails,
+  onHandover
 }: {
-  label: string
-  icon: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  buttonClassName: string
+  item: InventoryRow
+  onEdit: () => void
+  onLink: () => void
+  onViewDetails: () => void
+  onHandover: () => void
 }) {
   return (
-    <div className="relative group/tooltip">
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={label}
-        className={cn(
-          "p-2.5 rounded-xl transition-all shadow-sm border disabled:opacity-45 disabled:cursor-not-allowed",
-          buttonClassName
-        )}
-      >
-        {icon}
-      </button>
-      <span className="pointer-events-none absolute bottom-full right-0 mb-2 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-extrabold text-white opacity-0 translate-y-1 transition-all group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 whitespace-nowrap">
-        {label}
-      </span>
-    </div>
+    <tr className="hover:bg-slate-50/80 transition-all group cursor-default">
+      <td className="px-8 py-5 whitespace-nowrap">
+        <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
+          {item.code}
+        </span>
+      </td>
+      <td className="px-8 py-5">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+            {item.photoUrl ? (
+              <img src={item.photoUrl} alt={item.title} className="w-full h-full object-cover" />
+            ) : (
+              <Package className="w-5 h-5 text-slate-400" />
+            )}
+          </div>
+          <div>
+            <div className="font-bold text-slate-900 tracking-tight">{item.title}</div>
+            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.category}</div>
+          </div>
+        </div>
+      </td>
+      <td className="px-8 py-5">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-slate-600 text-[12px] font-bold">
+            <Calendar className="w-3.5 h-3.5 text-slate-300" />
+            {item.date}
+          </div>
+          <div className="flex items-center gap-2 text-slate-400 text-[11px] font-medium">
+            <MapPin className="w-3.5 h-3.5 text-slate-200 shrink-0" />
+            <span className="truncate max-w-[120px]">{item.location}</span>
+          </div>
+        </div>
+      </td>
+      <td className="px-8 py-5">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200/50 text-[11px] font-bold text-slate-600 font-mono">
+          {item.storage}
+        </div>
+      </td>
+      <td className="px-8 py-5">
+        <StatusBadge status={item.status} />
+      </td>
+      <td className="px-8 py-5 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <ActionIconButton
+            label="Edit item"
+            icon={<Edit className="w-4 h-4" />}
+            buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
+            onClick={onEdit}
+          />
+          <ActionIconButton
+            label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
+            icon={<Link2 className="w-4 h-4" />}
+            buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
+            onClick={onLink}
+            disabled={item.status !== "AVAILABLE"}
+          />
+          <ActionIconButton
+            label="View item details"
+            icon={<Eye className="w-4 h-4" />}
+            buttonClassName="bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300 hover:text-slate-900"
+            onClick={onViewDetails}
+          />
+          <Button
+            type="button"
+            onClick={onHandover}
+            disabled={item.status !== "CLAIM_PENDING"}
+            className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+            Start Handover
+          </Button>
+        </div>
+      </td>
+    </tr>
   )
 }
+
 
 function extractPhotoPath(privateData: unknown): string | undefined {
   if (!privateData || typeof privateData !== "object") {
@@ -493,27 +487,5 @@ function resolveImageUrl(path?: string): string | undefined {
   return `${origin}${path.startsWith("/") ? path : `/${path}`}`
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const label = status === "CLAIM_PENDING" ? "CLAIM PENDING" : status.replaceAll("_", " ")
 
-  const getStyles = () => {
-    switch(status) {
-      case 'AVAILABLE': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      case 'CLAIM_PENDING': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-      case 'RETURNED': return 'bg-slate-50 text-slate-500 border-slate-100'
-      case 'ARCHIVED': return 'bg-rose-50 text-rose-700 border-rose-100'
-      default: return 'bg-slate-50 text-slate-700 border-slate-100'
-    }
-  }
-
-  return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border shadow-sm inline-flex items-center gap-2",
-      getStyles()
-    )}>
-      {status === 'CLAIM_PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-      {label}
-    </span>
-  )
-}
 

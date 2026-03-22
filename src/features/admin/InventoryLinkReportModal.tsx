@@ -1,5 +1,5 @@
 import { X, Link2, Search, Info, Package } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { useState } from "react"
 
 interface InventoryLinkReportModalProps {

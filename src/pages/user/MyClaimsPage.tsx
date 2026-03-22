@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
+import { DataRow } from "@/components/ui/DataRow"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
@@ -170,78 +171,13 @@ export function MyClaimsPage() {
 
         <div className="space-y-4">
           {visibleClaims.map((claim) => (
-            <div
+            <ClaimCard
               key={claim.id}
-              className={cn(
-                "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
-                claim.id.toUpperCase() === focusCode && "ring-2 ring-brand/40 border-brand bg-brand/3"
-              )}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-                {/* Icon */}
-                <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
-                  <Package className="w-7 h-7 text-slate-400" />
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {claim.id}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {claim.category}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {claim.inventoryId}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
-                  <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {claim.location}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      Submitted {claim.submittedDate}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-                  <ClaimStatusBadge status={claim.status} />
-                  <ClaimStatusMessage status={claim.status} />
-                </div>
-              </div>
-
-              <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                <DetailField label="Submitted Date" value={claim.submittedDate} />
-                <DetailField label="Category" value={claim.category} />
-                <DetailField label="Inventory Code" value={claim.inventoryId} />
-
-                {claim.status === "Inquiry Required" && claim.reviewerNote && (
-                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
-                    <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
-                  </div>
-                )}
-
-                {isClosableClaimStatus(claim.rawStatus) && (
-                  <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
-                    <button
-                      type="button"
-                      disabled={closingTicketId === claim.ticketId}
-                      onClick={() => void handleCloseTicket(claim)}
-                      className="h-10 px-4 rounded-lg border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {closingTicketId === claim.ticketId ? "Closing..." : "Close Ticket"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+              claim={claim}
+              isFocused={claim.id.toUpperCase() === focusCode}
+              isClosing={closingTicketId === claim.ticketId}
+              onCloseTicket={() => void handleCloseTicket(claim)}
+            />
           ))}
           {visibleClaims.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
@@ -263,6 +199,92 @@ export function MyClaimsPage() {
           }}
           itemLabel="claims"
         />
+      </div>
+    </div>
+  )
+}
+
+function ClaimCard({
+  claim,
+  isFocused,
+  isClosing,
+  onCloseTicket
+}: {
+  claim: ClaimView
+  isFocused: boolean
+  isClosing: boolean
+  onCloseTicket: () => void
+}) {
+  return (
+    <div
+      className={cn(
+        "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
+        isFocused && "ring-2 ring-brand/40 border-brand bg-brand/3"
+      )}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+        {/* Icon */}
+        <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
+          <Package className="w-7 h-7 text-slate-400" />
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
+              {claim.id}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
+              {claim.category}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
+              {claim.inventoryId}
+            </span>
+          </div>
+          <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
+          <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5" />
+              {claim.location}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              Submitted {claim.submittedDate}
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+          <ClaimStatusBadge status={claim.status} />
+          <ClaimStatusMessage status={claim.status} />
+        </div>
+      </div>
+
+      <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+        <DataRow label="Submitted Date" value={claim.submittedDate} />
+        <DataRow label="Category" value={claim.category} />
+        <DataRow label="Inventory Code" value={claim.inventoryId} />
+
+        {claim.status === "Inquiry Required" && claim.reviewerNote && (
+          <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
+            <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
+          </div>
+        )}
+
+        {isClosableClaimStatus(claim.rawStatus) && (
+          <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
+            <button
+              type="button"
+              disabled={isClosing}
+              onClick={onCloseTicket}
+              className="h-10 px-4 rounded-lg border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClosing ? "Closing..." : "Close Ticket"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -296,14 +318,6 @@ function ClaimStatusMessage({ status }: { status: string }) {
   )
 }
 
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</div>
-      <div className="text-sm font-semibold text-slate-700">{value}</div>
-    </div>
-  )
-}
 
 function formatClaimStatus(rawStatus: string): string {
   return rawStatus.replaceAll("_", " ")

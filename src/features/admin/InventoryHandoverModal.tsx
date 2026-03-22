@@ -1,5 +1,5 @@
 import { X, ShieldCheck, User, QrCode, ClipboardCheck, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { useState } from "react"
 
 interface InventoryHandoverModalProps {

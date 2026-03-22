@@ -10,7 +10,7 @@ import {
   Filter,
   ArrowRightLeft
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
@@ -207,50 +207,12 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
           
           <div className="space-y-4">
              {inventoryMatches.map((item) => (
-                <div 
-                  key={item.id}
-                  onClick={() => setSelectedMatch(item.id)}
-                  className={cn(
-                    "p-6 rounded-xl border transition-all cursor-pointer relative group flex items-start gap-4",
-                    selectedMatch === item.id 
-                      ? "bg-white border-brand shadow-xl ring-2 ring-brand/10 z-10" 
-                      : "bg-white border-slate-200 shadow-sm hover:border-brand/30 hover:shadow-md"
-                  )}
-                >
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-                    selectedMatch === item.id ? "bg-brand border-brand text-white shadow-sm" : "bg-slate-50 border-slate-200 text-slate-500 group-hover:bg-brand/5 group-hover:text-brand"
-                  )}>
-                    <Package className="w-6 h-6" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 pr-12">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.code}</span>
-                        <StatusBadge weight={item.matchScore} />
-                      </div>
-                     <h5 className="font-bold text-slate-900 text-[17px] leading-tight mb-2 truncate group-hover:text-brand transition-colors tracking-tight">{item.title}</h5>
-                                          <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500">
-                        <div className="flex items-center gap-1.5">
-                           <MapPin className="w-3.5 h-3.5" />
-                           {item.location}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                           <Calendar className="w-3.5 h-3.5" />
-                           {item.date}
-                        </div>
-                      </div>
-                  </div>
-
-                  <div className={cn(
-                    "absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border transition-all",
-                    selectedMatch === item.id 
-                      ? "bg-brand border-brand text-white scale-110 shadow-sm" 
-                      : "bg-slate-50 border-slate-200 text-slate-300 group-hover:border-brand/20 group-hover:text-brand/40"
-                  )}>
-                    {selectedMatch === item.id ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-4 h-4" />}
-                  </div>
-                </div>
+               <MatchCandidateCard
+                 key={item.id}
+                 item={item}
+                 isSelected={selectedMatch === item.id}
+                 onClick={() => setSelectedMatch(item.id)}
+               />
              ))}
           </div>
         </div>
@@ -280,6 +242,62 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
              <div className="text-[10px] font-black uppercase tracking-[0.2em]">Select an inventory item to proceed with linking</div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function MatchCandidateCard({
+  item,
+  isSelected,
+  onClick
+}: {
+  item: InventoryMatch
+  isSelected: boolean
+  onClick: () => void
+}) {
+  return (
+    <div 
+      onClick={onClick}
+      className={cn(
+        "p-6 rounded-xl border transition-all cursor-pointer relative group flex items-start gap-4",
+        isSelected 
+          ? "bg-white border-brand shadow-xl ring-2 ring-brand/10 z-10" 
+          : "bg-white border-slate-200 shadow-sm hover:border-brand/30 hover:shadow-md"
+      )}
+    >
+      <div className={cn(
+        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all",
+        isSelected ? "bg-brand border-brand text-white shadow-sm" : "bg-slate-50 border-slate-200 text-slate-500 group-hover:bg-brand/5 group-hover:text-brand"
+      )}>
+        <Package className="w-6 h-6" />
+      </div>
+      
+      <div className="flex-1 min-w-0 pr-12">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.code}</span>
+            <StatusBadge weight={item.matchScore} />
+          </div>
+         <h5 className="font-bold text-slate-900 text-[17px] leading-tight mb-2 truncate group-hover:text-brand transition-colors tracking-tight">{item.title}</h5>
+         <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500">
+            <div className="flex items-center gap-1.5">
+               <MapPin className="w-3.5 h-3.5" />
+               {item.location}
+            </div>
+            <div className="flex items-center gap-1.5">
+               <Calendar className="w-3.5 h-3.5" />
+               {item.date}
+            </div>
+          </div>
+      </div>
+
+      <div className={cn(
+        "absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border transition-all",
+        isSelected 
+          ? "bg-brand border-brand text-white scale-110 shadow-sm" 
+          : "bg-slate-50 border-slate-200 text-slate-300 group-hover:border-brand/20 group-hover:text-brand/40"
+      )}>
+        {isSelected ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-4 h-4" />}
       </div>
     </div>
   )

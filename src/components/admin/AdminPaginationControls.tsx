@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
 

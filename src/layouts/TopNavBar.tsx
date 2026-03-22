@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotifications } from "@/contexts/NotificationContext"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 interface TopNavBarProps {
   title?: string
