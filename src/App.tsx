@@ -22,6 +22,7 @@ import { AdminLayout } from "@/layouts/admin/AdminLayout"
 import { ThemeProvider } from "@/contexts/ThemeProvider"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 // Admin pages
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage"
@@ -53,9 +54,10 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
       <AuthProvider>
         <NotificationProvider>
-          <Router>
-            <Routes>
-            {/* Public / Unauthenticated Routes */}
+          <TooltipProvider delayDuration={150}>
+            <Router>
+              <Routes>
+              {/* Public / Unauthenticated Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
@@ -88,8 +90,9 @@ function App() {
               <Route path="profile" element={<AdminProfilePage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
-            </Routes>
-          </Router>
+              </Routes>
+            </Router>
+          </TooltipProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -74,30 +74,26 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="hidden xl:block w-[650px] h-[520px] relative shrink-0 mt-20 mr-12">
+          <div className="hidden xl:block w-[750px] h-[300px] relative shrink-0 mt-20 mr-12 z-20">
             <CardSwap
-              xOffset={45}
-              yOffset={-45}
-              scaleOffset={0}
-              delay={4000}
-              pauseOnHover={true}
+              cardDistance={40}
+              verticalDistance={60}
+              skewAmount={6}
+              delay={4500}
+              pauseOnHover={false}
+              width={750}
+              height={500}
             >
-              <Card className="flex flex-col p-0 drop-shadow-2xl">
-                <div className="w-full h-[420px] bg-white rounded-xl border border-slate-200/60 relative overflow-hidden">
-                  <img src={firstImage} alt="Feature 1" className="w-full h-full object-cover object-left" />
-                </div>
+              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
+                <img src={firstImage} alt="Feature 1" className="w-full h-full object-cover object-left" />
               </Card>
 
-              <Card className="flex flex-col p-0 drop-shadow-2xl">
-                <div className="w-full h-[420px] bg-white rounded-xl border border-slate-200/60 relative overflow-hidden">
-                  <img src={secondImage} alt="Feature 2" className="w-full h-full object-cover object-left" />
-                </div>
+              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
+                <img src={secondImage} alt="Feature 2" className="w-full h-full object-cover object-left" />
               </Card>
 
-              <Card className="flex flex-col p-0 drop-shadow-2xl">
-                <div className="w-full h-[420px] bg-white rounded-xl border border-slate-200/60 relative overflow-hidden">
-                  <img src={thirdImage} alt="Feature 3" className="w-full h-full object-cover object-left" />
-                </div>
+              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
+                <img src={thirdImage} alt="Feature 3" className="w-full h-full object-cover object-left" />
               </Card>
             </CardSwap>
           </div>

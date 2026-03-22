@@ -14,6 +14,7 @@ import {
   User
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -137,7 +138,7 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
   const { pathname } = useLocation()
   const isActive = pathname === to || pathname.startsWith(to + "/")
 
-  return (
+  const navLink = (
     <NavLink 
       to={to}
       className={cn(
@@ -149,7 +150,6 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
             ? "bg-white/10 text-white font-semibold shadow-sm"
             : "text-white/70 hover:bg-white/5 hover:text-white font-medium"
       )}
-      title={isCollapsed ? label : undefined}
     >
       <div className={cn(
         "transition-transform group-hover:scale-110",
@@ -163,13 +163,22 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
           {label}
         </span>
       )}
-
-      {/* Hover Tooltip for collapsed state */}
-      {isCollapsed && (
-        <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-text-primary text-background-app text-xs font-semibold rounded pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-md">
-          {label}
-        </div>
-      )}
     </NavLink>
   )
+
+  if (isCollapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {navLink}
+        </TooltipTrigger>
+        <TooltipContent side="right" className="bg-brand text-white font-semibold border-brand ml-2 outline-none">
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  return navLink
+
 }
