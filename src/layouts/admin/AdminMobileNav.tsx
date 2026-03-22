@@ -8,7 +8,12 @@ import {
   FileSearch, 
   HandMetal, 
   History,
-  LogOut
+  LogOut,
+  Bot,
+  User,
+  Users,
+  Archive,
+  Settings as SettingsIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -38,10 +43,11 @@ export function AdminMobileNav() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto scrollbar-hide">
           <div className="p-4 flex flex-col gap-1">
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Action Queue</h4>
             <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" />
+            <MobileNavItem to="/admin/captured-items" icon={<Bot className="w-5 h-5" />} label="Captured Items" />
             <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" />
             <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" />
             <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
@@ -49,16 +55,17 @@ export function AdminMobileNav() {
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Records & Accountability</h4>
             <MobileNavItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" />
-            <MobileNavItem to="/admin/user-directory" icon={<FileSearch className="w-5 h-5" />} label="User Directory" />
-            <MobileNavItem to="/admin/expired-inventory" icon={<Package className="w-5 h-5" />} label="Expired Inventory" />
+            <MobileNavItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" />
+            <MobileNavItem to="/admin/expired-inventory" icon={<Archive className="w-5 h-5" />} label="Expired Inventory" />
 
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>
             <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" />
-            <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="Settings" />
+            <MobileNavItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="System Settings" />
             
             <div className="h-px w-full bg-white/10 my-3" />
-            <MobileNavItem to="/" icon={<LogOut className="w-5 h-5" />} label="Exit to Portal" variant="secondary" />
+            <MobileNavItem to="/admin/profile" icon={<User className="w-5 h-5" />} label="My Profile" />
+            <MobileNavItem to="/" icon={<LogOut className="w-5 h-5" />} label="Log Out" variant="secondary" />
           </div>
         </div>
       )}

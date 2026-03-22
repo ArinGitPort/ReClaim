@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   ChevronLeft,
-  Bot
+  Bot,
+  User
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -46,7 +47,7 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1 scrollbar-hide">
         <div className="mb-2 px-3">
           {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Action Queue</h4>}
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
@@ -73,15 +74,21 @@ export function AdminSidebar() {
         </div>
 
         <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="Settings" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="System Settings" isCollapsed={isCollapsed} />
       </div>
 
       {/* Footer Area */}
       <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0">
         <AdminSidebarItem 
-          to="/gallery" 
+          to="/admin/profile" 
+          icon={<User className="w-5 h-5" />} 
+          label="My Profile" 
+          isCollapsed={isCollapsed} 
+        />
+        <AdminSidebarItem 
+          to="/" 
           icon={<LogOut className="w-5 h-5" />} 
-          label="Switch to Student View" 
+          label="Log Out" 
           isCollapsed={isCollapsed} 
           variant="secondary"
         />

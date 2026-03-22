@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 
 // Public pages
 import { LandingPage } from "@/pages/public/LandingPage"
@@ -10,8 +10,9 @@ import { ReportLostPage } from "@/pages/user/ReportLostPage"
 import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
 import { MyReportsPage } from "@/pages/user/MyReportsPage"
 import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
-import { NotificationsPage } from "@/pages/user/NotificationsPage"
-import { ProfilePage } from "@/pages/user/ProfilePage"
+import { UserNotificationsPage } from "@/pages/user/UserNotificationsPage"
+import { UserProfilePage } from "@/pages/user/UserProfilePage"
+import { UserSettingsPage } from "@/pages/user/UserSettingsPage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -23,7 +24,7 @@ import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
 
 // Admin pages
-import { DashboardPage } from "@/pages/admin/DashboardPage"
+import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage"
 import { InventoryPage } from "@/pages/admin/InventoryPage"
 import { MissingItemsPage } from "@/pages/admin/MissingItemsPage"
 import { ClaimsVerificationPage } from "@/pages/admin/ClaimsVerificationPage"
@@ -31,42 +32,19 @@ import { AuditLogsPage } from "@/pages/admin/AuditLogsPage"
 import { HandoverLogPage } from "@/pages/admin/HandoverLogPage"
 import { UserDirectoryPage } from "@/pages/admin/UserDirectoryPage"
 import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
-import { SettingsPage } from "@/pages/admin/SettingsPage"
-import { AdminNotificationsPage } from "@/pages/admin/NotificationsPage"
+import { AdminProfilePage } from "@/pages/admin/AdminProfilePage"
+import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage"
+import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 import { CapturedItemsPage } from "@/pages/admin/CapturedItemsPage"
 
 import "./index.css"
-import { useAuth } from "@/contexts/AuthContext"
-
 function ProtectedUserRoutes() {
-  const { user, isLoading } = useAuth()
-
-  if (isLoading) {
-    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
-  }
-
-  if (!user) {
-    return <Navigate to="/" replace />
-  }
-
-  // FOR UI SKELETON DEMO: Allow Admin/Staff to view student pages directly
+  // Authentication checks temporarily disabled for UI route testing
   return <AppLayout />
 }
 
 function ProtectedAdminRoutes() {
-  const { user, isLoading } = useAuth()
-
-  if (isLoading) {
-    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
-  }
-
-  if (!user) {
-    return <Navigate to="/" replace />
-  }
-
-  // FOR UI SKELETON DEMO: allow all authenticated users to access admin pages.
-  // Re-enable strict role checks once backend authorization is wired.
-
+  // Authentication checks temporarily disabled for UI route testing
   return <AdminLayout />
 }
 
@@ -88,16 +66,16 @@ function App() {
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/my-reports" element={<MyReportsPage />} />
               <Route path="/ready-to-claim" element={<ReadyToClaimPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/notifications" element={<UserNotificationsPage />} />
+              <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/settings" element={<UserSettingsPage />} />
               <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
             </Route>
 
             {/* Administrative Dashboard Routes */}
             <Route path="/admin" element={<ProtectedAdminRoutes />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="dashboard" element={<AdminDashboardPage />} />
               <Route path="captured-items" element={<CapturedItemsPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="reports" element={<MissingItemsPage />} />
@@ -107,7 +85,8 @@ function App() {
               <Route path="expired-inventory" element={<ExpiredInventoryPage />} />
               <Route path="logs" element={<AuditLogsPage />} />
               <Route path="notifications" element={<AdminNotificationsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="profile" element={<AdminProfilePage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
             </Routes>
           </Router>

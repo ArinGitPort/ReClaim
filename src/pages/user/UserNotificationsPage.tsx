@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { type AppNotification, useNotifications } from "@/contexts/NotificationContext"
 
-export function NotificationsPage() {
+export function UserNotificationsPage() {
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
 
   return (

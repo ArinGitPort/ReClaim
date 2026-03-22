@@ -6,19 +6,17 @@ import {
   Search, 
   PlusCircle, 
   Hand, 
-  ShieldAlert,
+  Ticket,
   FileText, 
   Settings, 
   MapPin, 
+  User,
   LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/contexts/AuthContext"
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF"
 
   // Close menu when route changes
   const { pathname } = useLocation()
@@ -44,7 +42,7 @@ export function MobileNav() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto scrollbar-hide">
           <div className="p-4 flex flex-col gap-1">
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 px-3 mt-2">Core Actions</h4>
             
@@ -54,21 +52,15 @@ export function MobileNav() {
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 px-3">Tracking & Status</h4>
             
+            <MobileNavItem to="/ready-to-claim" icon={<Ticket className="w-5 h-5" />} label="Ready to Claim" />
             <MobileNavItem to="/my-claims" icon={<Hand className="w-5 h-5" />} label="My Claims" />
             <MobileNavItem to="/my-reports" icon={<FileText className="w-5 h-5" />} label="My Lost Reports" />
 
-            {isAdmin && (
-              <>
-                <div className="h-px w-full bg-emerald-500/20 my-3" />
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-2 px-3">Admin Access</h4>
-                <MobileNavItem to="/admin/dashboard" icon={<ShieldAlert className="w-5 h-5 text-emerald-400" />} label="Admin Dashboard" />
-              </>
-            )}
-
             <div className="h-px w-full bg-white/10 my-3" />
             
-            <MobileNavItem to="/settings" icon={<Settings className="w-5 h-5" />} label="Profile Settings" />
             <MobileNavItem to="/office" icon={<MapPin className="w-5 h-5" />} label="Campus Admin Office" />
+            <MobileNavItem to="/profile" icon={<User className="w-5 h-5" />} label="My Profile" />
+            <MobileNavItem to="/settings" icon={<Settings className="w-5 h-5" />} label="Settings" />
             <MobileNavItem to="/" icon={<LogOut className="w-5 h-5" />} label="Log Out" variant="danger" />
           </div>
         </div>

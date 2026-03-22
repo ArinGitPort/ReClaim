@@ -2,7 +2,7 @@
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { User, Mail, GraduationCap, Shield, MapPin, Calendar, Camera } from "lucide-react"
 
-export function ProfilePage() {
+export function UserProfilePage() {
   const { user } = useAuth()
 
   if (!user) return null
@@ -24,7 +24,7 @@ export function ProfilePage() {
                     <User className="w-16 h-16 text-slate-300" />
                   )}
                 </div>
-                <button className="absolute bottom-1 right-1 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors">
+                <button className="absolute bottom-1 right-1 p-2 bg-brand text-white rounded-full shadow-lg hover:bg-brand-active transition-colors">
                   <Camera className="w-4 h-4" />
                 </button>
               </div>
@@ -57,7 +57,7 @@ export function ProfilePage() {
           <div className="md:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-indigo-600" />
+                <Shield className="w-5 h-5 text-brand" />
                 Account Information
               </h3>
               
@@ -86,7 +86,7 @@ export function ProfilePage() {
 
               <div className="mt-10 pt-8 border-t border-slate-100">
                 <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-indigo-600" />
+                  <MapPin className="w-5 h-5 text-brand" />
                   Campus Association
                 </h3>
                 <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between">
@@ -99,16 +99,16 @@ export function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden">
+            <div className="bg-navy rounded-3xl p-8 text-white relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="text-xl font-bold mb-2">Need help with an item?</h3>
-                <p className="text-indigo-100 text-sm mb-6 max-w-sm">Contact our campus admin office for assistance with claimed items or verification processes.</p>
-                <button className="px-6 py-2.5 bg-white text-indigo-900 rounded-xl text-sm font-bold shadow-lg hover:bg-slate-50 transition-all active:scale-95">
+                <p className="text-white/80 text-sm mb-6 max-w-sm">Contact our campus admin office for assistance with claimed items or verification processes.</p>
+                <button className="px-6 py-2.5 bg-white text-navy rounded-xl text-sm font-bold shadow-lg hover:bg-slate-50 transition-all active:scale-95">
                   Contact Support Office
                 </button>
               </div>
               <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/5 rounded-full blur-3xl -z-0" />
-              <div className="absolute bottom-[-10%] left-[-5%] w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -z-0" />
+              <div className="absolute bottom-[-10%] left-[-5%] w-32 h-32 bg-brand/20 rounded-full blur-2xl -z-0" />
             </div>
           </div>
         </div>

@@ -46,7 +46,7 @@ const recentMatches = [
   { id: 3, item: "Sony Headphones", owner: "David Lee", match: "92%", time: "1d ago" },
 ]
 
-export function DashboardPage() {
+export function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Consistent Header Pattern */}
