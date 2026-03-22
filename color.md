@@ -1,35 +1,35 @@
 1. Base & Structure (The Canvas)
-These colors form the skeleton of your application, including the sidebar, main dashboard, and item cards.
+These colors form the skeleton of your application, including the styling for all Shadcn Cards.
 
-App Canvas: #F1F5F9 (bg-slate-100) - Main background where content cards reside.
+App Canvas: #F8FAFC (bg-slate-50/50) - Main background where content cards reside.
 
-Top Header: #FFFFFF (bg-white/80) - Sticky top navigation with backdrop-blur.
+Top Header: #FFFFFF (bg-white) - Sticky top navigation with subtle bottom borders.
 
-Sidebar & Mobile Pivot: #1E2F85 (Deep Navy) - Primary vertical navigation and mobile dropdown menu.
+Sidebar & Mobile Pivot: #1E2F85 (Deep Navy / bg-brand) - Primary vertical navigation.
 
-Card/Surface Background: #FFFFFF (Pure White) - Use for the found item cards and form containers.
+Card/Surface Background: #FFFFFF (Pure White) - Used universally for structural Shadcn data containers.
 
-Borders & Dividers: slate-200 for white areas; #172363 for navy areas.
+Borders & Dividers: slate-200 for outer card borders; slate-100 for subtle inner divisions.
 
 2. Typography (The Text)
-Avoid pure black to reduce eye strain for admins looking at logs all day.
+Avoid pure black to maintain the sleek Shadcn aesthetic and reduce digital eye strain.
 
-Primary Text: White (over Navy) / #0F172A (slate-900) over White backgrounds.
+Primary Text: White (over Navy) / #0F172A (slate-900) - Bold headers, card titles, and active inputs.
 
-Secondary Text: #64748B (slate-500) - Metadata, location tags, and timestamps.
+Secondary Text: #64748B (slate-500) - Subtitles, metadata, form labels, and timestamps.
 
 3. Interactive Elements (The Actions)
-This is the only color that should draw the user's eye, signaling where to click.
+This color palette should seamlessly trigger user interaction workflows.
 
-Primary Brand/Action: #263DA8 (Royal Blue) - Use for your main buttons ("Submit Claim", "Approve"), active sidebar icons, and text links.
+Primary Brand/Action: #1E2F85 (bg-brand text-white) - Use for main action buttons ("Save", "Submit Claim"), tooltips, and primary highlight states.
 
-Active State Background: #FFFFFF (white/10) - Vibrant highlight for the currently selected sidebar menu item.
+Secondary Actions: bg-slate-100 to bg-slate-200 - Used for toggles or passive system buttons.
 
 4. System Status (The Indicators)
-Since this is a tracking system, you need universally understood colors for the state of an item or claim.
+Universally understood tags utilized by the `StatusBadge` dynamic component.
 
-Success (Verified/Returned): #10B981 (Emerald Green) - Use for approved claim badges or successful verification messages.
+Success (Verified/Returned): #10B981 (Emerald Green) - Use for approved claim badges or completed verifications.
 
-Pending (Reviewing/Searching): #F59E0B (Amber) - Use for items waiting for admin review or "Possible Match" AI flags.
+Pending (Reviewing/Searching): #F59E0B (Amber) - Use for items waiting for admin review or active user alerts.
 
-Error/Archived (Denied/Purged): #E11D48 (Rose Red) - Use for denied claims, expired items, or the "Stop AI Camera" button.
+Error/Archived (Denied/Purged): #E11D48 (Rose Red text-red-600) - Use for denied claims, warnings, or destructive "Danger Zone" buttons.

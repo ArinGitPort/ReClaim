@@ -32,22 +32,21 @@
 ---
 
 ## 2. Recommended Directory Structure 
-* Use as this as a guide, it doesn't have to be exact
+* We strictly adhere to this structure to maintain a modular, scalable codebase.
 
 /project-root
-  /frontend             # Vite + React + TS + Tailwind
-    /src
-      /components
-        /ui             # Generic, "dumb" UI elements (shadcn buttons, inputs, dialogs)
-      /features         # Domain-driven modules (Organized by what the app ACTUALLY does)
-        /auth           # Login forms, authentication context, protected routes
-        /gallery        # Public item cards, search bar, grid layouts
-        /claims         # Dynamic proof of ownership forms, status trackers
-        /admin          # Verification queue, AI log viewer, camera toggle
-      /pages            # Top-level route components that stitch features together
-      /hooks            # Global custom React hooks
-      /lib              # Utility functions (e.g., shadcn's `cn` function, API client)
-      /types            # Shared TypeScript interfaces (e.g., Item, Claim, User)
+  /src
+    /components
+      /ui             # Reusable, "dumb" UI elements (shadcn buttons, StatusBadge, DataRow, Tooltips)
+    /contexts         # React contexts defining global state (e.g., AuthContext, NotificationContext)
+    /layouts          # Core structural wrappers (AppLayout, TopNavBar, Sidebar)
+      /admin          # Admin-specific layout wrappers (AdminLayout, AdminSidebar)
+    /pages            # Top-level route components representing specific screens
+      /public         # Publicly accessible pages (LandingPage, BrowsePage)
+      /user           # Protected student/user pages (MyClaimsPage, UserProfilePage, UserSettingsPage)
+      /admin          # Protected admin pages (AdminDashboardPage, InventoryPage, AdminSettingsPage)
+    /lib              # Utility functions (e.g., tailwind `cn` merge helper)
+    /types            # Shared global TypeScript interfaces
   /backend              # Node.js + Express API + Prisma ORM
     /src
       /controllers      # Request handlers (receives HTTP requests, sends responses)
@@ -70,11 +69,11 @@
 * **Mobile Responsiveness:** Ensure all UI designs are mobile-responsive from the start.
 
 ### Frontend (React) Best Practices
-* **No Emojis:** Do not use emojis in the UI or codebase.
-* **Atomic Design Pattern:** Strictly follow the Atomic Design methodology (Atoms -> Molecules -> Organisms -> Templates -> Pages).
-* **Component Modularity:** Place shadcn components in `src/components/ui` (treated as Atoms/Molecules) and custom project components in their respective Atomic folders.
-* **Design Consistency:** UI must be clean, modern, and user-friendly (ShadCN style). Ensure frontend design is consistent across all pages, from search bars to filter dropdowns.
-* **Admin Layout:** Implement a split-screen layout for the Admin Dashboard Verification Queue (Claim text on the left, hidden AI snapshot on the right).
+* **DRY (Don't Repeat Yourself):** Always extract micro-components (like table rows, status tags, action icons, or formatted borders) into `src/components/ui/`. NEVER duplicate raw static JSX structures across multiple layout pages.
+* **No Emojis:** Do not use emojis in the UI or codebase. Exclusively import standard `lucide-react` icons.
+* **Component Modularity:** Place generic UI modules in `src/components/ui` and high-level routing wrappers in `src/layouts`.
+* **Design Consistency:** UI must strictly adhere to the clean, professional, semantic hierarchy of Shadcn. Use crisp `.rounded-xl` borders, `bg-white`, `border-slate-200`, and muted `text-slate-500` description text. Utilize `Tooltip` and `StatusBadge` globally.
+* **Admin Layout:** Admin dashboard pages must leverage `AdminLayout` and uniquely nest beneath the `/pages/admin/` domain.
 * **React Standards:** Use functional components and React Hooks exclusively.
 
 ### Backend (Node.js) Best Practices
