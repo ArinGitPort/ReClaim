@@ -1,10 +1,10 @@
-import { ArrowLeft, Bell, User, Plus } from "lucide-react"
+import { ArrowLeft, User, Plus } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState } from "react"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useAuth } from "@/contexts/AuthContext"
-import { useNotifications } from "@/contexts/NotificationContext"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
+import { NotificationDropdown } from "@/components/NotificationDropdown"
 import { Button } from "@/components/ui/button"
 
 interface TopNavBarProps {
@@ -19,7 +19,6 @@ export function TopNavBar({
   backLabel = "Back" 
 }: TopNavBarProps) {
   const { user } = useAuth()
-  const { unreadCount } = useNotifications()
   const [showDropOffModal, setShowDropOffModal] = useState(false)
 
   return (
@@ -48,14 +47,7 @@ export function TopNavBar({
             </Button>
 
             <div className="flex items-center gap-2 mr-2">
-              <Link to="/notifications" className="relative p-2 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-full transition-all group inline-flex">
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 border-2 border-white rounded-full text-[10px] font-bold text-white grid place-items-center">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </Link>
+              <NotificationDropdown />
             </div>
 
             <div className="h-8 w-px bg-slate-200"></div>

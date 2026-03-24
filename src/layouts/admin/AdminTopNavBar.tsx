@@ -1,13 +1,12 @@
-import { Bell, User, ArrowLeft } from "lucide-react"
+import { User, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { Link, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
-import { useNotifications } from "@/contexts/NotificationContext"
+import { NotificationDropdown } from "@/components/NotificationDropdown"
 
 export function AdminTopNavBar() {
   const { user } = useAuth()
   const { pathname } = useLocation()
-  const { unreadCount } = useNotifications()
 
   // Derive title from pathname
   const getPageTitle = () => {
@@ -44,14 +43,7 @@ export function AdminTopNavBar() {
         {/* Right Side: Account & Notifications */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 mr-2">
-            <Link to="/admin/notifications" className="relative p-2 text-slate-500 hover:text-brand hover:bg-slate-50 rounded-full transition-all group inline-flex">
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 border-2 border-white rounded-full text-[10px] font-bold text-white grid place-items-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <NotificationDropdown />
           </div>
           
           <div className="h-8 w-px bg-slate-200"></div>

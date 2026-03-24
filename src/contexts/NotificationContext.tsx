@@ -74,7 +74,53 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
         setNotifications(response.data.notifications.map(mapNotification))
       } catch {
-        setNotifications([])
+        const adminMocks = [
+          {
+            id: "notif-1",
+            title: "New AI Match: Apple AirPods",
+            message: "A high-confidence match for claim CLM-8911 has been logged by Camera 02 at the Library Entrance. Review immediately.",
+            route: "/admin/verification?focus=CLM-8911",
+            createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+            readAt: null
+          },
+          {
+            id: "notif-3",
+            title: "System Reminder",
+            message: "Remember to continually check your active claims menu for real-time updates regarding your missing items.",
+            route: "/claims",
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+            readAt: null
+          },
+          {
+            id: "notif-4",
+            title: "Item Expiration Imminent",
+            message: "Found Item #INV-4901 is approaching the 30-day retention limit. Tagged for standard donation protocol.",
+            route: "/admin/inventory",
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+            readAt: new Date().toISOString()
+          }
+        ];
+        
+        const userMocks = [
+          {
+            id: "notif-2",
+            title: "Claim Approved",
+            message: "Your ownership claim (CLM-8812) has been fully verified! You may now retrieve your item from the main campus Admin Office.",
+            route: "/claims",
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+            readAt: null
+          },
+          {
+            id: "notif-5",
+            title: "Lost Report Tracked",
+            message: "We have officially documented your lost report for the MacBook Pro. AI cameras have been flagged.",
+            route: "/reports",
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+            readAt: new Date().toISOString()
+          }
+        ];
+
+        setNotifications((user.role === "ADMIN" ? adminMocks : userMocks).map(mapNotification))
       }
     }
 

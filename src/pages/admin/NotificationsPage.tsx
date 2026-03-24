@@ -24,7 +24,7 @@ export function AdminNotificationsPage() {
 
       <div className="space-y-3">
         {notifications.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+          <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
             <Bell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 font-semibold">No notifications yet.</p>
           </div>
@@ -33,7 +33,7 @@ export function AdminNotificationsPage() {
         {notifications.map((item) => (
           <div
             key={item.id}
-            className={`rounded-2xl border p-5 ${item.read ? "bg-white border-slate-200" : "bg-brand/5 border-brand/20"}`}
+            className={`rounded-xl border p-5 ${item.read ? "bg-white border-slate-200" : "bg-brand/5 border-brand/20"}`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
