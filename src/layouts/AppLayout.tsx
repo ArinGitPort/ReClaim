@@ -4,7 +4,7 @@ import { MobileNav } from "@/layouts/MobileNav"
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-100 font-sans w-full">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'row', backgroundColor: '#F1F5F9', width: '100%', fontFamily: 'sans-serif' }}>
       {/* Mobile Header and Dropdown Menu */}
       <MobileNav />
 
@@ -12,7 +12,7 @@ export function AppLayout() {
       <Sidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden relative">
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'hidden', position: 'relative' }}>
         <Outlet />
       </main>
     </div>

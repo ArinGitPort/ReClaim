@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { DataRow } from "@/components/ui/DataRow"
-import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
@@ -131,19 +130,19 @@ export function MyClaimsPage() {
   }, [claims])
 
   return (
-    <div className="w-full min-h-full pb-24">
+    <div style={{ width: '100%', minHeight: '100%', paddingBottom: '6rem' }}>
       <TopNavBar title="My Claims" />
-      <div className="max-w-5xl mx-auto px-6 mt-8">
-        <div className="flex items-center justify-between mb-8">
+      <div style={{ maxWidth: '64rem', marginLeft: 'auto', marginRight: 'auto', padding: '0 1.5rem', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-1">Tracking & Status</h2>
-            <p className="text-slate-500 text-sm">View the status of items you have claimed from the gallery.</p>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.25rem', margin: 0 }}>Tracking & Status</h2>
+            <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>View the status of items you have claimed from the gallery.</p>
           </div>
           <Link
             to="/gallery"
-            className="flex items-center gap-2 text-sm font-bold text-brand hover:underline"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold', color: '#1E2F85', textDecoration: 'none' }}
           >
-            Browse Gallery <ArrowRight className="w-4 h-4" />
+            Browse Gallery <ArrowRight style={{ width: '1rem', height: '1rem' }} />
           </Link>
         </div>
 
@@ -169,7 +168,7 @@ export function MyClaimsPage() {
           resultCount={filteredClaims.length}
         />
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {visibleClaims.map((claim) => (
             <ClaimCard
               key={claim.id}
@@ -180,7 +179,7 @@ export function MyClaimsPage() {
             />
           ))}
           {visibleClaims.length === 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', padding: '2rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600', color: '#64748B' }}>
               No claims match your current filters.
             </div>
           )}
@@ -215,96 +214,144 @@ function ClaimCard({
   isClosing: boolean
   onCloseTicket: () => void
 }) {
+  const cardStyles: React.CSSProperties = {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '1rem',
+    border: '1px solid #E2E8F0',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    padding: '1.5rem',
+  }
+
+  const focusStyles: React.CSSProperties = isFocused ? {
+    boxShadow: '0 0 0 2px rgba(30, 47, 133, 0.4)',
+    borderColor: '#1E2F85',
+    backgroundColor: 'rgba(30, 47, 133, 0.03)'
+  } : {}
+
+  const badgeStyles: React.CSSProperties = {
+    fontSize: '10px',
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: '#94A3B8',
+    backgroundColor: '#F8FAFC',
+    border: '1px solid #F1F5F9',
+    padding: '0.125rem 0.5rem',
+    borderRadius: '0.25rem'
+  }
+
   return (
-    <div
-      className={cn(
-        "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 transition-all",
-        isFocused && "ring-2 ring-brand/40 border-brand bg-brand/3"
-      )}
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-        {/* Icon */}
-        <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
-          <Package className="w-7 h-7 text-slate-400" />
-        </div>
-
-        {/* Details */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-              {claim.id}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-              {claim.category}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-              {claim.inventoryId}
-            </span>
+    <div style={{ ...cardStyles, ...focusStyles }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1.25rem' }}>
+          {/* Icon */}
+          <div style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Package style={{ width: '1.75rem', height: '1.75rem', color: '#94A3B8' }} />
           </div>
-          <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
-          <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" />
-              {claim.location}
+
+          {/* Details */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span style={{ ...badgeStyles, fontFamily: 'monospace' }}>
+                {claim.id}
+              </span>
+              <span style={badgeStyles}>
+                {claim.category}
+              </span>
+              <span style={badgeStyles}>
+                {claim.inventoryId}
+              </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              Submitted {claim.submittedDate}
+            <h3 style={{ fontWeight: 'bold', color: '#0F172A', fontSize: '1.125rem', lineHeight: '1.25', margin: 0 }}>{claim.item}</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem', fontSize: '11px', fontWeight: 'bold', color: '#94A3B8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
+                {claim.location}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <Calendar style={{ width: '0.875rem', height: '0.875rem' }} />
+                Submitted {claim.submittedDate}
+              </div>
             </div>
           </div>
+
+          {/* Status */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem', flexShrink: 0 }}>
+            <ClaimStatusBadge status={claim.status} />
+            <ClaimStatusMessage status={claim.status} />
+          </div>
         </div>
 
-        {/* Status */}
-        <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-          <ClaimStatusBadge status={claim.status} />
-          <ClaimStatusMessage status={claim.status} />
+        <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #F1F5F9', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', fontSize: '0.875rem' }}>
+          <DataRow label="Submitted Date" value={claim.submittedDate} />
+          <DataRow label="Category" value={claim.category} />
+          <DataRow label="Inventory Code" value={claim.inventoryId} />
+
+          {claim.status === "Inquiry Required" && claim.reviewerNote && (
+            <div style={{ gridColumn: 'span 3', borderRadius: '0.75rem', border: '1px solid #FDE68A', backgroundColor: '#FFFBEB', padding: '0.75rem 1rem' }}>
+              <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Admin Inquiry</div>
+              <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#92400E', margin: 0 }}>{claim.reviewerNote}</p>
+            </div>
+          )}
+
+          {isClosableClaimStatus(claim.rawStatus) && (
+            <div style={{ gridColumn: 'span 3', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                disabled={isClosing}
+                onClick={onCloseTicket}
+                style={{ 
+                  height: '2.5rem', 
+                  padding: '0 1rem', 
+                  borderRadius: '0.5rem', 
+                  border: '1px solid #FECACA', 
+                  backgroundColor: '#FEE2E2', 
+                  color: '#B91C1C', 
+                  fontSize: '10px', 
+                  fontWeight: 'bold', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.1em', 
+                  cursor: 'pointer',
+                  opacity: isClosing ? 0.5 : 1
+                }}
+              >
+                {isClosing ? "Closing..." : "Close Ticket"}
+              </button>
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-        <DataRow label="Submitted Date" value={claim.submittedDate} />
-        <DataRow label="Category" value={claim.category} />
-        <DataRow label="Inventory Code" value={claim.inventoryId} />
-
-        {claim.status === "Inquiry Required" && claim.reviewerNote && (
-          <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
-            <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
-          </div>
-        )}
-
-        {isClosableClaimStatus(claim.rawStatus) && (
-          <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
-            <button
-              type="button"
-              disabled={isClosing}
-              onClick={onCloseTicket}
-              className="h-10 px-4 rounded-lg border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isClosing ? "Closing..." : "Close Ticket"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )
 }
 
 function ClaimStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    "Pending Verification": "bg-amber-50 text-amber-700 border-amber-100",
-    "Inquiry Required": "bg-orange-50 text-orange-700 border-orange-100",
-    "Approved": "bg-emerald-50 text-emerald-700 border-emerald-100",
-    "Denied": "bg-rose-50 text-rose-700 border-rose-100",
-    "Ready for Pickup": "bg-emerald-100 text-emerald-800 border-emerald-200",
+  const styles: Record<string, React.CSSProperties> = {
+    "Pending Verification": { backgroundColor: '#FFFBEB', color: '#D97706', borderColor: '#FEF3C7' },
+    "Inquiry Required": { backgroundColor: '#FFF7ED', color: '#EA580C', borderColor: '#FFEDD5' },
+    "Approved": { backgroundColor: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' },
+    "Denied": { backgroundColor: '#FFF1F2', color: '#E11D48', borderColor: '#FFE4E6' },
+    "Ready for Pickup": { backgroundColor: '#D1FAE5', color: '#065F46', borderColor: '#A7F3D0' },
   }
 
+  const baseStyle: React.CSSProperties = {
+    padding: '0.375rem 0.75rem',
+    borderRadius: '9999px',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    border: '1px solid',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.375rem'
+  }
+
+  const currentStyle = styles[status] ?? { backgroundColor: '#F8FAFC', color: '#64748B', borderColor: '#F1F5F9' }
+
   return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border inline-flex items-center gap-1.5",
-      styles[status] ?? "bg-slate-50 text-slate-600 border-slate-100"
-    )}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70 animate-pulse" />
+    <span style={{ ...baseStyle, ...currentStyle }}>
+      <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', backgroundColor: 'currentColor', opacity: 0.7 }} />
       {status}
     </span>
   )
@@ -312,12 +359,11 @@ function ClaimStatusBadge({ status }: { status: string }) {
 
 function ClaimStatusMessage({ status }: { status: string }) {
   return (
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-      <Clock className="w-3 h-3" /> {claimStatusMessage(status)}
+    <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.25rem', margin: 0 }}>
+      <Clock style={{ width: '0.75rem', height: '0.75rem' }} /> {claimStatusMessage(status)}
     </p>
   )
 }
-
 
 function formatClaimStatus(rawStatus: string): string {
   return rawStatus.replaceAll("_", " ")

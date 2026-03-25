@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
-import { cn } from "@/lib/utils"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
@@ -140,20 +139,20 @@ export function ClaimsVerificationPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Review incoming gallery claims before any pickup handover is allowed.</p>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Claims Verification</h1>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Review incoming gallery claims before any pickup handover is allowed.</p>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+        <div style={{ borderRadius: '0.75rem', border: '1px solid #FECACA', backgroundColor: '#FEF2F2', padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: 600, color: '#B91C1C' }}>
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <div className="xl:col-span-4 space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ flex: '0 0 24rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <ClaimsQueueList
             search={search}
             onSearchChange={(val) => { setSearch(val); setPage(1); }}
@@ -172,7 +171,7 @@ export function ClaimsVerificationPage() {
           />
         </div>
 
-        <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-175">
+        <div style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', overflow: 'hidden', minHeight: '44rem' }}>
           <ClaimWorkspace
             selectedClaim={selectedClaim}
             isLoading={isLoading}
@@ -190,8 +189,8 @@ export function ClaimsVerificationPage() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</div>
-      <div className="text-sm font-semibold text-slate-800">{value}</div>
+      <div style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', marginBottom: '0.25rem' }}>{label}</div>
+      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1E293B' }}>{value}</div>
     </div>
   )
 }
@@ -229,29 +228,39 @@ function ClaimsQueueList({
 }) {
   return (
     <>
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
-        <div className="relative group">
-          <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
+      <div style={{ backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+        <div style={{ position: 'relative' }}>
+          <FileSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search by code, item, or claimant"
-            className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
+            style={{ width: '100%', height: '2.75rem', paddingLeft: '2.75rem', paddingRight: '1rem', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500, outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
           {["", "PENDING_VERIFICATION", "INQUIRY_REQUIRED"].map((status) => (
             <button
               key={status || "ALL"}
               type="button"
               onClick={() => onStatusFilterChange(status)}
-              className={cn(
-                "h-8 px-4 rounded-full border text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all shadow-sm",
-                statusFilter === status
-                  ? "bg-brand text-white border-brand shadow-brand/20"
-                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
-              )}
+              style={{
+                height: '2rem',
+                padding: '0 1rem',
+                borderRadius: '9999px',
+                border: '1px solid',
+                fontSize: '10px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                backgroundColor: statusFilter === status ? '#1E2F85' : '#FFFFFF',
+                color: statusFilter === status ? '#FFFFFF' : '#64748B',
+                borderColor: statusFilter === status ? '#1E2F85' : '#E2E8F0',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
             >
               {status ? status.replaceAll("_", " ") : "All"}
             </button>
@@ -259,43 +268,51 @@ function ClaimsQueueList({
         </div>
       </div>
 
-      <div className="space-y-3">
-        {isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">Loading claims...</div>}
-        {!isLoading && filteredClaims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {isLoading && <div style={{ backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#64748B' }}>Loading claims...</div>}
+        {!isLoading && filteredClaims.length === 0 && <div style={{ backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#64748B' }}>No pending claims in queue.</div>}
 
         {filteredClaims.map((claim) => (
           <button
             key={claim.id}
             type="button"
             onClick={() => onSelectClaim(claim.id)}
-            className={cn(
-              "w-full text-left bg-white rounded-2xl border p-5 transition-all cursor-pointer group shadow-sm relative overflow-hidden",
-              selectedClaimId === claim.id
-                ? "border-brand ring-2 ring-brand/10 scale-[1.01]"
-                : "border-slate-100 hover:border-brand/20"
-            )}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '1rem',
+              border: '1px solid',
+              borderColor: selectedClaimId === claim.id ? '#1E2F85' : '#F1F5F9',
+              padding: '1.25rem',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: selectedClaimId === claim.id ? '0 0 0 2px rgba(30, 47, 133, 0.1)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transform: selectedClaimId === claim.id ? 'scale(1.01)' : 'none'
+            }}
           >
-            {selectedClaimId === claim.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
+            {selectedClaimId === claim.id && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '0.375rem', backgroundColor: '#1E2F85' }} />}
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', fontFamily: 'monospace', letterSpacing: '-0.025em', backgroundColor: '#F8FAFC', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', border: '1px solid #F1F5F9' }}>
                 {claim.claimCode}
               </span>
               <StatusPill status={claim.status} />
             </div>
-            <h3 className="mt-2 font-bold text-slate-800 text-[15px] whitespace-nowrap overflow-hidden text-ellipsis">
+            <h3 style={{ marginTop: '0.5rem', fontWeight: 700, color: '#1E293B', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '0.5rem 0 0 0' }}>
               {claim.foundItem.title}
             </h3>
-            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mt-1.5">
-              <User className="w-3 h-3 text-slate-300" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '11px', fontWeight: 700, color: '#94A3B8', marginTop: '0.375rem' }}>
+              <User style={{ width: '0.75rem', height: '0.75rem', color: '#CBD5E1' }} />
               {claim.claimantUser.name}
             </div>
-            <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-4">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3 h-3" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(30, 47, 133, 0.6)', backgroundColor: 'rgba(30, 47, 133, 0.05)', margin: '1rem -1.25rem -1.25rem', padding: '0.625rem 1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <Calendar style={{ width: '0.75rem', height: '0.75rem' }} />
                 {new Date(claim.createdAt).toLocaleDateString()}
               </div>
-              <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{claim.foundItem.category}</span>
+              <span style={{ backgroundColor: '#FFFFFF', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid rgba(30, 47, 133, 0.1)' }}>{claim.foundItem.category}</span>
             </div>
           </button>
         ))}
@@ -331,45 +348,45 @@ function ClaimWorkspace({
   onDecide: (status: "APPROVED" | "DENIED" | "INQUIRY_REQUIRED") => Promise<void>
 }) {
   if (!selectedClaim && !isLoading) {
-    return <div className="p-10 text-center text-sm font-semibold text-slate-500">Select a claim to review.</div>
+    return <div style={{ padding: '2.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#64748B' }}>Select a claim to review.</div>
   }
 
   if (!selectedClaim) return null
 
   return (
     <>
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <ShieldAlert className="w-5 h-5 text-white" />
+      <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', backgroundColor: 'rgba(248, 250, 252, 0.5)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '2.5rem', height: '2.5rem', backgroundColor: '#1E2F85', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+            <ShieldAlert style={{ width: '1.25rem', height: '1.25rem', color: '#FFFFFF' }} />
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase underline underline-offset-4 decoration-brand/20 decoration-2">Claim Workspace</h2>
-            <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Reference:</span>
-            <span className="text-brand font-extrabold tracking-tight">{selectedClaim.claimCode}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.025em', textTransform: 'uppercase', textDecoration: 'underline', textUnderlineOffset: '4px', textDecorationColor: 'rgba(30, 47, 133, 0.2)', textDecorationThickness: '2px', margin: 0 }}>Claim Workspace</h2>
+            <span style={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px' }}>Reference:</span>
+            <span style={{ color: '#1E2F85', fontWeight: 800, letterSpacing: '-0.025em' }}>{selectedClaim.claimCode}</span>
           </div>
         </div>
         <StatusPill status={selectedClaim.status} />
       </div>
 
-      <div className="p-8 lg:p-12 space-y-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div className="space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-              <User className="w-3.5 h-3.5" /> Claimant Profile
+      <div style={{ padding: '3rem', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '3rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <User style={{ width: '0.875rem', height: '0.875rem' }} /> Claimant Profile
             </h3>
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <InfoRow label="Name" value={selectedClaim.claimantUser.name} />
               <InfoRow label="Student ID" value={selectedClaim.claimantUser.studentId ?? "N/A"} />
               <InfoRow label="Email" value={selectedClaim.claimantUser.email} />
             </div>
           </div>
 
-          <div className="space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-              <ShieldAlert className="w-3.5 h-3.5" /> Claimed Item
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <ShieldAlert style={{ width: '0.875rem', height: '0.875rem' }} /> Claimed Item
             </h3>
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <InfoRow label="Inventory Code" value={selectedClaim.foundItem.code} />
               <InfoRow label="Title" value={selectedClaim.foundItem.title} />
               <InfoRow label="Category" value={selectedClaim.foundItem.category} />
@@ -379,10 +396,10 @@ function ClaimWorkspace({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
-          <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>Submitted Proof Details</h3>
+          <div style={{ borderRadius: '0.75rem', border: '1px solid rgba(30, 47, 133, 0.1)', backgroundColor: 'rgba(30, 47, 133, 0.05)', padding: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
               {proofEntries(selectedClaim.submittedProof).map((entry) => (
                 <ProofField key={entry.label} label={entry.label} value={entry.value} />
               ))}
@@ -390,43 +407,43 @@ function ClaimWorkspace({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B' }}>Reviewer Note</label>
           <textarea
             value={note}
             onChange={(event) => onNoteChange(event.target.value)}
             placeholder="Required for deny or inquiry"
             rows={4}
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm bg-white"
+            style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '0.75rem 1rem', fontSize: '0.875rem', backgroundColor: '#FFFFFF', boxSizing: 'border-box' }}
           />
         </div>
 
-        <div className="flex flex-wrap gap-3 justify-end pt-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
           <Button
             type="button"
             variant="outline"
             disabled={isSubmitting || !isPendingState(selectedClaim.status)}
             onClick={() => void onDecide("INQUIRY_REQUIRED")}
-            className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
+            style={{ height: '2.5rem', padding: '0 1rem', border: '1px solid #FDE68A', color: '#B45309', backgroundColor: '#FFFFFF', fontWeight: 700, borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            <Clock3 className="w-4 h-4 mr-2" /> Request Inquiry
+            <Clock3 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Request Inquiry
           </Button>
           <Button
             type="button"
             variant="outline"
             disabled={isSubmitting || !isPendingState(selectedClaim.status)}
             onClick={() => void onDecide("DENIED")}
-            className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
+            style={{ height: '2.5rem', padding: '0 1rem', border: '1px solid #FECACA', color: '#B91C1C', backgroundColor: '#FFFFFF', fontWeight: 700, borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            <XCircle className="w-4 h-4 mr-2" /> Deny
+            <XCircle style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Deny
           </Button>
           <Button
             type="button"
             disabled={isSubmitting || !isPendingState(selectedClaim.status)}
             onClick={() => void onDecide("APPROVED")}
-            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white"
+            style={{ height: '2.5rem', padding: '0 1.5rem', backgroundColor: '#059669', color: '#FFFFFF', fontWeight: 700, borderRadius: '0.5rem', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+            <CheckCircle2 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Approve
           </Button>
         </div>
       </div>
@@ -436,16 +453,18 @@ function ClaimWorkspace({
 
 
 function StatusPill({ status }: { status: ClaimStatus }) {
-  const styles: Record<ClaimStatus, string> = {
-    PENDING_VERIFICATION: "bg-amber-50 text-amber-700 border-amber-200",
-    INQUIRY_REQUIRED: "bg-orange-50 text-orange-700 border-orange-200",
-    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    DENIED: "bg-rose-50 text-rose-700 border-rose-200",
-    CANCELLED: "bg-slate-100 text-slate-600 border-slate-300",
+  const styles: Record<ClaimStatus, { bg: string, text: string, border: string }> = {
+    PENDING_VERIFICATION: { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' },
+    INQUIRY_REQUIRED: { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' },
+    APPROVED: { bg: '#D1FAE5', text: '#047857', border: '#A7F3D0' },
+    DENIED: { bg: '#FEE2E2', text: '#B91C1C', border: '#FECACA' },
+    CANCELLED: { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
   }
 
+  const current = styles[status]
+
   return (
-    <span className={cn("px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest", styles[status])}>
+    <span style={{ padding: '0.25rem 0.75rem', borderRadius: '9999px', border: '1px solid', borderColor: current.border, backgroundColor: current.bg, color: current.text, fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
       {status.replaceAll("_", " ")}
     </span>
   )
@@ -453,9 +472,9 @@ function StatusPill({ status }: { status: ClaimStatus }) {
 
 function ProofField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/70 bg-white/80 px-3 py-2">
-      <div className="text-[10px] font-black uppercase tracking-widest text-brand/70 mb-1">{label}</div>
-      <div className="text-sm font-semibold text-slate-700 wrap-break-word">{value}</div>
+    <div style={{ borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.7)', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '0.5rem 0.75rem' }}>
+      <div style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(30, 47, 133, 0.7)', marginBottom: '0.125rem' }}>{label}</div>
+      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155', wordBreak: 'break-word' }}>{value}</div>
     </div>
   )
 }
@@ -505,4 +524,3 @@ function prettifyProofKey(key: string): string {
 function isPendingState(status: ClaimStatus): boolean {
   return status === "PENDING_VERIFICATION" || status === "INQUIRY_REQUIRED"
 }
-

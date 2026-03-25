@@ -1,11 +1,34 @@
 import React from 'react'
-import { cn } from "@/lib/utils"
-
 export function DataRow({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="group/item">
-      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 leading-none">{label}</div>
-      <div className={cn("text-[15px] font-bold text-slate-800 tracking-tight", mono && "font-mono tracking-tighter")}>{value}</div>
+    <div style={{}}>
+      <div 
+        style={{ 
+          fontSize: '10px', 
+          fontWeight: 'bold', 
+          color: '#94A3B8', 
+          textTransform: 'uppercase', 
+          letterSpacing: '0.1em', 
+          marginBottom: '0.375rem', 
+          lineHeight: '1' 
+        }}
+      >
+        {label}
+      </div>
+      <div 
+        style={{ 
+          fontSize: '15px', 
+          fontWeight: 'bold', 
+          color: '#1E293B', 
+          letterSpacing: '-0.025em',
+          ...(mono ? { 
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            letterSpacing: '-0.05em'
+          } : {})
+        }}
+      >
+        {value}
+      </div>
     </div>
   )
 }

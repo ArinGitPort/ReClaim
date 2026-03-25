@@ -1,12 +1,28 @@
-import { cn } from "@/lib/utils"
+import React from 'react'
 
 export function StatusBadge({ status, weight }: { status?: string; weight?: number }) {
+  const baseStyles: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    letterSpacing: '0.1em',
+    border: '1px solid transparent',
+    textTransform: 'uppercase',
+  }
+
   if (weight !== undefined) {
-    const styles = weight >= 80 ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
-                   weight >= 50 ? "bg-amber-100 text-amber-800 border-amber-200" :
-                   "bg-rose-100 text-rose-800 border-rose-200"
+    let weightStyles: React.CSSProperties = {}
+    if (weight >= 80) {
+      weightStyles = { backgroundColor: '#d1fae5', color: '#065f46', borderColor: '#a7f3d0' }
+    } else if (weight >= 50) {
+      weightStyles = { backgroundColor: '#fef3c7', color: '#92400e', borderColor: '#fde68a' }
+    } else {
+      weightStyles = { backgroundColor: '#ffe4e6', color: '#9f1239', borderColor: '#fecdd3' }
+    }
+
     return (
-      <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold tracking-widest border", styles)}>
+      <span style={{ ...baseStyles, padding: '0.125rem 0.5rem', borderRadius: '0.25rem', borderStyle: 'solid', ...weightStyles }}>
         {weight}% MATCH
       </span>
     )
@@ -16,43 +32,55 @@ export function StatusBadge({ status, weight }: { status?: string; weight?: numb
 
   const label = status === "CLAIM_PENDING" ? "CLAIM PENDING" : status.replaceAll("_", " ")
 
-  const getStyles = () => {
+  const getStatusStyles = (): React.CSSProperties => {
     switch(status) {
       case 'AVAILABLE': 
       case 'Ready for Pickup':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+        return { backgroundColor: '#ecfdf5', color: '#047857', borderColor: '#d1fae5' }
       case 'ACTIVE_SEARCH': 
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
+        return { backgroundColor: '#ecfdf5', color: '#047857', borderColor: '#d1fae5', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }
       case 'CLAIM_PENDING': 
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+        return { backgroundColor: '#d1fae5', color: '#065f46', borderColor: '#a7f3d0' }
       case 'MATCHED': 
-        return 'bg-indigo-50 text-indigo-700 border-indigo-100'
+        return { backgroundColor: '#eef2ff', color: '#4338ca', borderColor: '#e0e7ff' }
       case 'SUBMITTED': 
-        return 'bg-blue-50 text-blue-700 border-blue-100'
+        return { backgroundColor: '#eff6ff', color: '#1d4ed8', borderColor: '#dbeafe' }
       case 'RETURNED': 
       case 'Closed - Picked Up':
       case 'Closed - Rejected':
-        return 'bg-slate-50 text-slate-500 border-slate-100'
+        return { backgroundColor: '#f8fafc', color: '#64748b', borderColor: '#f1f5f9' }
       case 'RESOLVED':
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return { backgroundColor: '#f1f5f9', color: '#334155', borderColor: '#e2e8f0' }
       case 'ARCHIVED': 
       case 'REJECTED':
       case 'Inquiry Required':
-        return 'bg-rose-50 text-rose-700 border-rose-100'
+        return { backgroundColor: '#fff1f2', color: '#be123c', borderColor: '#ffe4e6' }
       case 'PENDING_REVIEW':
       case 'UNDER_REVIEW':
       case 'Pending Verification':
-        return 'bg-amber-50 text-amber-700 border-amber-100'
-      default: return 'bg-slate-50 text-slate-700 border-slate-100'
+        return { backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fef3c7' }
+      default: return { backgroundColor: '#f8fafc', color: '#334155', borderColor: '#f1f5f9' }
     }
   }
 
   return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border shadow-sm inline-flex items-center gap-2 transition-all",
-      getStyles()
-    )}>
-      {status === 'CLAIM_PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
+    <span style={{ 
+      ...baseStyles, 
+      padding: '0.375rem 0.75rem', 
+      borderRadius: '9999px', 
+      borderStyle: 'solid', 
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+      gap: '0.5rem',
+      ...getStatusStyles() 
+    }}>
+      {status === 'CLAIM_PENDING' && (
+        <div style={{ 
+          width: '0.375rem', 
+          height: '0.375rem', 
+          borderRadius: '9999px', 
+          backgroundColor: '#f59e0b' 
+        }} />
+      )}
       {label}
     </span>
   )

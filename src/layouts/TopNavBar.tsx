@@ -24,53 +24,53 @@ export function TopNavBar({
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to={backLink} className="text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2 text-sm font-semibold group">
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0' }}>
+        <div style={{ maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto', padding: '0 1.5rem', height: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <Link to={backLink} style={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '600', textDecoration: 'none' }}>
+              <ArrowLeft style={{ width: '1rem', height: '1rem' }} />
               {backLabel}
             </Link>
-            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">
+            <div style={{ height: '1.5rem', width: '1px', backgroundColor: '#E2E8F0', display: 'block' }}></div>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', letterSpacing: '-0.025em', color: '#0F172A', display: 'block', margin: 0 }}>
               {title}
             </h1>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {/* Found Item Trigger */}
             <Button 
               onClick={() => setShowDropOffModal(true)}
-              className="hidden sm:flex bg-brand hover:bg-brand/90 text-white font-bold h-9 px-4 rounded-xl text-xs uppercase tracking-widest gap-2 shadow-sm"
+              style={{ display: 'flex', backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: 'bold', height: '2.25rem', padding: '0 1rem', borderRadius: '0.75rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', alignItems: 'center', gap: '0.5rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: 'none', cursor: 'pointer' }}
             >
-              <Plus className="w-4 h-4" />
+              <Plus style={{ width: '1rem', height: '1rem' }} />
               I Found an Item
             </Button>
 
-            <div className="flex items-center gap-2 mr-2">
-              <Link to="/notifications" className="relative p-2 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-full transition-all group inline-flex">
-                <Bell className="w-5 h-5" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}>
+              <Link to="/notifications" style={{ position: 'relative', padding: '0.5rem', color: '#64748B', borderRadius: '50%', textDecoration: 'none', display: 'inline-flex' }}>
+                <Bell style={{ width: '1.25rem', height: '1.25rem' }} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 border-2 border-white rounded-full text-[10px] font-bold text-white grid place-items-center">
+                  <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', minWidth: '1.25rem', height: '1.25rem', padding: '0 0.25rem', backgroundColor: '#EF4444', border: '2px solid #FFFFFF', borderRadius: '9999px', fontSize: '10px', fontWeight: 'bold', color: '#FFFFFF', display: 'grid', placeItems: 'center' }}>
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </Link>
             </div>
 
-            <div className="h-8 w-px bg-slate-200"></div>
+            <div style={{ height: '2rem', width: '1px', backgroundColor: '#E2E8F0' }}></div>
 
-            <div className="flex items-center gap-3 pl-2">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
-                <span className="text-[10px] text-slate-400 font-medium">Student Account</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingLeft: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#0F172A', lineHeight: '1' }}>{user?.name}</span>
+                <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '500' }}>Student Account</span>
               </div>
-              <button className="w-9 h-9 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-brand hover:border-brand/40 transition-all">
-                <User className="w-5 h-5" />
+              <button style={{ width: '2.25rem', height: '2.25rem', backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', padding: 0 }}>
+                <User style={{ width: '1.25rem', height: '1.25rem' }} />
               </button>
             </div>
 
-            <div className="hidden md:flex ml-2">
+            <div style={{ display: 'flex', marginLeft: '0.5rem' }}>
               <ThemeToggle />
             </div>
           </div>

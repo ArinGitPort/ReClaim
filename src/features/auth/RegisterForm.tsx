@@ -116,49 +116,72 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="w-full pb-10">
+    <div style={{ width: '100%', paddingBottom: '2.5rem' }}>
       {error && (
-        <div className="mb-6 p-4 bg-status-error/10 border border-status-error/30 rounded-xl flex items-start gap-3 text-status-error shadow-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <p className="text-sm font-medium leading-tight">{error}</p>
+        <div style={{ 
+          marginBottom: '1.5rem', 
+          padding: '1rem', 
+          backgroundColor: 'rgba(225, 29, 72, 0.1)', 
+          border: '1px solid rgba(225, 29, 72, 0.3)', 
+          borderRadius: '0.75rem', 
+          display: 'flex', 
+          alignItems: 'start', 
+          gap: '0.75rem', 
+          color: '#E11D48', 
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+        }}>
+          <AlertCircle style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0, marginTop: '0.125rem' }} />
+          <p style={{ fontSize: '0.875rem', fontWeight: '500', lineHeight: '1.25', margin: 0 }}>{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-10">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
         
         {/* SECTION 1: Campus Identity */}
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary mb-5 pb-2 border-b border-border-divider/80">1. Campus Identity</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+          <h3 style={{ 
+            fontSize: '0.875rem', 
+            fontWeight: 'bold', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            color: '#64748B', 
+            marginBottom: '1.25rem', 
+            paddingBottom: '0.5rem', 
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            margin: 0
+          }}>
+            1. Campus Identity
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Student / Staff ID Number
               </label>
-              <div className="relative">
-                <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <Hash style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="text"
                   placeholder="2020-123456"
                   value={studentId}
                   onChange={handleIdChange}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Institutional Email Address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <Mail style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="email"
                   placeholder="juan.delacruz@students.nu.edu.ph"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
@@ -168,53 +191,65 @@ export function RegisterForm() {
 
         {/* SECTION 2: Personal Details */}
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary mb-5 pb-2 border-b border-border-divider/80">2. Personal Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+          <h3 style={{ 
+            fontSize: '0.875rem', 
+            fontWeight: 'bold', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            color: '#64748B', 
+            marginBottom: '1.25rem', 
+            paddingBottom: '0.5rem', 
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            margin: 0
+          }}>
+            2. Personal Details
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 First Name
               </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <User style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="text"
                   placeholder="Juan"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Last Name
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
                 <Input
                   type="text"
                   placeholder="Dela Cruz"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="px-4 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '1rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
             </div>
             
-            <div className="space-y-2 relative md:col-span-2 max-w-xs">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
-                Middle Initial <span className="text-text-secondary font-normal">(Optional)</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', gridColumn: 'span 2', maxWidth: '20rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
+                Middle Initial <span style={{ color: '#64748B', fontWeight: 'normal' }}>(Optional)</span>
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
                 <Input
                   type="text"
                   maxLength={2}
                   placeholder="M."
                   value={middleInitial}
                   onChange={(e) => setMiddleInitial(e.target.value)}
-                  className="px-4 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '1rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                 />
               </div>
             </div>
@@ -223,20 +258,32 @@ export function RegisterForm() {
 
         {/* SECTION 3: Logistics */}
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary mb-5 pb-2 border-b border-border-divider/80">3. Logistics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+          <h3 style={{ 
+            fontSize: '0.875rem', 
+            fontWeight: 'bold', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            color: '#64748B', 
+            marginBottom: '1.25rem', 
+            paddingBottom: '0.5rem', 
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            margin: 0
+          }}>
+            3. Logistics
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Mobile Number
               </label>
-              <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <Phone style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="tel"
                   placeholder="09XX-XXX-XXXX"
                   value={mobile}
                   onChange={handleMobileChange}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
@@ -246,37 +293,49 @@ export function RegisterForm() {
 
         {/* SECTION 4: Security */}
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary mb-5 pb-2 border-b border-border-divider/80">4. Security</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+          <h3 style={{ 
+            fontSize: '0.875rem', 
+            fontWeight: 'bold', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            color: '#64748B', 
+            marginBottom: '1.25rem', 
+            paddingBottom: '0.5rem', 
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            margin: 0
+          }}>
+            4. Security
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Password
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <Lock style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2 relative">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', marginLeft: '0.25rem', display: 'block' }}>
                 Confirm Password
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
+              <div style={{ position: 'relative' }}>
+                <Lock style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1.125rem', height: '1.125rem', color: '#64748B', zIndex: 1 }} />
                 <Input
                   type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  style={{ paddingLeft: '2.75rem', height: '3rem', backgroundColor: '#FFFFFF', fontSize: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
                   required
                 />
               </div>
@@ -284,15 +343,19 @@ export function RegisterForm() {
           </div>
         </div>
 
-        <div className="pt-6 pb-2 flex justify-center">
-          <Button type="submit" disabled={isSubmitting} size="lg" className="w-full md:w-auto md:px-12 h-12 text-base font-semibold shadow-sm transition-shadow text-white rounded-lg">
+        <div style={{ paddingTop: '1.5rem', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            style={{ width: 'auto', paddingLeft: '3rem', paddingRight: '3rem', height: '3rem', fontSize: '1rem', fontWeight: '600', color: '#FFFFFF', backgroundColor: '#1E2F85', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+          >
             {isSubmitting ? "Creating Account..." : "Complete Registration"}
           </Button>
         </div>
       </form>
 
-      <div className="mt-8 text-center text-sm text-text-secondary pb-4">
-        <p>Already have an account? <Link to="/" className="text-brand font-semibold hover:underline transition-all">Sign In</Link></p>
+      <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem', color: '#64748B', paddingBottom: '1rem' }}>
+        <p>Already have an account? <Link to="/" style={{ color: '#1E2F85', fontWeight: '600', textDecoration: 'none' }}>Sign In</Link></p>
       </div>
     </div>
   )

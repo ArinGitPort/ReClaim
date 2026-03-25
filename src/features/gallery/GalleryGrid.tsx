@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ItemCard } from "@/features/gallery/ItemCard"
 import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
@@ -94,15 +94,26 @@ export function GalleryGrid({
   }, [loadItems])
 
   if (isLoading) {
-    return <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>
+    return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', fontWeight: '600' }}>Loading items...</div>
   }
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 lg:p-24 border-2 border-dashed border-border-divider/50 rounded-xl bg-background-subtle/30">
-        <SearchX className="w-12 h-12 text-text-secondary mb-4 opacity-50" />
-        <h3 className="text-xl font-bold text-text-primary mb-2">No items found</h3>
-        <p className="text-text-secondary text-center max-w-sm">
+      <div 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          padding: '6rem', 
+          border: '2px dashed rgba(226, 232, 240, 0.5)', 
+          borderRadius: '0.75rem', 
+          backgroundColor: 'rgba(241, 245, 249, 0.3)' 
+        }}
+      >
+        <SearchX style={{ width: '3rem', height: '3rem', color: '#64748B', marginBottom: '1rem', opacity: 0.5 }} />
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.5rem', marginTop: 0 }}>No items found</h3>
+        <p style={{ color: '#64748B', textAlign: 'center', maxWidth: '24rem', margin: 0 }}>
           We couldn't find any items matching your current filters. Try adjusting your search criteria.
         </p>
       </div>
@@ -110,7 +121,13 @@ export function GalleryGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div 
+      style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', 
+        gap: '1.5rem' 
+      }}
+    >
       {items.map(item => (
         <ItemCard key={item.id} item={item} />
       ))}

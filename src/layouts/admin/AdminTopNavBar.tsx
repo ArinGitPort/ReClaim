@@ -1,73 +1,85 @@
-import { Bell, User, ArrowLeft } from "lucide-react"
+import { Bell, Search, Settings, HelpCircle, User } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
-import { Link, useLocation } from "react-router-dom"
-import { ThemeToggle } from "@/layouts/ThemeToggle"
-import { useNotifications } from "@/contexts/NotificationContext"
 
 export function AdminTopNavBar() {
   const { user } = useAuth()
-  const { pathname } = useLocation()
-  const { unreadCount } = useNotifications()
-
-  // Derive title from pathname
-  const getPageTitle = () => {
-    if (pathname.includes('/dashboard')) return 'System Dashboard'
-    if (pathname.includes('/inventory')) return 'Inventory Management'
-    if (pathname.includes('/reports')) return 'Missing Items'
-    if (pathname.includes('/claims')) return 'Claims Verification'
-    if (pathname.includes('/handover-log')) return 'Handover Log'
-    if (pathname.includes('/user-directory')) return 'User Directory'
-    if (pathname.includes('/expired-inventory')) return 'Expired Inventory'
-    if (pathname.includes('/logs')) return 'Audit Archive'
-    if (pathname.includes('/settings')) return 'System Settings'
-    if (pathname.includes('/captured-items')) return 'Captured Items Inbox'
-    return 'Admin Portal'
-  }
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200">
-      <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Left Side: Navigation Info */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2 text-sm font-semibold group">
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              Back to Site
-            </Link>
-            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">
-              {getPageTitle()}
-            </h1>
-          </div>
+    <header style={{ 
+      height: '4.5rem', 
+      backgroundColor: '#FFFFFF', 
+      borderBottom: '1px solid #E2E8F0', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      padding: '0 2rem', 
+      position: 'sticky', 
+      top: 0, 
+      zIndex: 40,
+      width: '100%',
+      boxSizing: 'border-box'
+    }}>
+      {/* Search Bar / Search Interaction */}
+      <div style={{ position: 'relative', width: '24rem', display: 'flex', alignItems: 'center' }}>
+        <Search style={{ position: 'absolute', left: '0.875rem', width: '1.125rem', height: '1.125rem', color: '#94A3B8' }} />
+        <input 
+          type="text" 
+          placeholder="Search items, claims, or audit logs..." 
+          style={{ 
+            width: '100%', 
+            height: '2.5rem', 
+            backgroundColor: '#F8FAFC', 
+            border: '1px solid #E2E8F0', 
+            borderRadius: '0.75rem', 
+            paddingLeft: '2.5rem', 
+            paddingRight: '1rem', 
+            fontSize: '0.875rem', 
+            fontWeight: 500, 
+            color: '#1E293B',
+            outline: 'none',
+            boxSizing: 'border-box'
+          }} 
+        />
+      </div>
+
+      {/* Right Side Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        {/* System Status Indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem', backgroundColor: '#F0FDF4', borderRadius: '9999px', border: '1px solid #DCFCE7' }}>
+          <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '9999px', backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #DCFCE7' }} />
+          <span style={{ fontSize: '10px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Online</span>
         </div>
 
-        {/* Right Side: Account & Notifications */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 mr-2">
-            <Link to="/admin/notifications" className="relative p-2 text-slate-500 hover:text-brand hover:bg-slate-50 rounded-full transition-all group inline-flex">
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 border-2 border-white rounded-full text-[10px] font-bold text-white grid place-items-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
-          </div>
+        <div style={{ height: '2rem', width: '1px', backgroundColor: '#E2E8F0' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <HelpCircle style={{ width: '1.25rem', height: '1.25rem' }} />
+          </button>
           
-          <div className="h-8 w-px bg-slate-200"></div>
+          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', transition: 'all 0.2s', position: 'relative' }}>
+            <Bell style={{ width: '1.25rem', height: '1.25rem' }} />
+          </button>
 
-          <div className="flex items-center gap-3 pl-2">
-            <div className="hidden sm:flex flex-col items-end leading-none">
-              <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter mt-1">Administrator</span>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand hover:border-brand/40 transition-all">
-              <User className="w-5 h-5" />
-            </div>
+          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <Settings style={{ width: '1.25rem', height: '1.25rem' }} />
+          </button>
+        </div>
+
+        <div style={{ height: '2rem', width: '1px', backgroundColor: '#E2E8F0' }} />
+
+        {/* Admin Quick Profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.75rem', transition: 'background-color 0.2s' }}>
+          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>{user?.name}</p>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: '#1E2F85', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Head of Security</span>
           </div>
-
-          <div className="hidden md:flex ml-2">
-            <ThemeToggle />
+          <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.75rem', backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {user?.avatar ? (
+              <img src={user.avatar} alt="Admin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User style={{ width: '1.25rem', height: '1.25rem', color: '#94A3B8' }} />
+            )}
           </div>
         </div>
       </div>

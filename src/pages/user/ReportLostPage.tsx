@@ -4,49 +4,49 @@ import { Info, ShieldAlert } from "lucide-react"
 
 export function ReportLostPage() {
   return (
-    <div className="flex-1 flex flex-col min-w-0 h-full">
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
       <TopNavBar title="Report a Lost or Missing Item" />
       
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-400 mx-auto flex flex-col lg:flex-row gap-8 px-4 py-6 sm:p-8 pb-24">
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: '100rem', marginLeft: 'auto', marginRight: 'auto', display: 'flex', flexDirection: 'row', gap: '2rem', padding: '1.5rem 2rem 6rem' }}>
           
           {/* Main Form Area */}
-          <div className="flex-1 flex justify-center">
-            <div className="w-full max-w-3xl">
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '48rem' }}>
               <ReportLostForm />
             </div>
           </div>
 
           {/* Sidebar Instructions / Tips */}
-          <aside className="w-full lg:w-80 space-y-6">
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                <Info className="w-4 h-4 text-brand" />
+          <aside style={{ width: '20rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', flexShrink: 0 }}>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#1E293B', marginBottom: '1rem', margin: '0 0 1rem 0' }}>
+                <Info style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
                 Reporting Tips
               </h4>
-              <ul className="space-y-4 text-sm text-slate-600">
-                <li className="flex gap-3">
-                  <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
-                  <p>Provide specific details like <span className="font-semibold text-slate-900">serial numbers</span> or unique stickers.</p>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.875rem', color: '#475569', listStyle: 'none', padding: 0, margin: 0 }}>
+                <li style={{ display: 'flex', gap: '0.75rem' }}>
+                  <span style={{ width: '1.25rem', height: '1.25rem', borderRadius: '9999px', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>1</span>
+                  <p style={{ margin: 0 }}>Provide specific details like <span style={{ fontWeight: 600, color: '#0F172A' }}>serial numbers</span> or unique stickers.</p>
                 </li>
-                <li className="flex gap-3">
-                  <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
-                  <p>Describe what's <span className="font-semibold text-slate-900">inside</span> bags or wallets for faster verification.</p>
+                <li style={{ display: 'flex', gap: '0.75rem' }}>
+                  <span style={{ width: '1.25rem', height: '1.25rem', borderRadius: '9999px', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</span>
+                  <p style={{ margin: 0 }}>Describe what's <span style={{ fontWeight: 600, color: '#0F172A' }}>inside</span> bags or wallets for faster verification.</p>
                 </li>
-                <li className="flex gap-3">
-                  <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
-                  <p>Don't worry about being vague on the <span className="font-semibold text-slate-900">time</span>—approximate is fine.</p>
+                <li style={{ display: 'flex', gap: '0.75rem' }}>
+                  <span style={{ width: '1.25rem', height: '1.25rem', borderRadius: '9999px', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</span>
+                  <p style={{ margin: 0 }}>Don't worry about being vague on the <span style={{ fontWeight: 600, color: '#0F172A' }}>time</span>—approximate is fine.</p>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-brand/5 p-6 rounded-2xl border border-brand/10">
-              <h4 className="flex items-center gap-2 font-bold text-brand mb-3">
-                <ShieldAlert className="w-4 h-4" />
+            <div style={{ backgroundColor: 'rgba(30, 47, 133, 0.05)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(30, 47, 133, 0.1)' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#1E2F85', marginBottom: '0.75rem', margin: '0 0 0.75rem 0' }}>
+                <ShieldAlert style={{ width: '1rem', height: '1rem' }} />
                 Blind Verification
               </h4>
-              <p className="text-xs text-brand/80 leading-relaxed">
-                Your "Proof Identifiers" and "Private Notes" are <span className="font-bold">strictly hidden</span> from the public. Only campus administrators use this data to confirm your ownership.
+              <p style={{ fontSize: '0.75rem', color: 'rgba(30, 47, 133, 0.8)', lineHeight: '1.5', margin: 0 }}>
+                Your "Proof Identifiers" and "Private Notes" are <span style={{ fontWeight: 700 }}>strictly hidden</span> from the public. Only campus administrators use this data to confirm your ownership.
               </p>
             </div>
           </aside>

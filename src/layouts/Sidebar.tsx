@@ -13,81 +13,97 @@ import {
   ChevronLeft,
   User
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   
+  const asideStyle: React.CSSProperties = {
+    display: 'flex',
+    backgroundColor: '#1E2F85',
+    borderRight: '1px solid rgba(0, 0, 0, 0.2)',
+    flexDirection: 'column',
+    zIndex: 20,
+    position: 'sticky',
+    top: 0,
+    height: '100vh',
+    width: isCollapsed ? '5rem' : '16rem',
+    transition: 'width 0.3s ease-in-out'
+  }
+
   return (
-    <aside 
-      className={cn(
-        "hidden md:flex bg-[#1E2F85] border-r border-black/20 flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
-        isCollapsed ? "w-20" : "w-64"
-      )}
-    >
+    <aside style={asideStyle}>
       {/* App Title Header */}
-      <div className="h-16 flex items-center justify-between px-4 flex-shrink-0 overflow-hidden mt-2">
+      <div style={{ height: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1rem', flexShrink: 0, overflow: 'hidden', marginTop: '0.5rem' }}>
         {!isCollapsed && (
-          <div className="font-extrabold text-xl tracking-tight text-white overflow-hidden whitespace-nowrap">
-            <span className="text-white/80">Re</span>Claim
+          <div style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.025em', color: '#FFFFFF', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Re</span>Claim
           </div>
         )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn(
-            "p-2 text-white/90 bg-white/10 hover:bg-white/20 transition-all rounded-lg shadow-sm border border-white/10 hover:border-white/30 active:scale-95",
-            isCollapsed && "mx-auto"
-          )}
+          style={{ 
+            padding: '0.5rem', 
+            color: 'rgba(255, 255, 255, 0.9)', 
+            backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+            borderRadius: '0.5rem', 
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            cursor: 'pointer',
+            margin: isCollapsed ? '0 auto' : '0'
+          }}
           aria-label="Toggle sidebar"
         >
-          {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {isCollapsed ? <Menu style={{ width: '1.25rem', height: '1.25rem' }} /> : <ChevronLeft style={{ width: '1.25rem', height: '1.25rem' }} />}
         </button>
       </div>
 
       {/* Main Navigation Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1 scrollbar-hide">
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         
-        <div className="mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/50">Core Actions</h4>}
+        <div style={{ marginBottom: '0.5rem', padding: '0 0.75rem' }}>
+          {!isCollapsed && <h4 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>Core Actions</h4>}
         </div>
 
         <SidebarItem 
           to="/gallery" 
-          icon={<Search className="w-5 h-5 flex-shrink-0" />} 
+          icon={<Search style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Browse Found Items" 
           isCollapsed={isCollapsed} 
         />
         
         <SidebarItem 
           to="/report-lost" 
-          icon={<PlusCircle className="w-5 h-5 flex-shrink-0" />} 
+          icon={<PlusCircle style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Report a Lost Item" 
           isCollapsed={isCollapsed} 
         />
 
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/50">Tracking & Status</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
+        <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', padding: '0 0.75rem' }}>
+          {!isCollapsed && <h4 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>Tracking & Status</h4>}
+          {isCollapsed && <div style={{ height: '1px', width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.1)', margin: '0.5rem 0' }} />}
         </div>
 
         <SidebarItem 
           to="/ready-to-claim" 
-          icon={<Ticket className="w-5 h-5 flex-shrink-0" />} 
+          icon={<Ticket style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Ready to Claim" 
           isCollapsed={isCollapsed} 
         />
 
         <SidebarItem 
           to="/my-claims" 
-          icon={<Hand className="w-5 h-5 flex-shrink-0" />} 
+          icon={<Hand style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="My Claims" 
           isCollapsed={isCollapsed} 
         />
 
         <SidebarItem 
           to="/my-reports" 
-          icon={<FileText className="w-5 h-5 flex-shrink-0" />} 
+          icon={<FileText style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="My Lost Reports" 
           isCollapsed={isCollapsed} 
         />
@@ -95,28 +111,28 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Navigation Area */}
-      <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0 overflow-x-hidden">
+      <div style={{ padding: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '0.25rem', flexShrink: 0, overflowX: 'hidden' }}>
         <SidebarItem 
           to="/office" 
-          icon={<MapPin className="w-5 h-5 flex-shrink-0" />} 
+          icon={<MapPin style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Campus Admin Office" 
           isCollapsed={isCollapsed} 
         />
         <SidebarItem 
           to="/profile" 
-          icon={<User className="w-5 h-5 flex-shrink-0" />} 
+          icon={<User style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="My Profile" 
           isCollapsed={isCollapsed} 
         />
         <SidebarItem 
           to="/settings" 
-          icon={<Settings className="w-5 h-5 flex-shrink-0" />} 
+          icon={<Settings style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Settings" 
           isCollapsed={isCollapsed} 
         />
         <SidebarItem 
           to="/" 
-          icon={<LogOut className="w-5 h-5 flex-shrink-0" />} 
+          icon={<LogOut style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />} 
           label="Log Out" 
           isCollapsed={isCollapsed} 
           variant="danger"
@@ -138,28 +154,42 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
   const { pathname } = useLocation()
   const isActive = pathname === to || pathname.startsWith(to + "/")
 
+  const getLinkStyles = (active: boolean): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '0.75rem',
+      padding: '0.625rem 0.75rem',
+      borderRadius: '0.5rem',
+      textDecoration: 'none',
+      position: 'relative',
+      justifyContent: isCollapsed ? 'center' : 'flex-start',
+      transition: 'all 0.2s'
+    }
+
+    if (variant === "danger") {
+      return { ...base, color: 'rgba(255, 255, 255, 0.6)' }
+    }
+
+    if (active) {
+      return { ...base, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', fontWeight: '600', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }
+    }
+
+    return { ...base, color: 'rgba(255, 255, 255, 0.7)', fontWeight: '500' }
+  }
+
   const navLink = (
     <NavLink 
       to={to}
-      className={cn(
-        "flex flex-row items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
-        isCollapsed ? "justify-center" : "justify-start",
-        variant === "danger" 
-          ? "text-white/60 hover:bg-rose-500/20 hover:text-rose-200" 
-          : isActive
-            ? "bg-white/10 text-white font-semibold shadow-sm"
-            : "text-white/70 hover:bg-white/5 hover:text-white font-medium"
-      )}
+      style={({ isActive: linkActive }) => getLinkStyles(isActive || linkActive)}
     >
-      <div className={cn(
-        "transition-transform group-hover:scale-110",
-        isActive ? "text-white" : "text-white/70 group-hover:text-white"
-      )}>
+      <div style={{ color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {icon}
       </div>
       
       {!isCollapsed && (
-        <span className="text-sm flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+        <span style={{ fontSize: '0.875rem', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {label}
         </span>
       )}
@@ -172,7 +202,7 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
         <TooltipTrigger asChild>
           {navLink}
         </TooltipTrigger>
-        <TooltipContent side="right" className="bg-brand text-white font-semibold border-brand ml-2 outline-none">
+        <TooltipContent side="right" style={{ backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: '600', border: '1px solid #1E2F85', marginLeft: '0.5rem', outline: 'none' }}>
           {label}
         </TooltipContent>
       </Tooltip>
@@ -180,5 +210,4 @@ function SidebarItem({ to, icon, label, isCollapsed, variant = "default" }: Side
   }
 
   return navLink
-
 }

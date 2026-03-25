@@ -12,7 +12,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
 
 type InventoryMatch = {
@@ -132,114 +131,142 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
 
   if (confirmed) {
     return (
-      <div className="p-10 text-center space-y-6 animate-in zoom-in-95 duration-300">
-        <div className="w-20 h-20 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto shadow-inner ring-4 ring-emerald-50">
-          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+      <div style={{ padding: '2.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ width: '5rem', height: '5rem', backgroundColor: '#D1FAE5', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 'auto', marginRight: 'auto', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)', border: '4px solid #ECFDF5' }}>
+          <CheckCircle2 style={{ width: '2.5rem', height: '2.5rem', color: '#059669' }} />
         </div>
         <div>
-          <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-2">Report Linked!</h3>
-          <p className="text-slate-500 font-medium leading-relaxed max-w-xs mx-auto text-sm">
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '-0.025em', lineHeight: '1', marginBottom: '0.5rem', margin: 0 }}>Report Linked!</h3>
+          <p style={{ color: '#64748B', fontWeight: '500', lineHeight: '1.6', maxWidth: '20rem', marginLeft: 'auto', marginRight: 'auto', fontSize: '0.875rem', margin: 0 }}>
             {reportCode} is connected to {selectedItem?.code ?? "inventory"}. Student can now proceed with claim flow.
           </p>
         </div>
-        <Button className="w-full h-12 bg-brand hover:bg-brand-active text-white font-black rounded-xl uppercase tracking-widest text-xs shadow-sm" onClick={onClose}>Finish Workspace</Button>
+        <Button 
+          style={{ width: '100%', height: '3rem', backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: 900, borderRadius: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', border: 'none', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }} 
+          onClick={onClose}
+        >
+          Finish Workspace
+        </Button>
       </div>
     )
   }
 
+  const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    maxHeight: '85vh',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    borderRadius: '0.75rem'
+  }
+
   return (
-    <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
+    <div style={containerStyle}>
       {/* Header */}
-      <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center shadow-sm">
-            <ArrowRightLeft className="w-6 h-6 text-white" />
+      <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '3rem', height: '3rem', backgroundColor: '#1E2F85', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+            <ArrowRightLeft style={{ width: '1.5rem', height: '1.5rem', color: '#FFFFFF' }} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Match Linker</h2>
-            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mt-2">
-               Linking <span className="text-brand underline underline-offset-4">{reportId}</span>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '-0.025em', lineHeight: '1', margin: 0 }}>Match Linker</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', lineHeight: '1', marginTop: '0.5rem' }}>
+               Linking <span style={{ color: '#1E2F85', textDecoration: 'underline', textUnderlineOffset: '4px' }}>{reportId}</span>
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} style={{ padding: '0.5rem', color: '#94A3B8', backgroundColor: 'transparent', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <X style={{ width: '1.25rem', height: '1.25rem' }} />
         </button>
       </div>
 
       {/* Matching Workspace */}
-      <div className="flex-1 flex flex-col min-h-0 bg-slate-50/80">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, backgroundColor: 'rgba(248, 250, 252, 0.8)' }}>
         {/* Search Bar */}
-        <div className="p-8 border-b border-slate-100 space-y-4 bg-white">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
+        <div style={{ padding: '2rem', borderBottom: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: '#FFFFFF' }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
             <Input 
               placeholder="Search Inventory by keywords..." 
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="pl-12 h-12 bg-slate-50 border-slate-200 shadow-inner focus:bg-white focus:ring-4 focus:ring-brand/5 rounded-xl text-sm font-bold placeholder:text-slate-400"
+              style={{ width: '100%', padding: '0 1rem 0 3rem', height: '3rem', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 'bold', outline: 'none', boxShadow: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
             />
           </div>
           {prefillHint && (
-            <div className="text-[10px] font-black uppercase tracking-wider text-brand bg-brand/5 border border-brand/10 rounded-lg px-3 py-2">
+            <div style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1E2F85', backgroundColor: 'rgba(30, 47, 133, 0.05)', border: '1px solid rgba(30, 47, 133, 0.1)', borderRadius: '0.5rem', padding: '0.5rem 0.75rem' }}>
               Prefilled criteria: {prefillHint}
             </div>
           )}
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             {prefill?.category && (
-              <Button variant="outline" size="sm" className="bg-white text-[10px] h-8 font-black uppercase tracking-widest border-slate-200 text-slate-500 rounded-lg">
-                <Filter className="w-3 h-3 mr-2" /> Category: {prefill.category}
+              <Button style={{ backgroundColor: '#FFFFFF', fontSize: '10px', height: '2rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #E2E8F0', color: '#64748B', borderRadius: '0.5rem', padding: '0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <Filter style={{ width: '0.75rem', height: '0.75rem' }} /> Category: {prefill.category}
               </Button>
             )}
             {prefill?.color && (
-              <Button variant="outline" size="sm" className="bg-white text-[10px] h-8 font-black uppercase tracking-widest border-slate-200 text-slate-500 rounded-lg">
-                <Filter className="w-3 h-3 mr-2" /> Color: {prefill.color}
+              <Button style={{ backgroundColor: '#FFFFFF', fontSize: '10px', height: '2rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #E2E8F0', color: '#64748B', borderRadius: '0.5rem', padding: '0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <Filter style={{ width: '0.75rem', height: '0.75rem' }} /> Color: {prefill.color}
               </Button>
             )}
           </div>
         </div>
 
         {/* Matches List */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-4">
-           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Potential Matches ({inventoryMatches.length})</h4>
-           {error && <p className="text-xs font-semibold text-rose-600">{error}</p>}
-           {isLoading && <p className="text-xs font-semibold text-slate-500">Loading inventory candidates...</p>}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+           <h4 style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.25rem', margin: 0 }}>Potential Matches ({inventoryMatches.length})</h4>
+           {error && <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#EF4444', margin: 0 }}>{error}</p>}
+           {isLoading && <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748B', margin: 0 }}>Loading inventory candidates...</p>}
           
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
              {inventoryMatches.map((item) => (
-               <MatchCandidateCard
-                 key={item.id}
-                 item={item}
-                 isSelected={selectedMatch === item.id}
-                 onClick={() => setSelectedMatch(item.id)}
-               />
+                <MatchCandidateCard
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedMatch === item.id}
+                  onClick={() => setSelectedMatch(item.id)}
+                />
              ))}
           </div>
         </div>
       </div>
 
       {/* Selection Summary */}
-      <div className="px-8 py-6 border-t border-slate-100 bg-white">
+      <div style={{ padding: '1.5rem 2rem', borderTop: '1px solid #F1F5F9', backgroundColor: '#FFFFFF' }}>
         {selectedMatch ? (
-          <div className="flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-bottom-2 duration-300">
-            <div className="flex-1 text-center sm:text-left">
-               <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-2">Ready to Connect</div>
-               <div className="text-sm font-bold text-slate-900 tracking-tight">Manual verification of ownership confirmed.</div>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+               <div style={{ fontSize: '10px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.2em', lineHeight: '1', marginBottom: '0.5rem' }}>Ready to Connect</div>
+               <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#0F172A', letterSpacing: '-0.0125em' }}>Manual verification of ownership confirmed.</div>
             </div>
-            <div className="flex gap-3 w-full sm:w-auto">
-              <Button variant="outline" className="flex-1 sm:flex-none h-11 px-8 border-slate-200 rounded-xl font-bold uppercase tracking-widest text-[10px] text-slate-500" onClick={() => setSelectedMatch(null)}>Change Choice</Button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <Button style={{ height: '2.75rem', padding: '0 2rem', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px', color: '#64748B', backgroundColor: '#FFFFFF', cursor: 'pointer' }} onClick={() => setSelectedMatch(null)}>Change Choice</Button>
               <Button 
                 onClick={handleLink}
                 disabled={isLinking || !selectedItem}
-                className="flex-1 sm:flex-none h-11 px-10 bg-brand hover:opacity-90 text-white font-black uppercase tracking-widest text-[11px] shadow-sm rounded-xl transition-all active:scale-95"
+                style={{ 
+                  height: '2.75rem', 
+                  padding: '0 2.5rem', 
+                  backgroundColor: '#1E2F85', 
+                  color: '#FFFFFF', 
+                  fontWeight: 900, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.1em', 
+                  fontSize: '11px', 
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+                  borderRadius: '0.75rem', 
+                  border: 'none',
+                  cursor: 'pointer',
+                  opacity: isLinking ? 0.7 : 1
+                }}
               >
                 {isLinking ? "Establishing Link..." : "Confirm & Notify"}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-2 text-center text-slate-400">
-             <div className="text-[10px] font-black uppercase tracking-[0.2em]">Select an inventory item to proceed with linking</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0', textAlign: 'center', color: '#94A3B8' }}>
+             <div style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Select an inventory item to proceed with linking</div>
           </div>
         )}
       </div>
@@ -256,50 +283,106 @@ function MatchCandidateCard({
   isSelected: boolean
   onClick: () => void
 }) {
+  const cardStyle: React.CSSProperties = {
+    padding: '1.5rem',
+    borderRadius: '0.75rem',
+    border: isSelected ? '1px solid #1E2F85' : '1px solid #E2E8F0',
+    backgroundColor: '#FFFFFF',
+    transition: 'all 0.2s',
+    cursor: 'pointer',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '1rem',
+    boxShadow: isSelected ? '0 20px 25px -5px rgba(0, 0, 0, 0.1)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    zIndex: isSelected ? 10 : 1
+  }
+
+  const iconStyle: React.CSSProperties = {
+    width: '3rem',
+    height: '3rem',
+    borderRadius: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    border: '1px solid',
+    borderColor: isSelected ? '#1E2F85' : '#E2E8F0',
+    backgroundColor: isSelected ? '#1E2F85' : '#F8FAFC',
+    color: isSelected ? '#FFFFFF' : '#64748B',
+    transition: 'all 0.2s'
+  }
+
   return (
     <div 
       onClick={onClick}
-      className={cn(
-        "p-6 rounded-xl border transition-all cursor-pointer relative group flex items-start gap-4",
-        isSelected 
-          ? "bg-white border-brand shadow-xl ring-2 ring-brand/10 z-10" 
-          : "bg-white border-slate-200 shadow-sm hover:border-brand/30 hover:shadow-md"
-      )}
+      style={cardStyle}
     >
-      <div className={cn(
-        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all",
-        isSelected ? "bg-brand border-brand text-white shadow-sm" : "bg-slate-50 border-slate-200 text-slate-500 group-hover:bg-brand/5 group-hover:text-brand"
-      )}>
-        <Package className="w-6 h-6" />
+      <div style={iconStyle}>
+        <Package style={{ width: '1.5rem', height: '1.5rem' }} />
       </div>
       
-      <div className="flex-1 min-w-0 pr-12">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.code}</span>
+      <div style={{ flex: 1, minWidth: 0, paddingRight: '3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '10px', fontWeight: 900, color: '#64748B', fontFamily: 'monospace', letterSpacing: '-0.05em' }}>{item.code}</span>
             <StatusBadge weight={item.matchScore} />
           </div>
-         <h5 className="font-bold text-slate-900 text-[17px] leading-tight mb-2 truncate group-hover:text-brand transition-colors tracking-tight">{item.title}</h5>
-         <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500">
-            <div className="flex items-center gap-1.5">
-               <MapPin className="w-3.5 h-3.5" />
+         <h5 style={{ fontWeight: 'bold', color: '#0F172A', fontSize: '17px', lineHeight: '1.25', marginBottom: '0.5rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.025em' }}>{item.title}</h5>
+         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '11px', fontWeight: 'bold', color: '#64748B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+               <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
                {item.location}
             </div>
-            <div className="flex items-center gap-1.5">
-               <Calendar className="w-3.5 h-3.5" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+               <Calendar style={{ width: '0.875rem', height: '0.875rem' }} />
                {item.date}
             </div>
           </div>
       </div>
 
-      <div className={cn(
-        "absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border transition-all",
-        isSelected 
-          ? "bg-brand border-brand text-white scale-110 shadow-sm" 
-          : "bg-slate-50 border-slate-200 text-slate-300 group-hover:border-brand/20 group-hover:text-brand/40"
-      )}>
-        {isSelected ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-4 h-4" />}
+      <div style={{ 
+        position: 'absolute', 
+        right: '1.5rem', 
+        top: '50%', 
+        transform: 'translateY(-50%)', 
+        width: '2.25rem', 
+        height: '2.25rem', 
+        borderRadius: '50%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        border: '1px solid', 
+        borderColor: isSelected ? '#1E2F85' : '#E2E8F0', 
+        backgroundColor: isSelected ? '#1E2F85' : '#F8FAFC', 
+        color: isSelected ? '#FFFFFF' : '#D1D5DB', 
+        transition: 'all 0.2s'
+      }}>
+        {isSelected ? <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem' }} /> : <ArrowRight style={{ width: '1rem', height: '1rem' }} />}
       </div>
     </div>
+  )
+}
+
+function StatusBadge({ weight }: { weight: number }) {
+  const getStyles = (): React.CSSProperties => {
+    if (weight > 80) return { backgroundColor: '#D1FAE5', color: '#065F46', borderColor: '#A7F3D0' }
+    if (weight > 50) return { backgroundColor: '#FFEDD5', color: '#9A3412', borderColor: '#FED7AA' }
+    return { backgroundColor: '#F1F5F9', color: '#475569', borderColor: '#E2E8F0' }
+  }
+
+  return (
+    <span style={{ 
+      padding: '0.125rem 0.5rem', 
+      borderRadius: '0.25rem', 
+      fontSize: '9px', 
+      fontWeight: 900, 
+      textTransform: 'uppercase', 
+      letterSpacing: '-0.05em', 
+      border: '1px solid', 
+      ...getStyles() 
+    }}>
+      {weight}% AI PROBABILITY MATCH
+    </span>
   )
 }
 
@@ -319,21 +402,3 @@ function computeMatchScore(item: { category: string; color: string }, prefill?: 
 
   return Math.min(score, 99)
 }
-
-function StatusBadge({ weight }: { weight: number }) {
-  const getStyles = () => {
-    if (weight > 80) return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-    if (weight > 50) return 'bg-orange-100 text-orange-800 border-orange-200'
-    return 'bg-slate-100 text-slate-600 border-slate-200'
-  }
-
-  return (
-    <span className={cn(
-      "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border",
-      getStyles()
-    )}>
-      {weight}% AI PROBABILITY MATCH
-    </span>
-  )
-}
-

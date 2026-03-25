@@ -17,7 +17,6 @@ import { StatusBadge } from "@/components/ui/StatusBadge"
 import { DataRow } from "@/components/ui/DataRow"
 import { DetailSection } from "@/components/ui/DetailSection"
 import { Button } from "@/components/ui/Button"
-import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
 import { api } from "@/lib/api"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
@@ -269,11 +268,11 @@ export function MissingItemsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {showLinker && selectedReport && (
-        <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowLinker(false)} />
-          <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setShowLinker(false)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '64rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <MatchLinkingModal
               reportId={reports.find(r => r.id === selectedReport)?.id || selectedReport}
               reportCode={reports.find(r => r.id === selectedReport)?.code || ""}
@@ -296,17 +295,17 @@ export function MissingItemsPage() {
         </div>
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Missing Items</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Monitor and verify incoming student lost reports against system records.</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Missing Items</h1>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Monitor and verify incoming student lost reports against system records.</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <div className="xl:col-span-4 space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ flex: '0 0 24rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Filter Section */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-            <div className="relative group">
-              <FileSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
+          <div style={{ backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ position: 'relative' }}>
+              <FileSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
               <input
                 type="text"
                 placeholder="Search reports..."
@@ -315,10 +314,10 @@ export function MissingItemsPage() {
                   setSearchQuery(e.target.value)
                   setPage(1)
                 }}
-                className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all shadow-inner"
+                style={{ width: '100%', height: '2.75rem', paddingLeft: '2.75rem', paddingRight: '1rem', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
-            <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar">
+            <div style={{ display: 'flex', gap: '0.5rem', paddingBottom: '0.25rem', overflowX: 'auto' }}>
               {["All", "Electronics", "Wallets/IDs", "Everyday Items"].map(cat => (
                 <button
                   key={cat}
@@ -326,12 +325,21 @@ export function MissingItemsPage() {
                     setCategoryFilter(cat)
                     setPage(1)
                   }}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border shadow-sm",
-                    cat === categoryFilter
-                      ? "bg-brand text-white border-brand shadow-brand/20"
-                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 active:scale-95"
-                  )}
+                  style={{
+                    padding: '0.375rem 1rem',
+                    borderRadius: '9999px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    backgroundColor: cat === categoryFilter ? '#1E2F85' : '#FFFFFF',
+                    color: cat === categoryFilter ? '#FFFFFF' : '#64748B',
+                    borderColor: cat === categoryFilter ? '#1E2F85' : '#E2E8F0',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}
                 >
                   {cat}
                 </button>
@@ -339,7 +347,7 @@ export function MissingItemsPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {triageReports.map((r) => (
               <MissingReportCard 
                 key={r.id} 
@@ -350,12 +358,12 @@ export function MissingItemsPage() {
               />
             ))}
             {isLoading && (
-              <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
+              <div style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #E2E8F0', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
                 Loading reports...
               </div>
             )}
             {!isLoading && triageReports.length === 0 && (
-              <div className="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 font-semibold">
+              <div style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #E2E8F0', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
                 No active reports in triage queue.
               </div>
             )}
@@ -377,7 +385,7 @@ export function MissingItemsPage() {
         </div>
 
         {/* Detailed Workspace Area */}
-        <div className="xl:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-175 flex flex-col relative">
+        <div style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0', overflow: 'hidden', minHeight: '44rem', display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {report ? (
             <ReportWorkspace
               report={report}
@@ -393,13 +401,13 @@ export function MissingItemsPage() {
               }}
             />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center animate-pulse">
-              <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-6">
-                <FileText className="w-12 h-12 text-slate-200" />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', textAlign: 'center' }}>
+              <div style={{ width: '8rem', height: '8rem', backgroundColor: '#F8FAFC', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #F1F5F9', marginBottom: '1.5rem' }}>
+                <FileText style={{ width: '3rem', height: '3rem', color: '#E2E8F0' }} />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Accessing Queue...</h3>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Select a report from the list to begin system verification.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '-0.025em', margin: 0 }}>Accessing Queue...</h3>
+                <p style={{ color: '#94A3B8', fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Select a report from the list to begin system verification.</p>
               </div>
             </div>
           )}
@@ -423,35 +431,40 @@ function MissingReportCard({
   return (
     <div
       onClick={onClick}
-      className={cn(
-        "p-5 bg-white rounded-2xl border transition-all cursor-pointer group shadow-sm relative overflow-hidden",
-        isSelected
-          ? "border-brand ring-2 ring-brand/10 scale-[1.01] shadow-sm"
-          : "border-slate-100 hover:border-brand/20 hover:shadow-sm",
-        isFocused && "ring-2 ring-brand/30 border-brand/50"
-      )}
+      style={{
+        padding: '1.25rem',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '1rem',
+        border: '1px solid',
+        borderColor: isSelected ? '#1E2F85' : (isFocused ? 'rgba(30, 47, 133, 0.5)' : '#F1F5F9'),
+        boxShadow: isSelected ? '0 0 0 2px rgba(30, 47, 133, 0.1)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        cursor: 'pointer',
+        position: 'relative',
+        overflow: 'hidden',
+        transform: isSelected ? 'scale(1.01)' : 'none'
+      }}
     >
-      {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
+      {isSelected && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '0.375rem', backgroundColor: '#1E2F85' }} />}
 
-      <div className="flex justify-between items-start mb-3">
-        <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', fontFamily: 'monospace', letterSpacing: '-0.025em', backgroundColor: '#F8FAFC', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', border: '1px solid #F1F5F9' }}>
           {report.code}
         </span>
         <StatusBadge status={report.status} />
       </div>
-      <h4 className="font-bold text-slate-800 text-[15px] mb-1 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
+      <h4 style={{ fontWeight: 700, color: '#1E293B', fontSize: '15px', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
         {report.item}
       </h4>
-      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-4 shrink-0">
-        <User className="w-3 h-3 text-slate-300 shrink-0" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '11px', fontWeight: 700, color: '#94A3B8', marginBottom: '1rem' }}>
+        <User style={{ width: '0.75rem', height: '0.75rem', color: '#CBD5E1', flexShrink: 0 }} />
         {report.student}
       </div>
-      <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-auto">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-3 h-3" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(30, 47, 133, 0.6)', backgroundColor: 'rgba(30, 47, 133, 0.05)', margin: '1rem -1.25rem -1.25rem', padding: '0.625rem 1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <Calendar style={{ width: '0.75rem', height: '0.75rem' }} />
           {report.date}
         </div>
-        <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{report.category}</span>
+        <span style={{ backgroundColor: '#FFFFFF', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid rgba(30, 47, 133, 0.1)' }}>{report.category}</span>
       </div>
     </div>
   )
@@ -479,65 +492,75 @@ function ReportWorkspace({
   onTogglePrivateNote: (visible: boolean) => void
 }) {
   return (
-    <div className="flex flex-col h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Workspace Header */}
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <ShieldAlert className="w-5 h-5 text-white" />
+      <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', backgroundColor: 'rgba(248, 250, 252, 0.5)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '2.5rem', height: '2.5rem', backgroundColor: '#1E2F85', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+            <ShieldAlert style={{ width: '1.25rem', height: '1.25rem', color: '#FFFFFF' }} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase underline underline-offset-4 decoration-brand/20 decoration-2">Report Workspace</h2>
-              <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Reference:</span>
-              <span className="text-brand font-extrabold tracking-tight">{report.code}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.025em', textTransform: 'uppercase', textDecoration: 'underline', textUnderlineOffset: '4px', textDecorationColor: 'rgba(30, 47, 133, 0.2)', textDecorationThickness: '2px', margin: 0 }}>Report Workspace</h2>
+              <span style={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px' }}>Reference:</span>
+              <span style={{ color: '#1E2F85', fontWeight: 800, letterSpacing: '-0.025em' }}>{report.code}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg">
-            <MessageSquare className="w-4 h-4 mr-2 text-brand" /> Send Inquiry
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Button variant="outline" style={{ height: '2.5rem', padding: '0 1rem', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <MessageSquare style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#1E2F85' }} /> Send Inquiry
           </Button>
           <Button
             disabled={!isAuthorized}
             onClick={onMatchInventory}
-            size="sm"
-            className={cn(
-              "text-white font-bold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg transition-all active:scale-95",
-              isAuthorized
-                ? "bg-brand hover:bg-brand-active shadow-lg shadow-brand/20 ring-2 ring-brand/20"
-                : "bg-slate-300 cursor-not-allowed"
-            )}
+            style={{ 
+              height: '2.5rem', 
+              padding: '0 1.5rem', 
+              backgroundColor: isAuthorized ? '#1E2F85' : '#CBD5E1', 
+              color: '#FFFFFF', 
+              fontWeight: 700, 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.1em', 
+              fontSize: '10px', 
+              borderRadius: '0.5rem', 
+              border: 'none',
+              cursor: isAuthorized ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              boxShadow: isAuthorized ? '0 10px 15px -3px rgba(30, 47, 133, 0.2)' : 'none',
+              boxSizing: 'border-box'
+            }}
           >
-            <Link2 className="w-4 h-4 mr-2" /> Match Inventory
+            <Link2 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Match Inventory
           </Button>
         </div>
       </div>
       {isAuthorized && (
-        <div className="px-6 pb-5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+        <div style={{ padding: '0 1.5rem 1.25rem', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#15803D' }}>
           Report authorized. Next required step: match this report with found inventory.
         </div>
       )}
 
       {/* Workspace Content */}
-      <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '3rem' }}>
           {/* Left: Reported Details */}
-          <div className="space-y-10">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
             <DetailSection title="Reported Identity">
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                   <DataRow label="Student Name" value={report.student} />
                   <DataRow label="Student Number" value={report.studentId} />
                 </div>
-                <div className="h-px bg-slate-100 w-full" />
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9', width: '100%' }} />
                 <DataRow label="Item Name / Description" value={report.item} />
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                   <DataRow label="Category" value={report.category} />
                   <DataRow label="Primary Color" value={report.color} />
                 </div>
                 <DataRow label="Brand / Model" value={report.brand} />
-                <div className="h-px bg-slate-100 w-full" />
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9', width: '100%' }} />
                 <DataRow label="Last Known Location" value={report.location} />
                 <DataRow label="Estimated Time Window" value={report.timeWindow} />
                 <DataRow label="Date of Loss" value={report.date} />
@@ -545,38 +568,38 @@ function ReportWorkspace({
             </DetailSection>
 
             {/* Conditional Proof Data */}
-            <div className="p-6 bg-brand/5 rounded-xl border border-brand/10 space-y-3">
-              <h5 className="flex items-center gap-2 text-[10px] font-bold text-brand/60 uppercase tracking-widest font-mono px-3 py-1 bg-brand/5 rounded-lg w-fit">
-                <CheckCircle2 className="w-3 h-3" />
+            <div style={{ padding: '1.5rem', backgroundColor: 'rgba(30, 47, 133, 0.05)', borderRadius: '0.75rem', border: '1px solid rgba(30, 47, 133, 0.1)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '10px', fontWeight: 700, color: 'rgba(30, 47, 133, 0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'monospace', padding: '0.25rem 0.75rem', backgroundColor: 'rgba(30, 47, 133, 0.05)', borderRadius: '0.5rem', width: 'fit-content', margin: 0 }}>
+                <CheckCircle2 style={{ width: '0.75rem', height: '0.75rem' }} />
                 Conditional Proof Data
               </h5>
-              <div className="grid grid-cols-1 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 {report.category === "Electronics" && report.deviceName && (
                   <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Device / Bluetooth Name</div>
-                    <div className="text-sm font-bold text-slate-800">{report.deviceName}</div>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem', lineHeight: 1 }}>Device / Bluetooth Name</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>{report.deviceName}</div>
                   </div>
                 )}
                 {report.category === "Wallets/IDs" && report.nameOnDoc && (
                   <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Name on Document</div>
-                    <div className="text-sm font-bold text-slate-800">{report.nameOnDoc}</div>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem', lineHeight: 1 }}>Name on Document</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>{report.nameOnDoc}</div>
                   </div>
                 )}
                 <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Marks / Stickers</div>
-                  <div className="text-sm font-bold text-slate-800">{report.marks}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem', lineHeight: 1 }}>Marks / Stickers</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>{report.marks}</div>
                 </div>
               </div>
             </div>
 
             {report.status === "MATCHED" && report.linkedItem && (
-              <div className="p-6 bg-emerald-50/60 rounded-xl border border-emerald-100 space-y-3">
-                <h5 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Linked Asset</h5>
-                <div className="space-y-2">
+              <div style={{ padding: '1.5rem', backgroundColor: 'rgba(16, 185, 129, 0.05)', borderRadius: '0.75rem', border: '1px solid #BBF7D0', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <h5 style={{ fontSize: '10px', fontWeight: 700, color: '#15803D', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Linked Asset</h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <DataRow label="Inventory Code" value={report.linkedItem.code} />
                   <DataRow label="Matched Item" value={report.linkedItem.title} />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                     <DataRow label="Category" value={report.linkedItem.category} />
                     <DataRow label="Color" value={report.linkedItem.color} />
                   </div>
@@ -587,52 +610,51 @@ function ReportWorkspace({
           </div>
 
           {/* Right: Security & Decisions */}
-          <div className="space-y-10">
-            <DetailSection title="Privacy Guarded Data" icon={<ShieldAlert className="w-4 h-4 text-rose-500" />}>
-              <div className="space-y-4">
-                <div className="p-6 bg-slate-50/50 rounded-xl border border-slate-200 border-dashed relative group transition-all hover:bg-white hover:border-brand/20">
-                  <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-3 font-mono">Student Private Note</label>
-                  <div className={cn(
-                    "text-sm transition-all duration-300",
-                    isPrivateNoteVisible
-                      ? "text-slate-700"
-                      : "blur-md select-none text-slate-300 pointer-events-none group-hover:blur-sm"
-                  )}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            <DetailSection title="Privacy Guarded Data" icon={<ShieldAlert style={{ width: '1rem', height: '1rem', color: '#F43F5E' }} />}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ padding: '1.5rem', backgroundColor: 'rgba(248, 250, 252, 0.5)', borderRadius: '0.75rem', border: '1px solid #E2E8F0', borderStyle: 'dashed', position: 'relative' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.75rem', fontFamily: 'monospace' }}>Student Private Note</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    transition: 'all 0.3s',
+                    color: isPrivateNoteVisible ? '#334155' : '#CBD5E1',
+                    filter: isPrivateNoteVisible ? 'none' : 'blur(8px)',
+                    userSelect: isPrivateNoteVisible ? 'auto' : 'none',
+                    pointerEvents: isPrivateNoteVisible ? 'auto' : 'none'
+                  }}>
                     {report.privateNote}
                   </div>
-                  <div className={cn(
-                    "absolute inset-0 flex flex-col items-center justify-center rounded-xl transition-all",
-                    isPrivateNoteVisible
-                      ? "bg-transparent pointer-events-none opacity-0"
-                      : "bg-white/40 backdrop-blur-[2px] opacity-100 group-hover:bg-white/10"
-                  )}>
-                    <Button
-                      size="sm"
-                      onClick={() => onTogglePrivateNote(true)}
-                      className="bg-brand text-white hover:bg-brand-active text-[10px] font-bold tracking-widest h-9 px-6 rounded-lg uppercase shadow-sm pointer-events-auto"
-                    >
-                      <Eye className="w-3.5 h-3.5 mr-2" /> Reveal Private Note
-                    </Button>
-                  </div>
+                  {!isPrivateNoteVisible && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '0.75rem', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(2px)' }}>
+                      <Button
+                        size="sm"
+                        onClick={() => onTogglePrivateNote(true)}
+                        style={{ backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: 700, letterSpacing: '0.1em', height: '2.25rem', padding: '0 1.5rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontSize: '10px', border: 'none', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                      >
+                        <Eye style={{ width: '0.875rem', height: '0.875rem', marginRight: '0.5rem' }} /> Reveal Private Note
+                      </Button>
+                    </div>
+                  )}
                   {isPrivateNoteVisible && (
-                    <div className="mt-4">
+                    <div style={{ marginTop: '1rem' }}>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => onTogglePrivateNote(false)}
-                        className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest border-slate-200 text-slate-600"
+                        style={{ height: '2rem', padding: '0 1rem', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#475569', borderRadius: '0.5rem', cursor: 'pointer' }}
                       >
-                        <EyeOff className="w-3.5 h-3.5 mr-2" /> Hide Private Note
+                        <EyeOff style={{ width: '0.875rem', height: '0.875rem', marginRight: '0.5rem' }} /> Hide Private Note
                       </Button>
                     </div>
                   )}
                 </div>
 
-                <div className="p-6 bg-white rounded-xl border border-slate-100 shadow-inner">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">Reference Attachment</label>
-                  <div className="w-full aspect-video bg-slate-50 rounded-xl flex flex-col items-center justify-center border border-slate-100 border-dashed">
-                    <HelpCircle className="w-8 h-8 text-slate-200 mb-2" />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">No media attached to report</span>
+                <div style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #F1F5F9', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '1rem' }}>Reference Attachment</label>
+                  <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#F8FAFC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px solid #F1F5F9', borderStyle: 'dashed' }}>
+                    <HelpCircle style={{ width: '2rem', height: '2rem', color: '#E2E8F0', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#CBD5E1', textTransform: 'uppercase', letterSpacing: '-0.025em' }}>No media attached to report</span>
                   </div>
                 </div>
               </div>
@@ -640,27 +662,23 @@ function ReportWorkspace({
 
             {/* Footer Decision Unit */}
             {canReviewReport ? (
-              <div className="pt-8 border-t border-slate-100 flex gap-4">
-                <Button disabled={isUpdating} onClick={() => onUpdateStatus("REJECTED")} variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
-                  <XCircle className="w-4 h-4 mr-2" /> Reject Report
+              <div style={{ paddingTop: '2rem', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '1rem' }}>
+                <Button disabled={isUpdating} onClick={() => onUpdateStatus("REJECTED")} variant="outline" style={{ flex: 1, height: '3rem', backgroundColor: '#FFFFFF', border: '1px solid #FEE2E2', color: '#EF4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px', borderRadius: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
+                  <XCircle style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Reject Report
                 </Button>
-                <Button disabled={isUpdating} onClick={() => onUpdateStatus("ACTIVE_SEARCH")} className="flex-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all active:scale-95 shadow-sm">
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Verify & Authorize
+                <Button disabled={isUpdating} onClick={() => onUpdateStatus("ACTIVE_SEARCH")} style={{ flex: 2, height: '3rem', backgroundColor: '#059669', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '10px', borderRadius: '0.75rem', border: 'none', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
+                  <CheckCircle2 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Verify & Authorize
                 </Button>
               </div>
             ) : (
-              <div className="pt-8 border-t border-slate-100 rounded-xl bg-slate-50 px-5 py-4 text-xs font-semibold text-slate-600">
+              <div style={{ paddingTop: '2rem', borderTop: '1px solid #F1F5F9', borderRadius: '0.75rem', backgroundColor: '#F8FAFC', padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>
                 Review decision is already recorded for this report. Continue with inventory matching or follow-up handling.
               </div>
             )}
-            {error && <p className="text-xs font-semibold text-rose-600">{error}</p>}
+            {error && <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#E11D48', margin: '0.5rem 0 0 0' }}>{error}</p>}
           </div>
         </div>
       </div>
     </div>
   )
 }
-
-
-
-

@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button"
 import { Select } from "@/components/ui/Select"
-import { cn } from "@/lib/utils"
 
 type AdminPaginationControlsProps = {
   page: number
@@ -14,6 +13,7 @@ type AdminPaginationControlsProps = {
   itemLabel?: string
   className?: string
   showRowsPerPage?: boolean
+  style?: React.CSSProperties
 }
 
 export function AdminPaginationControls({
@@ -26,21 +26,21 @@ export function AdminPaginationControls({
   onRowsPerPageChange,
   rowsPerPageOptions = [10, 25, 50, 100],
   itemLabel = "records",
-  className,
   showRowsPerPage = true,
+  style,
 }: AdminPaginationControlsProps) {
   const safePageCount = Math.max(1, pageCount)
   const safePage = Math.min(Math.max(1, page), safePageCount)
 
   return (
-    <div className={cn("pt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", className)}>
+    <div style={{ paddingTop: '0.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.3s ease', ...style }}>
       {showRowsPerPage ? (
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Rows per page</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B' }}>Rows per page</span>
           <Select
             value={String(rowsPerPage)}
             onChange={(event) => onRowsPerPageChange(Number(event.target.value))}
-            className="h-8 w-20 border-slate-200 bg-white text-[11px] font-bold"
+            style={{ height: '2rem', width: '5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', borderRadius: '0.375rem', fontSize: '11px', fontWeight: 700 }}
           >
             {rowsPerPageOptions.map((option) => (
               <option key={option} value={option}>
@@ -53,25 +53,25 @@ export function AdminPaginationControls({
         <div />
       )}
 
-      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">
+      <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>
         Showing {visibleCount} of {total} {itemLabel}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <Button
           type="button"
           variant="outline"
-          className="h-8 px-3 border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+          style={{ height: '2rem', padding: '0 0.75rem', border: '1px solid #E2E8F0', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', backgroundColor: '#FFFFFF', borderRadius: '0.375rem' }}
           onClick={() => onPageChange(safePage - 1)}
           disabled={safePage <= 1}
         >
           Prev
         </Button>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{safePage}/{safePageCount}</span>
+        <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B' }}>{safePage}/{safePageCount}</span>
         <Button
           type="button"
           variant="outline"
-          className="h-8 px-3 border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+          style={{ height: '2rem', padding: '0 0.75rem', border: '1px solid #E2E8F0', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', backgroundColor: '#FFFFFF', borderRadius: '0.375rem' }}
           onClick={() => onPageChange(safePage + 1)}
           disabled={safePage >= safePageCount}
         >
@@ -81,4 +81,3 @@ export function AdminPaginationControls({
     </div>
   )
 }
-

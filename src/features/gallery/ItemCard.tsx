@@ -1,8 +1,7 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import { ShieldAlert, Laptop, MapPin, CalendarClock } from "lucide-react"
 import { ClaimThisItemModal } from "@/features/claims/ClaimThisItemModal"
 
-// Ensure we have our shared types in place (will create types/index.ts later)
 export interface FoundItem {
   id: string
   title: string
@@ -20,54 +19,127 @@ interface ItemCardProps {
 export function ItemCard({ item }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  const cardStyles: React.CSSProperties = {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '0.75rem',
+    border: '1px solid #E2E8F0',
+    overflow: 'hidden',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    display: 'flex',
+    flexDirection: 'column',
+  }
+
+  const imageContainerStyles: React.CSSProperties = {
+    height: '12rem',
+    width: '100%',
+    backgroundColor: '#F8FAFC',
+    borderBottom: '1px solid #E2E8F0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  }
+
+  const highValueBadgeStyles: React.CSSProperties = {
+    position: 'absolute',
+    top: '0.75rem',
+    left: '0.75rem',
+    backgroundColor: 'rgba(30, 47, 133, 0.1)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(30, 47, 133, 0.2)',
+    padding: '0.25rem 0.625rem',
+    borderRadius: '0.25rem',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    color: '#1E2F85',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.375rem',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  }
+
+  const contentBodyStyles: React.CSSProperties = {
+    padding: '1.25rem',
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '1 1 0%',
+  }
+
+  const titleStyles: React.CSSProperties = {
+    fontWeight: 'bold',
+    color: '#0F172A',
+    fontSize: '1.125rem',
+    lineHeight: '1.25',
+    margin: 0,
+    display: '-webkit-box',
+    WebkitLineClamp: 1,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  }
+
+  const claimButtonStyles: React.CSSProperties = {
+    marginTop: 'auto',
+    width: '100%',
+    padding: '0.625rem 0',
+    backgroundColor: '#1E2F85',
+    color: '#FFFFFF',
+    borderRadius: '0.5rem',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  }
+
   return (
     <>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col">
+      <div style={cardStyles}>
         {/* Visual Header */}
-        <div className="h-48 w-full bg-slate-50 border-b border-slate-200 flex items-center justify-center relative overflow-hidden">
+        <div style={imageContainerStyles}>
           {item.isHighValue ? (
-            <div className="flex flex-col items-center justify-center text-slate-500 opacity-70 group-hover:scale-105 transition-transform duration-500">
-              <Laptop className="w-16 h-16 mb-2" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">Secure Match required</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748B', opacity: 0.7 }}>
+              <Laptop style={{ width: '4rem', height: '4rem', marginBottom: '0.5rem' }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#1E2F85' }}>Secure Match required</span>
             </div>
           ) : (
-            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform duration-500">
-              {/* Placeholder for actual low-value image */}
-              <span className="text-xs font-medium">No Image Provided</span>
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>No Image Provided</span>
             </div>
           )}
           
           {/* High Value Badge overlay */}
           {item.isHighValue && (
-            <div className="absolute top-3 left-3 bg-brand/10 backdrop-blur-md border border-brand/20 px-2.5 py-1 rounded text-[10px] font-bold text-brand flex items-center gap-1.5 shadow-sm">
-              <ShieldAlert className="w-3 h-3" />
+            <div style={highValueBadgeStyles}>
+              <ShieldAlert style={{ width: '0.75rem', height: '0.75rem' }} />
               HIGH VALUE
             </div>
           )}
         </div>
 
         {/* Content Body */}
-        <div className="p-5 flex flex-col flex-1">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-slate-900 text-lg leading-tight line-clamp-1 group-hover:text-[#263DA8] transition-colors">
+        <div style={contentBodyStyles}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+            <h3 style={titleStyles}>
               {item.title}
             </h3>
           </div>
           
-          <div className="space-y-2 mt-2 mb-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <MapPin className="w-4 h-4 text-[#263DA8]/70" />
-              <span className="truncate">{item.location}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748B' }}>
+              <MapPin style={{ width: '1rem', height: '1rem', color: 'rgba(30, 47, 133, 0.7)' }} />
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.location}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <CalendarClock className="w-4 h-4 text-[#263DA8]/70" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748B' }}>
+              <CalendarClock style={{ width: '1rem', height: '1rem', color: 'rgba(30, 47, 133, 0.7)' }} />
               <span>{new Date(item.dateLost).toLocaleDateString()}</span>
             </div>
           </div>
 
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="mt-auto w-full py-2.5 bg-[#263DA8] hover:bg-[#203794] text-white rounded-lg text-sm font-semibold transition-all shadow-sm"
+            style={claimButtonStyles}
           >
             Claim This Item
           </button>

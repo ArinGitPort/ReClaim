@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { X, Save, Camera, MapPin, Tag, Info, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 
@@ -19,46 +19,70 @@ export function LogNewItemModal({ onClose, onSaved }: LogNewItemModalProps) {
     }, 800)
   }
 
+  const labelStyle: React.CSSProperties = {
+    fontSize: '10px',
+    fontWeight: 900,
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: '0.2em',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '0.375rem'
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    backgroundColor: '#F8FAFC',
+    border: 'none',
+    borderRadius: '0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: 'bold',
+    color: '#1E293B',
+    outline: 'none'
+  }
+
   return (
-    <div className="bg-white flex flex-col h-full max-h-[90vh]">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+    <div style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', height: '100%', maxHeight: '90vh' }}>
+      <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Log Physical Discovery</h2>
-          <p className="text-slate-500 text-xs font-medium">Securly register a newly found item into the campus inventory.</p>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Log Physical Discovery</h2>
+          <p style={{ color: '#64748B', fontSize: '0.75rem', fontWeight: '500', margin: 0 }}>Securly register a newly found item into the campus inventory.</p>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
-          <X className="w-5 h-5 text-slate-400" />
+        <button onClick={onClose} style={{ padding: '0.5rem', backgroundColor: 'transparent', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <X style={{ width: '1.25rem', height: '1.25rem', color: '#94A3B8' }} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+      <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Photo Upload Placeholder */}
-        <div className="aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center group hover:border-indigo-300 hover:bg-indigo-50/30 transition-all cursor-pointer">
-           <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Camera className="w-6 h-6 text-slate-400 group-hover:text-indigo-600" />
+        <div style={{ aspectRatio: '16 / 9', backgroundColor: '#F8FAFC', border: '2px dashed #E2E8F0', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+           <div style={{ width: '3rem', height: '3rem', backgroundColor: '#FFFFFF', borderRadius: '50%', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <Camera style={{ width: '1.5rem', height: '1.5rem', color: '#94A3B8' }} />
            </div>
-           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-600">Upload Item Evidence</p>
+           <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#94A3B8', margin: 0 }}>Upload Item Evidence</p>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Info className="w-3.5 h-3.5" /> Item Title
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={labelStyle}>
+              <Info style={{ width: '0.875rem', height: '0.875rem' }} /> Item Title
             </label>
             <input 
               type="text" 
               required
               placeholder="e.g. Blue HydroFlask with stickers"
-              className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-100 outline-none"
+              style={inputStyle}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <Tag className="w-3.5 h-3.5" /> Category
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={labelStyle}>
+                <Tag style={{ width: '0.875rem', height: '0.875rem' }} /> Category
               </label>
-              <select className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-100 outline-none appearance-none">
+              <select style={{ ...inputStyle, appearance: 'none' }}>
                 <option>Electronics</option>
                 <option>Water Bottles</option>
                 <option>Clothing</option>
@@ -66,39 +90,39 @@ export function LogNewItemModal({ onClose, onSaved }: LogNewItemModalProps) {
                 <option>Keys</option>
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5" /> Found Location
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={labelStyle}>
+                <MapPin style={{ width: '0.875rem', height: '0.875rem' }} /> Found Location
               </label>
               <input 
                 type="text" 
                 required
                 placeholder="e.g. Library Level 2"
-                className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-100 outline-none"
+                style={inputStyle}
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5" /> Physical Storage Location
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={labelStyle}>
+              <ShieldCheck style={{ width: '0.875rem', height: '0.875rem' }} /> Physical Storage Location
             </label>
             <input 
               type="text" 
               required
               placeholder="e.g. Cabinet A, Shelf 3"
-              className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-100 outline-none"
+              style={inputStyle}
             />
           </div>
         </div>
       </form>
 
-      <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
+      <div style={{ padding: '1.5rem', borderTop: '1px solid #F1F5F9', backgroundColor: 'rgba(248, 250, 252, 0.5)', display: 'flex', gap: '0.75rem' }}>
         <Button 
           type="button" 
           variant="outline" 
           onClick={onClose}
-          className="flex-1 h-12 rounded-xl border-slate-200 font-bold text-slate-500"
+          style={{ flex: 1, height: '3rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', fontWeight: 'bold', color: '#64748B', backgroundColor: '#FFFFFF', cursor: 'pointer' }}
         >
           Cancel
         </Button>
@@ -106,13 +130,28 @@ export function LogNewItemModal({ onClose, onSaved }: LogNewItemModalProps) {
           type="submit" 
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex-[2] h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+          style={{ 
+            flex: 2, 
+            height: '3rem', 
+            borderRadius: '0.75rem', 
+            backgroundColor: '#1E2F85', 
+            color: '#FFFFFF', 
+            fontWeight: 'bold', 
+            boxShadow: '0 10px 15px -3px rgba(30, 47, 133, 0.1)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '0.5rem',
+            border: 'none',
+            cursor: 'pointer',
+            opacity: isSubmitting ? 0.7 : 1
+          }}
         >
           {isSubmitting ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div style={{ width: '1.25rem', height: '1.25rem', border: '2px solid rgba(255, 255, 255, 0.3)', borderTopColor: '#FFFFFF', borderRadius: '50%' }} />
           ) : (
             <>
-              <Save className="w-4 h-4" />
+              <Save style={{ width: '1rem', height: '1rem' }} />
               Commit to Inventory
             </>
           )}

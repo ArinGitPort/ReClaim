@@ -164,11 +164,11 @@ export function InventoryPage() {
   const visibleItems = useMemo(() => inventoryItems.filter((item) => item.status !== "RETURNED"), [inventoryItems])
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {showFastEntry && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowFastEntry(false)} />
-          <div className="relative w-full max-w-xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setShowFastEntry(false)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '36rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <LogNewItemModal
               onClose={() => setShowFastEntry(false)}
               onSaved={() => {
@@ -180,9 +180,9 @@ export function InventoryPage() {
       )}
 
       {editItem && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setEditItem(null)} />
-          <div className="relative w-full max-w-2xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setEditItem(null)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '42rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <EditInventoryItemModal
               item={editItem}
               onClose={() => setEditItem(null)}
@@ -195,9 +195,9 @@ export function InventoryPage() {
       )}
 
       {linkItem && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setLinkItem(null)} />
-          <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setLinkItem(null)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <InventoryLinkReportModal
               item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category, color: linkItem.color }}
               onClose={() => setLinkItem(null)}
@@ -210,9 +210,9 @@ export function InventoryPage() {
       )}
 
       {detailsItem && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setDetailsItem(null)} />
-          <div className="relative w-full max-w-2xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setDetailsItem(null)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '42rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <InventoryItemDetailsModal
               item={detailsItem}
               onClose={() => setDetailsItem(null)}
@@ -222,9 +222,9 @@ export function InventoryPage() {
       )}
 
       {handoverItem && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setHandoverItem(null)} />
-          <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setHandoverItem(null)} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
             <InventoryHandoverModal
               item={{ id: handoverItem.id, code: handoverItem.code, title: handoverItem.title, status: handoverItem.status }}
               onClose={() => setHandoverItem(null)}
@@ -237,33 +237,33 @@ export function InventoryPage() {
       )}
 
       {/* Consistent Header Pattern */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Inventory Control</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Manage and audit all securely logged physical items.</p>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Inventory Control</h1>
+          <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Manage and audit all securely logged physical items.</p>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Button 
             onClick={() => setShowFastEntry(true)}
-            className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none"
+            style={{ height: '2.5rem', padding: '0 1rem', backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: 700, borderRadius: '0.75rem', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             Log New Item
           </Button>
-          <Button variant="outline" className="h-10 px-4 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl">
-            <Download className="w-4 h-4 mr-2" />
+          <Button variant="outline" style={{ height: '2.5rem', padding: '0 1rem', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, borderRadius: '0.75rem', backgroundColor: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Download style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             Export
           </Button>
         </div>
       </div>
 
       {/* List Search and Filter Area */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
           <Input 
             placeholder="Search by Item ID, Title, or Description..." 
-            className="pl-12 h-12 bg-white border-slate-200 shadow-sm focus:ring-brand/10 text-sm font-medium rounded-xl"
+            style={{ paddingLeft: '3rem', height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -271,11 +271,11 @@ export function InventoryPage() {
             }}
           />
         </div>
-        <div className="w-full md:w-52">
+        <div style={{ width: '13rem' }}>
           <Select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
+            style={{ height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
           >
             <option value="">All Statuses</option>
             {statusOptions.map((status) => (
@@ -283,11 +283,11 @@ export function InventoryPage() {
             ))}
           </Select>
         </div>
-        <div className="w-full md:w-52">
+        <div style={{ width: '13rem' }}>
           <Select
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value)}
-            className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
+            style={{ height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
           >
             <option value="">All Categories</option>
             {categoryOptions.map((category) => (
@@ -303,27 +303,27 @@ export function InventoryPage() {
             setSearch("")
             setPage(1)
           }}
-          className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
+          style={{ height: '3rem', padding: '0 1.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', display: 'flex', alignItems: 'center', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
         >
-          <Filter className="w-4 h-4 mr-2" /> Reset
+          <Filter style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Reset
         </Button>
       </div>
 
       {/* Inventory Table Container */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-hidden">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+      <div style={{ backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '1000px' }}>
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
-                <th className="px-8 py-5">Item Identifier</th>
-                <th className="px-8 py-5">Found Item Specifications</th>
-                <th className="px-8 py-5">Detection Record</th>
-                <th className="px-8 py-5">Storage Facility</th>
-                <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5 text-right">Item Actions</th>
+              <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #F1F5F9', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, fontSize: '10px', color: '#334155' }}>
+                <th style={{ padding: '1.25rem 2rem' }}>Item Identifier</th>
+                <th style={{ padding: '1.25rem 2rem' }}>Found Item Specifications</th>
+                <th style={{ padding: '1.25rem 2rem' }}>Detection Record</th>
+                <th style={{ padding: '1.25rem 2rem' }}>Storage Facility</th>
+                <th style={{ padding: '1.25rem 2rem' }}>Status</th>
+                <th style={{ padding: '1.25rem 2rem', textAlign: 'right' }}>Item Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody style={{ borderTop: 'none' }}>
               {visibleItems.map((item) => (
                 <InventoryTableRow
                   key={item.id}
@@ -336,14 +336,14 @@ export function InventoryPage() {
               ))}
               {isLoading && (
                 <tr>
-                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
+                  <td colSpan={6} style={{ padding: '3.5rem 2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.875rem', fontWeight: 600 }}>
                     Loading inventory records...
                   </td>
                 </tr>
               )}
               {!isLoading && visibleItems.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-8 py-14 text-center text-slate-400 text-sm font-semibold">
+                  <td colSpan={6} style={{ padding: '3.5rem 2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.875rem', fontWeight: 600 }}>
                     No inventory records found.
                   </td>
                 </tr>
@@ -351,8 +351,7 @@ export function InventoryPage() {
             </tbody>
           </table>
         </div>
-        {error && <div className="px-8 py-4 text-sm font-semibold text-rose-600 border-t border-slate-100">{error}</div>}
-        
+        {error && <div style={{ padding: '1rem 2rem', color: '#E11D48', fontSize: '0.875rem', fontWeight: 600, borderTop: '1px solid #F1F5F9' }}>{error}</div>}
       </div>
 
       <AdminPaginationControls
@@ -386,75 +385,89 @@ function InventoryTableRow({
   onHandover: () => void
 }) {
   return (
-    <tr className="hover:bg-slate-50/80 transition-all group cursor-default">
-      <td className="px-8 py-5 whitespace-nowrap">
-        <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
+    <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+      <td style={{ padding: '1.25rem 2rem', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', fontFamily: 'monospace', letterSpacing: '-0.025em', backgroundColor: '#F1F5F9', padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(226, 232, 240, 0.5)' }}>
           {item.code}
         </span>
       </td>
-      <td className="px-8 py-5">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+      <td style={{ padding: '1.25rem 2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '2.75rem', height: '2.75rem', backgroundColor: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', flexShrink: 0, overflow: 'hidden' }}>
             {item.photoUrl ? (
-              <img src={item.photoUrl} alt={item.title} className="w-full h-full object-cover" />
+              <img src={item.photoUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <Package className="w-5 h-5 text-slate-400" />
+              <Package style={{ width: '1.25rem', height: '1.25rem', color: '#CBD5E1' }} />
             )}
           </div>
           <div>
-            <div className="font-bold text-slate-900 tracking-tight">{item.title}</div>
-            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.category}</div>
+            <div style={{ fontWeight: 700, color: '#0F172A', letterSpacing: '-0.025em' }}>{item.title}</div>
+            <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.125rem' }}>{item.category}</div>
           </div>
         </div>
       </td>
-      <td className="px-8 py-5">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-600 text-[12px] font-bold">
-            <Calendar className="w-3.5 h-3.5 text-slate-300" />
+      <td style={{ padding: '1.25rem 2rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '12px', fontWeight: 700 }}>
+            <Calendar style={{ width: '0.875rem', height: '0.875rem', color: '#CBD5E1' }} />
             {item.date}
           </div>
-          <div className="flex items-center gap-2 text-slate-400 text-[11px] font-medium">
-            <MapPin className="w-3.5 h-3.5 text-slate-200 shrink-0" />
-            <span className="truncate max-w-[120px]">{item.location}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94A3B8', fontSize: '11px', fontWeight: 500 }}>
+            <MapPin style={{ width: '0.875rem', height: '0.875rem', color: '#E2E8F0', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>{item.location}</span>
           </div>
         </div>
       </td>
-      <td className="px-8 py-5">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200/50 text-[11px] font-bold text-slate-600 font-mono">
+      <td style={{ padding: '1.25rem 2rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem', backgroundColor: '#F8FAFC', borderRadius: '0.5rem', border: '1px solid rgba(226, 232, 240, 0.5)', fontSize: '11px', fontWeight: 700, color: '#475569', fontFamily: 'monospace' }}>
           {item.storage}
         </div>
       </td>
-      <td className="px-8 py-5">
+      <td style={{ padding: '1.25rem 2rem' }}>
         <StatusBadge status={item.status} />
       </td>
-      <td className="px-8 py-5 text-right">
-        <div className="flex items-center justify-end gap-2">
+      <td style={{ padding: '1.25rem 2rem', textAlign: 'right' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
           <ActionIconButton
             label="Edit item"
-            icon={<Edit className="w-4 h-4" />}
-            buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
+            icon={<Edit style={{ width: '1rem', height: '1rem' }} />}
+            style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', color: '#92400E' }}
             onClick={onEdit}
           />
           <ActionIconButton
             label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
-            icon={<Link2 className="w-4 h-4" />}
-            buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
+            icon={<Link2 style={{ width: '1rem', height: '1rem' }} />}
+            style={{ backgroundColor: '#F0F9FF', border: '1px solid #BAE6FD', color: '#075985' }}
             onClick={onLink}
             disabled={item.status !== "AVAILABLE"}
           />
           <ActionIconButton
             label="View item details"
-            icon={<Eye className="w-4 h-4" />}
-            buttonClassName="bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300 hover:text-slate-900"
+            icon={<Eye style={{ width: '1rem', height: '1rem' }} />}
+            style={{ backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', color: '#334155' }}
             onClick={onViewDetails}
           />
           <Button
             type="button"
             onClick={onHandover}
             disabled={item.status !== "CLAIM_PENDING"}
-            className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
+            style={{ 
+              height: '2.25rem', 
+              padding: '0 0.75rem', 
+              fontSize: '10px', 
+              fontWeight: 700, 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.1em', 
+              backgroundColor: item.status === 'CLAIM_PENDING' ? '#059669' : '#CBD5E1', 
+              color: item.status === 'CLAIM_PENDING' ? '#FFFFFF' : '#64748B',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: item.status === 'CLAIM_PENDING' ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center'
+            }}
           >
-            <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+            <ShieldCheck style={{ width: '0.875rem', height: '0.875rem', marginRight: '0.375rem' }} />
             Start Handover
           </Button>
         </div>
@@ -462,7 +475,6 @@ function InventoryTableRow({
     </tr>
   )
 }
-
 
 function extractPhotoPath(privateData: unknown): string | undefined {
   if (!privateData || typeof privateData !== "object") {
@@ -486,6 +498,3 @@ function resolveImageUrl(path?: string): string | undefined {
   const origin = apiBase.endsWith("/api") ? apiBase.slice(0, -4) : apiBase
   return `${origin}${path.startsWith("/") ? path : `/${path}`}`
 }
-
-
-

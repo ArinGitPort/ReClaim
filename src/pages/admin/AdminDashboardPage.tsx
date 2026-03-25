@@ -6,32 +6,31 @@ import {
   Package,
   Users
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 const metrics = [
   { 
-    icon: <Package className="w-5 h-5 text-brand" />, 
+    icon: <Package style={{ width: '1.25rem', height: '1.25rem', color: '#1E2F85' }} />, 
     label: "Total Inventory", 
     value: "1,284", 
     trend: "+12 this week", 
     color: "brand" 
   },
   { 
-    icon: <ShieldCheck className="w-5 h-5 text-emerald-500" />, 
+    icon: <ShieldCheck style={{ width: '1.25rem', height: '1.25rem', color: '#10B981' }} />, 
     label: "Items Returned", 
     value: "842", 
     trend: "65% Success Rate", 
     color: "emerald" 
   },
   { 
-    icon: <Users className="w-5 h-5 text-blue-500" />, 
+    icon: <Users style={{ width: '1.25rem', height: '1.25rem', color: '#3B82F6' }} />, 
     label: "Active Users", 
     value: "4,102", 
     trend: "+156 new signups", 
     color: "blue" 
   },
   { 
-    icon: <AlertCircle className="w-5 h-5 text-amber-500" />, 
+    icon: <AlertCircle style={{ width: '1.25rem', height: '1.25rem', color: '#F59E0B' }} />, 
     label: "Pending Claims", 
     value: "28", 
     trend: "Needs Review", 
@@ -48,15 +47,15 @@ const recentMatches = [
 
 export function AdminDashboardPage() {
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Consistent Header Pattern */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Executive Overview</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Real-time system performance and audit tracking.</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Executive Overview</h1>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Real-time system performance and audit tracking.</p>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(16rem, 1fr))', gap: '1.5rem' }}>
         {metrics.map((metric) => (
           <MetricCard
             key={metric.label}
@@ -71,35 +70,35 @@ export function AdminDashboardPage() {
       </div>
 
       {/* Bottom Insights Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-8 border border-slate-200 shadow-sm transition-all hover:border-slate-300">
-          <div className="flex items-center justify-between mb-8">
-             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-brand" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(20rem, 1fr))', gap: '1.5rem' }}>
+        <div style={{ gridColumn: 'span 2', backgroundColor: '#FFFFFF', borderRadius: '1rem', padding: '2rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+             <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <TrendingUp style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
               High-Confidence Match Alerts
             </h3>
-            <button className="text-[10px] font-bold text-brand hover:underline uppercase tracking-widest flex items-center gap-1">
-              View All <ArrowUpRight className="w-3 h-3" />
+            <button style={{ fontSize: '10px', fontWeight: 700, color: '#1E2F85', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.25rem', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
+              View All <ArrowUpRight style={{ width: '0.75rem', height: '0.75rem' }} />
             </button>
           </div>
           
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {recentMatches.map(match => (
-              <div key={match.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold text-xs">
+              <div key={match.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '9999px', backgroundColor: 'rgba(30, 47, 133, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E2F85', fontWeight: 700, fontSize: '0.75rem' }}>
                     {match.match}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900">{match.item}</h4>
-                    <p className="text-xs text-slate-500 font-medium">Claimant: {match.owner}</p>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>{match.item}</h4>
+                    <p style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500, margin: 0 }}>Claimant: {match.owner}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">{match.time}</span>
-                  <div className="mt-1 flex gap-2">
-                    <button className="text-[10px] font-bold text-emerald-600 uppercase hover:underline">Verify</button>
-                    <button className="text-[10px] font-bold text-slate-400 uppercase hover:underline">Dismiss</button>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>{match.time}</span>
+                  <div style={{ marginTop: '0.25rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <button style={{ fontSize: '10px', fontWeight: 700, color: '#059669', textTransform: 'uppercase', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>Verify</button>
+                    <button style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>Dismiss</button>
                   </div>
                 </div>
               </div>
@@ -108,24 +107,24 @@ export function AdminDashboardPage() {
         </div>
 
         {/* System Health Section */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm transition-all hover:border-slate-300">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Platform Integrity</h3>
+        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShieldCheck style={{ width: '1.25rem', height: '1.25rem', color: '#10B981' }} />
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Platform Integrity</h3>
             </div>
           </div>
           
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <HealthItem label="Database Latency" value="24ms" status="OPTIMAL" />
             <HealthItem label="Image Storage" value="1.2 TB / 5 TB" status="STABLE" />
             <HealthItem label="API Response" value="112ms" status="HEALTHY" />
             <HealthItem label="Real-time Socket" value="CONNECTED" status="ACTIVE" />
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Maintenance</p>
-            <p className="text-xs font-semibold text-slate-700">March 20, 2026 - All systems operational.</p>
+          <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #F1F5F9' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem', margin: 0 }}>Last Maintenance</p>
+            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155', margin: 0 }}>March 20, 2026 - All systems operational.</p>
           </div>
         </div>
       </div>
@@ -135,12 +134,12 @@ export function AdminDashboardPage() {
 
 function HealthItem({ label, value, status }: { label: string; value: string; status: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-        <p className="text-sm font-bold text-slate-800">{value}</p>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>{label}</p>
+        <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', margin: 0 }}>{value}</p>
       </div>
-      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-md border border-emerald-100">
+      <span style={{ padding: '0.125rem 0.5rem', backgroundColor: '#F0FDF4', color: '#059669', fontSize: '10px', fontWeight: 700, borderRadius: '0.375rem', border: '1px solid #DCFCE7' }}>
         {status}
       </span>
     </div>
@@ -162,26 +161,29 @@ function MetricCard({
   color: string;
   alert?: boolean;
 }) {
+  const iconBg = color === 'brand' ? 'rgba(30, 47, 133, 0.05)' :
+                color === 'amber' ? '#FFFBEB' :
+                color === 'emerald' ? '#F0FDF4' :
+                '#EFF6FF'
+  
+  const iconBorder = color === 'brand' ? 'rgba(30, 47, 133, 0.1)' :
+                    color === 'amber' ? '#FEF3C7' :
+                    color === 'emerald' ? '#DCFCE7' :
+                    '#DBEAFE'
+
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-all hover:border-slate-300 group">
-      <div className="flex items-center justify-between mb-4">
-        <div className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm",
-          color === 'brand' ? 'bg-brand/5 border border-brand/10' :
-          color === 'amber' ? 'bg-amber-50 border border-amber-100' :
-          color === 'emerald' ? 'bg-emerald-50 border border-emerald-100' :
-          'bg-blue-50 border border-blue-100'
-        )}>
+    <div style={{ backgroundColor: '#FFFFFF', padding: '1.5rem', borderRadius: '1rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: iconBg, border: `1px solid ${iconBorder}`, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
           {icon}
         </div>
-        {alert && <div className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/10" />}
+        {alert && <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '9999px', backgroundColor: '#F59E0B', boxShadow: '0 0 0 4px rgba(245, 158, 11, 0.1)' }} />}
       </div>
-      <div className="space-y-1">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{label}</p>
-        <h4 className="text-3xl font-bold text-slate-900 tracking-tight">{value}</h4>
-        <p className={`text-[11px] font-bold uppercase tracking-tight ${alert ? 'text-amber-600' : 'text-slate-400'}`}>{trend}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1, margin: 0 }}>{label}</p>
+        <h4 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>{value}</h4>
+        <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.025em', color: alert ? '#D97706' : '#94A3B8', margin: 0 }}>{trend}</p>
       </div>
     </div>
   )
 }
-

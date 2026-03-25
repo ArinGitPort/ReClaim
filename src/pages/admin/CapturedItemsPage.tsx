@@ -26,17 +26,17 @@ export function CapturedItemsPage() {
   }, [])
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Captured Items Inbox</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Review items automatically detected by AI cameras.</p>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Captured Items Inbox</h1>
+          <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Review items automatically detected by AI cameras.</p>
         </div>
         <button 
           onClick={() => setShowCamera(!showCamera)}
-          className="flex items-center gap-2 px-6 py-3 bg-brand text-white rounded-2xl font-bold shadow-lg shadow-brand/20 hover:bg-brand/90 transition-all active:scale-95"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#1E2F85', color: '#FFFFFF', borderRadius: '1rem', fontWeight: 700, fontSize: '0.875rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(30, 47, 133, 0.2)', cursor: 'pointer' }}
         >
-          {showCamera ? <Inbox className="w-5 h-5" /> : <CameraIcon className="w-5 h-5" />}
+          {showCamera ? <Inbox style={{ width: '1.25rem', height: '1.25rem' }} /> : <CameraIcon style={{ width: '1.25rem', height: '1.25rem' }} />}
           {showCamera ? "View Inbox" : "Live AI Camera"}
         </button>
       </div>
@@ -46,49 +46,49 @@ export function CapturedItemsPage() {
       ) : (
         <>
           {isLoading ? (
-            <div className="p-24 text-center">
-              <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Syncing with AI Nodes...</p>
+            <div style={{ padding: '6rem', textAlign: 'center' }}>
+              <div style={{ width: '2.5rem', height: '2.5rem', border: '4px solid #1E2F85', borderTopColor: 'transparent', borderRadius: '9999px', marginLeft: 'auto', marginRight: 'auto', marginBottom: '1rem', animation: 'spin 1s linear infinite' }}></div>
+              <p style={{ color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', margin: 0 }}>Syncing with AI Nodes...</p>
             </div>
           ) : items.length === 0 ? (
-            <div className="bg-white rounded-3xl p-24 border border-slate-200 border-dashed text-center">
-               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <CheckCircle className="w-10 h-10 text-slate-200" />
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '1.5rem', padding: '6rem', border: '1px dashed #E2E8F0', textAlign: 'center' }}>
+               <div style={{ width: '5rem', height: '5rem', backgroundColor: '#F8FAFC', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 'auto', marginRight: 'auto', marginBottom: '1.5rem' }}>
+                 <CheckCircle style={{ width: '2.5rem', height: '2.5rem', color: '#E2E8F0' }} />
                </div>
-               <h3 className="text-xl font-bold text-slate-800">Inbox is Clear</h3>
-               <p className="text-slate-400 font-medium mt-2">No new items have been captured recently.</p>
+               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1E293B', margin: 0 }}>Inbox is Clear</h3>
+               <p style={{ color: '#94A3B8', fontWeight: 500, marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>No new items have been captured recently.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(16rem, 1fr))', gap: '1.5rem' }}>
               {items.map((item) => (
                 <div 
                   key={item.id} 
-                  className="group bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-brand/10 hover:border-brand/30 transition-all cursor-pointer"
+                  style={{ backgroundColor: '#FFFFFF', borderRadius: '1.5rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', overflow: 'hidden', cursor: 'pointer' }}
                   onClick={() => setSelectedItem(item)}
                 >
-                  <div className="aspect-[4/3] relative overflow-hidden bg-slate-100">
-                    <img src={item.imageUrl} alt="Captured Item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    <div className="absolute top-3 left-3 flex gap-2">
-                       <span className="px-3 py-1 bg-white/90 backdrop-blur-sm shadow-sm rounded-full text-[10px] font-bold text-brand flex items-center gap-1 uppercase tracking-tight">
-                         <Bot className="w-3 h-3" />
+                  <div style={{ aspectRatio: '4/3', position: 'relative', overflow: 'hidden', backgroundColor: '#F1F5F9' }}>
+                    <img src={item.imageUrl} alt="Captured Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                       <span style={{ padding: '0.25rem 0.75rem', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(4px)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', borderRadius: '9999px', fontSize: '10px', fontWeight: 700, color: '#1E2F85', display: 'flex', alignItems: 'center', gap: '0.25rem', textTransform: 'uppercase', letterSpacing: '-0.025em' }}>
+                         <Bot style={{ width: '0.75rem', height: '0.75rem' }} />
                          AI Guess: {item.aiPrediction}
                        </span>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-3 text-slate-400">
-                      <div className="flex items-center gap-1.5 ">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                  <div style={{ padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <Clock style={{ width: '0.875rem', height: '0.875rem' }} />
+                        <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{item.confidence * 100}% Fit</span>
+                      <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.confidence * 100}% Fit</span>
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800 line-clamp-1 mb-4">Detected at {item.suggestedLocation}</h4>
-                    <button className="w-full py-2.5 bg-slate-50 group-hover:bg-brand group-hover:text-white text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '0 0 1rem 0' }}>Detected at {item.suggestedLocation}</h4>
+                    <button style={{ width: '100%', padding: '0.625rem 0', backgroundColor: '#F8FAFC', color: '#475569', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                       Review & Publish
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight style={{ width: '0.875rem', height: '0.875rem' }} />
                     </button>
                   </div>
                 </div>

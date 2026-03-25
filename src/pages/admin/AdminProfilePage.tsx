@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext"
-import { User, Calendar, Camera, Key, Fingerprint, History, HelpCircle, MapPin } from "lucide-react"
+import { User, Calendar, Camera, Key, Fingerprint, History, MapPin } from "lucide-react"
 
 export function AdminProfilePage() {
   const { user } = useAuth()
@@ -7,137 +7,140 @@ export function AdminProfilePage() {
   if (!user) return null
 
   return (
-    <div className="w-full min-h-screen bg-slate-50/50 pb-24">
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left Column */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-              <div className="flex flex-col items-center space-y-4 p-6 text-center">
-                <div className="relative group">
-                  <div className="h-28 w-28 rounded-full overflow-hidden border-2 border-slate-100 bg-slate-100/50 flex items-center justify-center">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <User className="h-12 w-12 text-slate-300" />
-                    )}
-                  </div>
-                  <button className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-md border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors">
-                    <Camera className="h-4 w-4" />
-                  </button>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg tracking-tight">{user.name}</h3>
-                  <p className="text-sm text-slate-500 font-medium">{user.role}</p>
-                </div>
-                <div className="w-full pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-slate-900">42</div>
-                    <div className="text-xs text-slate-500 font-medium tracking-tight">Verifications</div>
-                  </div>
-                  <div className="text-center border-l border-slate-100">
-                    <div className="text-lg font-bold text-slate-900">89</div>
-                    <div className="text-xs text-slate-500 font-medium tracking-tight">Archived</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                <h3 className="font-semibold leading-none tracking-tight">Administrator Security</h3>
-              </div>
-              <div className="p-6 pt-0 space-y-2">
-                <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-100 transition-colors text-slate-700">
-                  <span className="flex items-center gap-2"><Key className="h-4 w-4 text-slate-500" /> Password</span>
-                </button>
-                <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-100 transition-colors text-slate-700">
-                  <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-slate-500" /> Two-Factor Auth</span>
-                  <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 uppercase tracking-widest">Active</span>
-                </button>
-                <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-100 transition-colors text-slate-700">
-                  <span className="flex items-center gap-2"><History className="h-4 w-4 text-slate-500" /> Audit Log Access</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <h3 className="font-semibold leading-none tracking-tight">Staff Information</h3>
-                <p className="text-sm text-slate-500">System authorization records and primary identification.</p>
-              </div>
-              <div className="p-6 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold leading-none text-slate-900">Full Name</label>
-                  <div className="flex h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 pointer-events-none">
-                    {user.name}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold leading-none text-slate-900">Staff Email</label>
-                  <div className="flex h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 pointer-events-none">
-                    {user.email}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold leading-none text-slate-900">Role Identifier</label>
-                  <div className="flex h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 pointer-events-none">
-                    {user.role} Authorization
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold leading-none text-slate-900">Employment Date</label>
-                  <div className="flex items-center gap-2 h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 pointer-events-none">
-                    <Calendar className="h-4 w-4" /> August 2021
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <h3 className="font-semibold leading-none tracking-tight">Jurisdiction Assignment</h3>
-                <p className="text-sm text-slate-500">Your registered physical campus administration scope.</p>
-              </div>
-              <div className="p-6 pt-0">
-                <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4 bg-slate-50">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-white border border-slate-200 shadow-sm rounded-md">
-                      <MapPin className="h-5 w-5 text-[#1E2F85]" />
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: 'rgba(248, 250, 252, 0.5)', paddingBottom: '6rem' }}>
+      <main style={{ maxWidth: '64rem', marginLeft: 'auto', marginRight: 'auto', paddingLeft: '1rem', paddingRight: '1rem', marginTop: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1.5rem' }}>
+          {/* Use flex for column layout on desktop */}
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            
+            {/* Left Column */}
+            <div style={{ flex: '1 1 20rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1.5rem', textAlign: 'center' }}>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ height: '7rem', width: '7rem', borderRadius: '9999px', overflow: 'hidden', border: '2px solid #F1F5F9', backgroundColor: 'rgba(241, 245, 249, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <User style={{ height: '3rem', width: '3rem', color: '#CBD5E1' }} />
+                      )}
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm text-slate-900">National University - Main</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">Manila, Philippines</p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center rounded-full border border-[#1E2F85]/20 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#1E2F85]">
-                    Headquarters
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl bg-slate-900 text-white shadow-sm overflow-hidden relative">
-              <div className="p-6 relative z-10">
-                <div className="flex items-start justify-between">
-                  <div className="max-w-sm">
-                    <h3 className="font-semibold tracking-tight text-lg mb-2">Dev Console Access</h3>
-                    <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                      For advanced system recovery or configuration routing, utilize the central directory platform.
-                    </p>
-                    <button className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow transition-colors hover:bg-slate-200">
-                      Open Console
+                    <button style={{ position: 'absolute', bottom: 0, right: 0, padding: '0.5rem', borderRadius: '9999px', backgroundColor: '#FFFFFF', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', border: '1px solid #E2E8F0', color: '#334155', cursor: 'pointer' }}>
+                      <Camera style={{ height: '1rem', width: '1rem' }} />
                     </button>
                   </div>
+                  <div>
+                    <h3 style={{ fontWeight: 600, fontSize: '1.125rem', letterSpacing: '-0.025em', margin: 0 }}>{user.name}</h3>
+                    <p style={{ fontSize: '0.875rem', color: '#64748B', fontWeight: 500, margin: 0 }}>{user.role}</p>
+                  </div>
+                  <div style={{ width: '100%', paddingTop: '1rem', borderTop: '1px solid #F1F5F9', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0F172A' }}>42</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500, letterSpacing: '-0.025em' }}>Verifications</div>
+                    </div>
+                    <div style={{ textAlign: 'center', borderLeft: '1px solid #F1F5F9' }}>
+                      <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0F172A' }}>89</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500, letterSpacing: '-0.025em' }}>Archived</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+              <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', padding: '1.5rem', paddingBottom: '0.75rem' }}>
+                  <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', margin: 0 }}>Administrator Security</h3>
+                </div>
+                <div style={{ padding: '1.5rem', paddingTop: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <button style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.375rem', padding: '0.5rem 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#334155', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Key style={{ height: '1rem', width: '1rem', color: '#94A3B8' }} /> Password</span>
+                  </button>
+                  <button style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.375rem', padding: '0.5rem 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#334155', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Fingerprint style={{ height: '1rem', width: '1rem', color: '#94A3B8' }} /> Two-Factor Auth</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '9999px', border: '1px solid #BFDBFE', backgroundColor: '#EFF6FF', padding: '0.125rem 0.5rem', fontSize: '10px', fontWeight: 600, color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Active</span>
+                  </button>
+                  <button style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.375rem', padding: '0.5rem 0.75rem', fontSize: '0.875rem', fontWeight: 500, color: '#334155', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><History style={{ height: '1rem', width: '1rem', color: '#94A3B8' }} /> Audit Log Access</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
+            {/* Right Column */}
+            <div style={{ flex: '2 1 30rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', padding: '1.5rem' }}>
+                  <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', margin: 0 }}>Staff Information</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#64748B', margin: 0 }}>System authorization records and primary identification.</p>
+                </div>
+                <div style={{ padding: '1.5rem', paddingTop: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))', gap: '1.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1, color: '#0F172A' }}>Full Name</label>
+                    <div style={{ display: 'flex', height: '2.5rem', width: '100%', borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', padding: '0.5rem 0.75rem', fontSize: '0.875rem', color: '#475569', boxSizing: 'border-box', alignItems: 'center' }}>
+                      {user.name}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1, color: '#0F172A' }}>Staff Email</label>
+                    <div style={{ display: 'flex', height: '2.5rem', width: '100%', borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', padding: '0.5rem 0.75rem', fontSize: '0.875rem', color: '#475569', boxSizing: 'border-box', alignItems: 'center' }}>
+                      {user.email}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1, color: '#0F172A' }}>Role Identifier</label>
+                    <div style={{ display: 'flex', height: '2.5rem', width: '100%', borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', padding: '0.5rem 0.75rem', fontSize: '0.875rem', color: '#475569', boxSizing: 'border-box', alignItems: 'center' }}>
+                      {user.role} Authorization
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1, color: '#0F172A' }}>Employment Date</label>
+                    <div style={{ display: 'flex', height: '2.5rem', width: '100%', borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', padding: '0.5rem 0.75rem', fontSize: '0.875rem', color: '#64748B', boxSizing: 'border-box', alignItems: 'center', gap: '0.5rem' }}>
+                      <Calendar style={{ height: '1rem', width: '1rem' }} /> August 2021
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', padding: '1.5rem' }}>
+                  <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', margin: 0 }}>Jurisdiction Assignment</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#64748B', margin: 0 }}>Your registered physical campus administration scope.</p>
+                </div>
+                <div style={{ padding: '1.5rem', paddingTop: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.5rem', border: '1px solid #E2E8F0', padding: '1rem', backgroundColor: '#F8FAFC' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ padding: '0.5rem', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', borderRadius: '0.375rem' }}>
+                        <MapPin style={{ height: '1.25rem', width: '1.25rem', color: '#1E2F85' }} />
+                      </div>
+                      <div>
+                        <h4 style={{ fontWeight: 500, fontSize: '0.875rem', color: '#0F172A', margin: 0 }}>National University - Main</h4>
+                        <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.125rem', margin: '0.125rem 0 0 0' }}>Manila, Philippines</p>
+                      </div>
+                    </div>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '9999px', border: '1px solid rgba(30, 47, 133, 0.2)', backgroundColor: '#EFF6FF', padding: '0.125rem 0.625rem', fontSize: '0.75rem', fontWeight: 600, color: '#1E2F85' }}>
+                      Headquarters
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderRadius: '0.75rem', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ padding: '1.5rem', position: 'relative', zIndex: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ maxWidth: '24rem' }}>
+                      <h3 style={{ fontWeight: 600, letterSpacing: '-0.025em', fontSize: '1.125rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>Dev Console Access</h3>
+                      <p style={{ fontSize: '0.875rem', color: '#CBD5E1', lineHeight: '1.5rem', marginBottom: '1.5rem', margin: '0 0 1.5rem 0' }}>
+                        For advanced system recovery or configuration routing, utilize the central directory platform.
+                      </p>
+                      <button style={{ display: 'inline-flex', height: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', backgroundColor: '#FFFFFF', padding: '0 1rem', fontSize: '0.875rem', fontWeight: 500, color: '#0F172A', border: 'none', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', cursor: 'pointer' }}>
+                        Open Console
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '16rem', height: '16rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '9999px', filter: 'blur(48px)', transform: 'translate(50%, -50%)', pointerEvents: 'none' }} />
+              </div>
+
+            </div>
           </div>
         </div>
       </main>

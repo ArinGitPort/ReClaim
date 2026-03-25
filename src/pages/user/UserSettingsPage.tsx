@@ -1,4 +1,4 @@
-import { Bell, Moon, Laptop, Sun, Save, Mail, Smartphone } from "lucide-react"
+import { Moon, Laptop, Sun, Save, Mail, Smartphone } from "lucide-react"
 import { useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 
@@ -13,91 +13,91 @@ export function UserSettingsPage() {
   }
 
   return (
-    <div className="w-full min-h-screen pb-24 bg-slate-50/50">
+    <div style={{ width: '100%', minHeight: '100vh', paddingBottom: '6rem', backgroundColor: '#F8FAFC' }}>
       <TopNavBar title="Settings" />
       
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="flex items-center justify-between mb-8">
+      <main style={{ maxWidth: '56rem', margin: '2rem auto 0', padding: '0 1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Settings</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage your account preferences and system behavior.</p>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '-0.025em', color: '#0F172A', margin: 0 }}>Settings</h1>
+            <p style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem', margin: 0 }}>Manage your account preferences and system behavior.</p>
           </div>
           <button 
             onClick={handleSave}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-[#1E2F85] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#1E2F85]/90 focus-visible:outline-none"
+            style={{ display: 'inline-flex', height: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', backgroundColor: '#1E2F85', padding: '0 1rem', fontSize: '0.875rem', fontWeight: 500, color: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: 'none', cursor: 'pointer' }}
           >
-             {isSaving ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save</>}
+             {isSaving ? "Saving..." : <><Save style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} /> Save</>}
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Notifications Card */}
-          <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-            <div className="flex flex-col space-y-1.5 p-6">
-              <h3 className="font-semibold leading-none tracking-tight">Notifications</h3>
-              <p className="text-sm text-slate-500">Configure how you receive alerts and updates.</p>
+          <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1.5rem' }}>
+              <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', margin: 0 }}>Notifications</h3>
+              <p style={{ fontSize: '0.875rem', color: '#64748B', margin: 0 }}>Configure how you receive alerts and updates.</p>
             </div>
-            <div className="p-6 pt-0 space-y-4">
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
-                <div className="space-y-0.5">
-                  <span className="text-sm font-medium text-slate-900 flex items-center gap-2"><Mail className="h-4 w-4 text-slate-500" /> Email Notifications</span>
-                  <p className="text-xs text-slate-500 mt-1">Receive updates about your claims and reports via email.</p>
+            <div style={{ padding: '0 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.5rem', border: '1px solid #E2E8F0', padding: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail style={{ height: '1rem', width: '1rem', color: '#64748B' }} /> Email Notifications</span>
+                  <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.25rem', margin: 0 }}>Receive updates about your claims and reports via email.</p>
                 </div>
                 <button 
                   onClick={() => setNotifications(!notifications)}
-                  className={`inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors ${notifications ? 'bg-[#1E2F85]' : 'bg-slate-200'}`}
+                  style={{ display: 'inline-flex', height: '1.5rem', width: '2.75rem', flexShrink: 0, cursor: 'pointer', alignItems: 'center', borderRadius: '9999px', border: '2px solid transparent', backgroundColor: notifications ? '#1E2F85' : '#E2E8F0', position: 'relative' }}
                 >
-                  <span className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${notifications ? 'translate-x-5' : 'translate-x-0'}`} />
+                  <span style={{ display: 'block', height: '1.25rem', width: '1.25rem', borderRadius: '9999px', backgroundColor: '#FFFFFF', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', transform: notifications ? 'translateX(1.25rem)' : 'translateX(0)', transition: 'transform 0.2s' }} />
                 </button>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
-                <div className="space-y-0.5">
-                  <span className="text-sm font-medium text-slate-900 flex items-center gap-2"><Smartphone className="h-4 w-4 text-slate-500" /> Push Notifications</span>
-                  <p className="text-xs text-slate-500 mt-1">Get instant alerts on your device for new matches.</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.5rem', border: '1px solid #E2E8F0', padding: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Smartphone style={{ height: '1rem', width: '1rem', color: '#64748B' }} /> Push Notifications</span>
+                  <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.25rem', margin: 0 }}>Get instant alerts on your device for new matches.</p>
                 </div>
-                <button className="inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors bg-[#1E2F85]">
-                  <span className="pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform translate-x-5" />
+                <button style={{ display: 'inline-flex', height: '1.5rem', width: '2.75rem', flexShrink: 0, cursor: 'pointer', alignItems: 'center', borderRadius: '9999px', border: '2px solid transparent', backgroundColor: '#1E2F85', position: 'relative' }}>
+                  <span style={{ display: 'block', height: '1.25rem', width: '1.25rem', borderRadius: '9999px', backgroundColor: '#FFFFFF', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', transform: 'translateX(1.25rem)' }} />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Appearance Card */}
-          <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
-            <div className="flex flex-col space-y-1.5 p-6">
-              <h3 className="font-semibold leading-none tracking-tight">Appearance</h3>
-              <p className="text-sm text-slate-500">Customize the theme of your application interface.</p>
+          <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1.5rem' }}>
+              <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', margin: 0 }}>Appearance</h3>
+              <p style={{ fontSize: '0.875rem', color: '#64748B', margin: 0 }}>Customize the theme of your application interface.</p>
             </div>
-            <div className="p-6 pt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button onClick={() => setDarkMode(false)} className={`flex items-center justify-center gap-2 rounded-md border-2 p-4 transition-all hover:bg-slate-50 ${!darkMode ? 'border-[#1E2F85] bg-blue-50/50' : 'border-slate-200'}`}>
-                  <Sun className={`h-5 w-5 ${!darkMode ? 'text-[#1E2F85]' : 'text-slate-500'}`} />
-                  <span className={`text-sm font-medium ${!darkMode ? 'text-[#1E2F85]' : 'text-slate-900'}`}>Light</span>
+            <div style={{ padding: '0 1.5rem 1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                <button onClick={() => setDarkMode(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '0.375rem', border: '2px solid', borderColor: !darkMode ? '#1E2F85' : '#E2E8F0', padding: '1rem', backgroundColor: !darkMode ? 'rgba(30, 47, 133, 0.05)' : 'transparent', cursor: 'pointer' }}>
+                  <Sun style={{ height: '1.25rem', width: '1.25rem', color: !darkMode ? '#1E2F85' : '#64748B' }} />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: !darkMode ? '#1E2F85' : '#0F172A' }}>Light</span>
                 </button>
-                <button onClick={() => setDarkMode(true)} className={`flex items-center justify-center gap-2 rounded-md border-2 p-4 transition-all hover:bg-slate-50 ${darkMode ? 'border-[#1E2F85] bg-blue-50/50' : 'border-slate-200'}`}>
-                  <Moon className={`h-5 w-5 ${darkMode ? 'text-[#1E2F85]' : 'text-slate-500'}`} />
-                  <span className={`text-sm font-medium ${darkMode ? 'text-[#1E2F85]' : 'text-slate-900'}`}>Dark</span>
+                <button onClick={() => setDarkMode(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '0.375rem', border: '2px solid', borderColor: darkMode ? '#1E2F85' : '#E2E8F0', padding: '1rem', backgroundColor: darkMode ? 'rgba(30, 47, 133, 0.05)' : 'transparent', cursor: 'pointer' }}>
+                  <Moon style={{ height: '1.25rem', width: '1.25rem', color: darkMode ? '#1E2F85' : '#64748B' }} />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: darkMode ? '#1E2F85' : '#0F172A' }}>Dark</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 rounded-md border-2 border-slate-200 p-4 transition-all hover:bg-slate-50 text-slate-900">
-                  <Laptop className="h-5 w-5 text-slate-500" />
-                  <span className="text-sm font-medium">System</span>
+                <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '0.375rem', border: '2px solid', borderColor: '#E2E8F0', padding: '1rem', backgroundColor: 'transparent', cursor: 'pointer', color: '#0F172A' }}>
+                  <Laptop style={{ height: '1.25rem', width: '1.25rem', color: '#64748B' }} />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>System</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Danger Zone */}
-          <div className="rounded-xl border border-red-200 bg-white text-slate-950 shadow-sm mt-8">
-            <div className="flex flex-col space-y-1.5 p-6">
-              <h3 className="font-semibold leading-none tracking-tight text-red-600">Danger Zone</h3>
-              <p className="text-sm text-slate-500">Irreversible, destructive actions regarding your account.</p>
+          <div style={{ borderRadius: '0.75rem', border: '1px solid #FECACA', backgroundColor: '#FFFFFF', color: '#0F172A', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', marginTop: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1.5rem' }}>
+              <h3 style={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', color: '#EF4444', margin: 0 }}>Danger Zone</h3>
+              <p style={{ fontSize: '0.875rem', color: '#64748B', margin: 0 }}>Irreversible, destructive actions regarding your account.</p>
             </div>
-            <div className="p-6 pt-0 border-t border-red-100 flex items-center justify-between">
-              <div className="mt-4">
-                 <p className="text-sm font-medium text-slate-900">Delete Account</p>
-                 <p className="text-xs text-slate-500 mt-1 max-w-[280px]">Removing your account permanently deletes all claims and logs associated with identity.</p>
+            <div style={{ padding: '1.5rem', paddingTop: 0, borderTop: '1px solid #FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ marginTop: '1rem' }}>
+                 <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0F172A', margin: 0 }}>Delete Account</p>
+                 <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.25rem', maxWidth: '280px', margin: 0 }}>Removing your account permanently deletes all claims and logs associated with identity.</p>
               </div>
-              <button className="inline-flex h-9 items-center justify-center rounded-md bg-red-50 mt-4 px-4 py-2 text-sm font-medium text-red-600 shadow-sm border border-red-200 transition-colors hover:bg-red-100 hover:text-red-700 focus-visible:outline-none">
+              <button style={{ display: 'inline-flex', height: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', backgroundColor: '#FEE2E2', marginTop: '1rem', padding: '0 1rem', fontSize: '0.875rem', fontWeight: 500, color: '#EF4444', border: '1px solid #FECACA', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', cursor: 'pointer' }}>
                 Request Deletion
               </button>
             </div>

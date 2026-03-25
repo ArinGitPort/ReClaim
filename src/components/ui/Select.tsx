@@ -1,23 +1,53 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
 
 const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, children, ...props }, ref) => {
+  ({ style, children, disabled, ...props }, ref) => {
+    const selectStyles: React.CSSProperties = {
+      display: 'flex',
+      height: '2.25rem',
+      width: '100%',
+      borderRadius: '0.375rem',
+      border: '1px solid #E2E8F0',
+      backgroundColor: '#FFFFFF',
+      paddingLeft: '0.75rem',
+      paddingRight: '2rem', // Space for the arrow
+      paddingTop: '0.25rem',
+      paddingBottom: '0.25rem',
+      fontSize: '0.875rem',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      outline: 'none',
+      appearance: 'none',
+      color: '#0F172A',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.5 : 1,
+      ...style,
+    }
+
     return (
-      <div className="relative">
+      <div style={{ position: 'relative' }}>
         <select
-          className={cn(
-            "flex h-9 w-full rounded-md border border-border-divider bg-white px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none",
-            className
-          )}
+          style={selectStyles}
           ref={ref}
+          disabled={disabled}
           {...props}
         >
           {children}
         </select>
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-secondary">
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: 0, 
+            bottom: 0, 
+            right: 0, 
+            display: 'flex', 
+            alignItems: 'center', 
+            paddingRight: '0.75rem', 
+            pointerEvents: 'none', 
+            color: '#64748B' 
+          }}
+        >
           <svg
-            className="h-4 w-4"
+            style={{ height: '1rem', width: '1rem' }}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

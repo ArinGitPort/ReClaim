@@ -17,20 +17,20 @@ export function LandingPage() {
   const [showDropOffModal, setShowDropOffModal] = useState(false)
 
   return (
-    <div className="min-h-screen flex w-full bg-background-app font-sans relative">
-      <div className="absolute top-6 right-6 z-50">
+    <div style={{ minHeight: '100vh', display: 'flex', width: '100%', backgroundColor: '#F8FAFC', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 50 }}>
         <ThemeToggle />
       </div>
       
       {/* Left Side: Branding / Info */}
-      <div className="hidden lg:flex flex-1 bg-background-subtle relative overflow-hidden flex-col justify-center px-16 xl:px-24">
-        {/* Decorative background accent with Particles */}
-        <div className="absolute inset-0 z-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+      <div style={{ display: 'flex', flex: 1, backgroundColor: '#FFFFFF', position: 'relative', overflow: 'hidden', flexDirection: 'column', justifyContent: 'center', padding: '0 4rem' }}>
+        {/* Decorative background accent with Particles - Hidden on smaller screens but default here */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', width: '100%', height: '100%' }}>
           <Particles
             particleCount={120}
             particleSpread={10}
             speed={0.03}
-            particleColors={["#2563EB", "#10B981", "#64748B"]}
+            particleColors={["#1E2F85", "#10B981", "#64748B"]}
             moveParticlesOnHover
             particleHoverFactor={1.5}
             alphaParticles
@@ -41,40 +41,42 @@ export function LandingPage() {
           />
         </div>
         
-        <div className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-brand/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand/5 rounded-full blur-3xl pointer-events-none" />
+        <div style={{ position: 'absolute', top: '-10rem', left: '-10rem', width: '50rem', height: '50rem', backgroundColor: 'rgba(30, 47, 133, 0.1)', borderRadius: '50%', filter: 'blur(64px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 0, right: 0, width: '37.5rem', height: '37.5rem', backgroundColor: 'rgba(30, 47, 133, 0.05)', borderRadius: '50%', filter: 'blur(64px)', pointerEvents: 'none' }} />
         
-        <div className="relative z-10 w-full flex items-center justify-between gap-12">
-          <div className="max-w-xl xl:max-w-2xl text-left">
-            <h1 className="text-7xl font-extrabold tracking-tight text-text-primary mb-6">
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3rem' }}>
+          <div style={{ maxWidth: '40rem', textAlign: 'left' }}>
+            <h1 style={{ fontSize: '4.5rem', fontWeight: 800, letterSpacing: '-0.025em', color: '#0F172A', marginBottom: '1.5rem', lineHeight: '1', margin: 0 }}>
               Campus Lost & Found Portal
             </h1>
-            <p className="text-xl text-text-secondary leading-relaxed max-w-2xl">
-              A secure platform to report missing belongings, Lose something? File a report. See your item? Submit a claim to get it back.
+            <p style={{ fontSize: '1.25rem', color: '#64748B', lineHeight: '1.6', maxWidth: '40rem', margin: 0 }}>
+              A secure platform to report missing belongings. Lose something? File a report. See your item? Submit a claim to get it back.
             </p>
             
-            <div className="mt-12 flex flex-wrap items-center gap-5">
-              <Link to="/gallery">
-                <Button size="lg" className="rounded-full shadow-sm text-base font-semibold px-8 h-12 bg-brand hover:bg-brand/90 transition-colors text-white">
+            <div style={{ marginTop: '3rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem' }}>
+              <Link to="/gallery" style={{ textDecoration: 'none' }}>
+                <Button style={{ borderRadius: '9999px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', fontSize: '1rem', fontWeight: 600, padding: '0 2rem', height: '3rem', backgroundColor: '#1E2F85', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}>
                   View Found Items
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="rounded-full h-12 px-6 text-base font-semibold border-brand text-brand shadow-sm transition-colors hover:bg-brand/5 hover:text-brand">
+              <Button 
+                variant="outline" 
+                style={{ borderRadius: '9999px', height: '3rem', padding: '0 1.5rem', fontSize: '1rem', fontWeight: 600, border: '1px solid #1E2F85', color: '#1E2F85', backgroundColor: 'transparent', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', cursor: 'pointer' }}
+              >
                 Report Lost Item
               </Button>
               <Button 
                 onClick={() => setShowDropOffModal(true)}
                 variant="ghost" 
-                size="lg" 
-                className="rounded-full h-12 px-6 text-base font-bold text-slate-500 hover:text-brand hover:bg-brand/5 transition-all flex items-center gap-2"
+                style={{ borderRadius: '9999px', height: '3rem', padding: '0 1.5rem', fontSize: '1rem', fontWeight: 700, color: '#64748B', backgroundColor: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
               >
-                <Plus className="w-5 h-5" />
+                <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
                 I Found an Item
               </Button>
             </div>
           </div>
 
-          <div className="hidden xl:block w-[750px] h-[300px] relative shrink-0 mt-20 mr-12 z-20">
+          <div style={{ position: 'relative', width: '46.875rem', height: '18.75rem', flexShrink: 0, marginTop: '5rem', marginRight: '3rem', zIndex: 20 }}>
             <CardSwap
               cardDistance={40}
               verticalDistance={60}
@@ -84,16 +86,16 @@ export function LandingPage() {
               width={750}
               height={500}
             >
-              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
-                <img src={firstImage} alt="Feature 1" className="w-full h-full object-cover object-left" />
+              <Card style={{ display: 'flex', flexDirection: 'column', padding: 0, filter: 'drop-shadow(0 25px 35px rgba(38, 61, 168, 0.15))', border: '1px solid rgba(255, 255, 255, 0.6)', backgroundColor: '#FFFFFF', borderRadius: '1rem', overflow: 'hidden' }}>
+                <img src={firstImage} alt="Feature 1" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left' }} />
               </Card>
 
-              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
-                <img src={secondImage} alt="Feature 2" className="w-full h-full object-cover object-left" />
+              <Card style={{ display: 'flex', flexDirection: 'column', padding: 0, filter: 'drop-shadow(0 25px 35px rgba(38, 61, 168, 0.15))', border: '1px solid rgba(255, 255, 255, 0.6)', backgroundColor: '#FFFFFF', borderRadius: '1rem', overflow: 'hidden' }}>
+                <img src={secondImage} alt="Feature 2" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left' }} />
               </Card>
 
-              <Card className="flex flex-col p-0 drop-shadow-[0_25px_35px_rgba(38,61,168,0.15)] ring-1 ring-white/60 bg-white">
-                <img src={thirdImage} alt="Feature 3" className="w-full h-full object-cover object-left" />
+              <Card style={{ display: 'flex', flexDirection: 'column', padding: 0, filter: 'drop-shadow(0 25px 35px rgba(38, 61, 168, 0.15))', border: '1px solid rgba(255, 255, 255, 0.6)', backgroundColor: '#FFFFFF', borderRadius: '1rem', overflow: 'hidden' }}>
+                <img src={thirdImage} alt="Feature 3" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left' }} />
               </Card>
             </CardSwap>
           </div>
@@ -105,20 +107,20 @@ export function LandingPage() {
       )}
 
       {/* Right Side: Login Form */}
-      <div className="flex-none w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 xl:p-16 bg-background-app border-l border-border-divider/50 shadow-[-15px_0_30px_-15px_rgba(0,0,0,0.03)] z-20">
-        <div className="w-full max-w-sm flex flex-col items-center">
+      <div style={{ flex: 'none', width: '500px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem', backgroundColor: '#F8FAFC', borderLeft: '1px solid rgba(241, 245, 249, 0.5)', boxShadow: '-15px 0 30px -15px rgba(0, 0, 0, 0.03)', zIndex: 20 }}>
+        <div style={{ width: '100%', maxWidth: '24rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* Mobile Logo Visibility */}
-          <div className="mb-12 text-center mt-8">
-            <h1 className="text-5xl font-extrabold tracking-tight text-text-primary mb-3">
-              <span className="text-brand">Re</span>Claim
+          <div style={{ marginBottom: '3rem', textAlign: 'center', marginTop: '2rem' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-0.025em', color: '#0F172A', marginBottom: '0.75rem', margin: 0 }}>
+              <span style={{ color: '#1E2F85' }}>Re</span>Claim
             </h1>
-            <p className="text-sm font-medium text-text-secondary">Lost & Found System</p>
+            <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748B', margin: 0 }}>Lost & Found System</p>
           </div>
           
           <LoginForm />
           
-          <div className="mt-8 text-center text-sm text-text-secondary">
-            <p>New to ReClaim? <Link to="/register" className="text-brand font-semibold hover:underline transition-all">Create an Account</Link></p>
+          <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem', color: '#64748B' }}>
+            <p style={{ margin: 0 }}>New to ReClaim? <Link to="/register" style={{ color: '#1E2F85', fontWeight: 600, textDecoration: 'none' }}>Create an Account</Link></p>
           </div>
         </div>
       </div>
@@ -126,4 +128,3 @@ export function LandingPage() {
     </div>
   )
 }
-

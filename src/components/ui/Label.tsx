@@ -1,15 +1,19 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
 
 const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
-  ({ className, ...props }, ref) => {
+  ({ style, ...props }, ref) => {
+    const labelStyles: React.CSSProperties = {
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      lineHeight: '1',
+      color: '#0F172A',
+      ...style,
+    }
+
     return (
       <label
         ref={ref}
-        className={cn(
-          "text-sm font-semibold leading-none text-text-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-          className
-        )}
+        style={labelStyles}
         {...props}
       />
     )

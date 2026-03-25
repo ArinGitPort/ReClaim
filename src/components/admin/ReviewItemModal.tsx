@@ -1,4 +1,4 @@
-﻿import type { CapturedItem } from "@/data/mockData"
+import type { CapturedItem } from "@/data/mockData"
 import { X, Send, MapPin, Tag, Info, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
@@ -16,136 +16,130 @@ export function ReviewItemModal({ item, onClose, onPublish }: ReviewItemModalPro
   const [storageLocation, setStorageLocation] = useState("")
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
+      <div 
+        style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)' }} 
+        onClick={onClose} 
+      />
       
       {/* Modal Content */}
-      <div className="relative bg-white w-full max-w-5xl h-[90vh] rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in zoom-in slide-in-from-bottom-8 duration-300">
-        {/* Close Button Mobile */}
-        <button 
-          onClick={onClose}
-          className="md:hidden absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur rounded-full shadow-lg"
-        >
-          <X className="w-5 h-5 text-slate-800" />
-        </button>
-
+      <div style={{ position: 'relative', backgroundColor: '#FFFFFF', width: '100%', maxWidth: '64rem', height: '90vh', borderRadius: '2rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
+        
         {/* Left Side: Photo Preview */}
-        <div className="flex-1 bg-slate-100 relative group">
-           <img src={item.imageUrl} alt="Captured" className="w-full h-full object-cover" />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-           <div className="absolute bottom-8 left-8">
-              <span className="px-4 py-1.5 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl">
+        <div style={{ flex: 1, backgroundColor: '#F1F5F9', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+           <img src={item.imageUrl} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent, transparent)', pointerEvents: 'none' }} />
+           <div style={{ position: 'absolute', bottom: '2rem', left: '2rem' }}>
+              <span style={{ padding: '0.375rem 1rem', backgroundColor: '#4F46E5', color: '#FFFFFF', borderRadius: '9999px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
                 AI Original Perspective
               </span>
            </div>
         </div>
 
         {/* Right Side: Form & Actions */}
-        <div className="flex-1 p-8 md:p-12 overflow-y-auto bg-white flex flex-col">
-           <div className="mb-10 flex items-center justify-between">
+        <div style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
+           <div style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Review Capture</h2>
-                <p className="text-slate-500 font-medium text-sm">Validate and publish this item to the gallery.</p>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Review Capture</h2>
+                <p style={{ color: '#64748B', fontWeight: 500, fontSize: '0.875rem', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Validate and publish this item to the gallery.</p>
               </div>
               <button 
                 onClick={onClose}
-                className="hidden md:flex p-2 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors"
+                style={{ display: 'flex', padding: '0.5rem', backgroundColor: '#F8FAFC', border: 'none', borderRadius: '9999px', cursor: 'pointer' }}
               >
-                <X className="w-6 h-6 text-slate-400" />
+                <X style={{ width: '1.5rem', height: '1.5rem', color: '#94A3B8' }} />
               </button>
            </div>
 
-           <div className="space-y-8 flex-1">
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
               {/* Field: Title */}
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Info className="w-3.5 h-3.5" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                 <label style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Info style={{ width: '0.875rem', height: '0.875rem' }} />
                     Item Title
                  </label>
                  <input 
                     type="text" 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-0 py-2 border-b-2 border-slate-100 focus:border-indigo-600 outline-none text-lg font-bold text-slate-800 transition-colors bg-transparent"
+                    style={{ width: '100%', padding: '0.5rem 0', borderBottom: '2px solid #F1F5F9', backgroundColor: 'transparent', outline: 'none', fontSize: '1.125rem', fontWeight: 700, color: '#1E293B', border: 'none', borderBottomStyle: 'solid', boxSizing: 'border-box' }}
                     placeholder="e.g. Silver Laptop with Blue Sticker"
                  />
               </div>
 
               {/* Grid: Category & Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                       <Tag className="w-3.5 h-3.5" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       <Tag style={{ width: '0.875rem', height: '0.875rem' }} />
                        Category
                     </label>
-                    <div className="relative">
-                       <select 
-                          value={category}
-                          onChange={(e) => setCategory(e.target.value)}
-                          className="w-full appearance-none bg-slate-50 px-4 py-3 rounded-2xl text-sm font-bold text-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-100 transition-all font-sans"
-                       >
-                          <option>Electronics</option>
-                          <option>Wallets/IDs</option>
-                          <option>Keys</option>
-                          <option>Others</option>
-                       </select>
-                    </div>
+                    <select 
+                       value={category}
+                       onChange={(e) => setCategory(e.target.value)}
+                       style={{ width: '100%', backgroundColor: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '1rem', fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', border: 'none', outline: 'none' }}
+                    >
+                       <option>Electronics</option>
+                       <option>Wallets/IDs</option>
+                       <option>Keys</option>
+                       <option>Others</option>
+                    </select>
                  </div>
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                       <MapPin className="w-3.5 h-3.5" />
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
                        Found Location
                     </label>
                     <input 
                        type="text" 
                        value={item.suggestedLocation}
                        readOnly
-                       className="w-full bg-slate-50 px-4 py-3 rounded-2xl text-sm font-bold text-slate-400 border-none outline-none cursor-not-allowed"
+                       style={{ width: '100%', backgroundColor: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '1rem', fontSize: '0.875rem', fontWeight: 700, color: '#94A3B8', border: 'none', outline: 'none' }}
                     />
                  </div>
               </div>
 
               {/* Field: Storage Location */}
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                 <label style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ShieldCheck style={{ width: '0.875rem', height: '0.875rem' }} />
                     Physical Storage Location
                  </label>
                  <input 
                     type="text" 
                     value={storageLocation}
                     onChange={(e) => setStorageLocation(e.target.value)}
-                    className="w-full bg-slate-50 px-4 py-3 rounded-2xl text-sm font-bold text-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-100"
+                    style={{ width: '100%', backgroundColor: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '1rem', fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', border: 'none', outline: 'none', boxSizing: 'border-box' }}
                     placeholder="e.g. Cabinet B, Shelf 3"
                  />
               </div>
 
               {/* Field: Description */}
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condition / Notes</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                 <label style={{ fontSize: '10px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Condition / Notes</label>
                  <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-slate-50 px-4 py-3 rounded-2xl text-sm font-bold text-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-100 h-32 resize-none"
+                    style={{ width: '100%', backgroundColor: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '1rem', fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', border: 'none', outline: 'none', height: '8rem', resize: 'none', boxSizing: 'border-box' }}
                     placeholder="Add specific details about the item's condition..."
                  />
               </div>
            </div>
 
-           <div className="pt-10 flex gap-4 mt-auto">
+           <div style={{ paddingTop: '2.5rem', display: 'flex', gap: '1rem', marginTop: 'auto' }}>
               <Button 
                 variant="outline" 
                 onClick={onClose}
-                className="flex-1 h-14 rounded-2xl border-2 font-bold text-slate-500"
+                style={{ flex: 1, height: '3.5rem', borderRadius: '1rem', border: '2px solid #E2E8F0', fontWeight: 700, color: '#64748B' }}
               >
                 Discard Capture
               </Button>
               <Button 
                 onClick={onPublish}
-                className="flex-[2] h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-3 transition-transform active:scale-95"
+                style={{ flex: 2, height: '3.5rem', borderRadius: '1rem', backgroundColor: '#4F46E5', color: '#FFFFFF', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', border: 'none', cursor: 'pointer' }}
               >
-                <Send className="w-5 h-5" />
+                <Send style={{ width: '1.25rem', height: '1.25rem' }} />
                 Publish to Inventory
               </Button>
            </div>
@@ -154,4 +148,3 @@ export function ReviewItemModal({ item, onClose, onPublish }: ReviewItemModalPro
     </div>
   )
 }
-

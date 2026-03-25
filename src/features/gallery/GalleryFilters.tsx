@@ -1,4 +1,4 @@
-﻿import { Search, MapPin, Calendar, Tag, SlidersHorizontal, X } from "lucide-react"
+import { Search, MapPin, Calendar, Tag, SlidersHorizontal, X } from "lucide-react"
 
 interface GalleryFiltersProps {
   filters: {
@@ -34,46 +34,80 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
     });
   };
 
+  const containerStyles: React.CSSProperties = {
+    width: '18rem',
+    flexShrink: 0,
+    position: 'sticky',
+    top: '2rem',
+    alignSelf: 'start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2rem',
+    backgroundColor: '#F8FAFC',
+    padding: '1.5rem',
+    borderRadius: '0.75rem',
+    border: '1px solid rgba(226, 232, 240, 0.6)',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  }
+
+  const sectionStyles: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  }
+
+  const inputStyles: React.CSSProperties = {
+    width: '100%',
+    height: '2.5rem',
+    padding: '0 1rem',
+    fontSize: '0.875rem',
+    backgroundColor: '#F1F5F9',
+    border: '1px solid rgba(226, 232, 240, 0.5)',
+    borderRadius: '0.5rem',
+    outline: 'none',
+    color: '#0F172A',
+  }
+
   return (
-    <div className="w-full lg:w-72 flex-shrink-0 lg:sticky lg:top-8 self-start space-y-8 bg-background-app p-6 rounded-xl border border-border-divider/60 shadow-sm font-sans">
-      <div className="flex items-center gap-2 border-b border-border-divider/50 pb-4">
-        <SlidersHorizontal className="w-5 h-5 text-text-primary" />
-        <h2 className="text-lg font-bold text-text-primary tracking-tight">Filters</h2>
+    <div style={containerStyles}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid rgba(226, 232, 240, 0.5)', paddingBottom: '1rem' }}>
+        <SlidersHorizontal style={{ width: '1.25rem', height: '1.25rem', color: '#0F172A' }} />
+        <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Filters</h2>
       </div>
 
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-          <Search className="w-4 h-4 text-text-secondary" />
+      <div style={sectionStyles}>
+        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Search style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Quick Search
         </label>
-        <div className="relative">
+        <div style={{ position: 'relative' }}>
           <input
             type="text"
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             placeholder="e.g. Black laptop, keys..."
-            className="w-full h-10 px-3 md:px-4 text-sm bg-background-subtle border border-border-divider/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary placeholder:text-text-secondary"
+            style={inputStyles}
           />
           {filters.search && (
             <button 
               onClick={() => setFilters({ ...filters, search: "" })}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+              style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#64748B' }}
             >
-              <X className="w-4 h-4" />
+              <X style={{ width: '1rem', height: '1rem' }} />
             </button>
           )}
         </div>
       </div>
 
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-text-secondary" />
+      <div style={sectionStyles}>
+        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Calendar style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Date Lost
         </label>
         <select 
           value={filters.dateLost}
           onChange={(e) => setFilters({ ...filters, dateLost: e.target.value })}
-          className="w-full h-10 px-3 text-sm bg-background-subtle border border-border-divider/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary cursor-pointer"
+          style={inputStyles}
         >
           <option value="any">Any Time</option>
           <option value="today">Today</option>
@@ -82,35 +116,35 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
         </select>
       </div>
 
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-          <Tag className="w-4 h-4 text-text-secondary" />
+      <div style={sectionStyles}>
+        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Tag style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Category
         </label>
-        <div className="space-y-2.5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
           {CATEGORIES.map((cat) => (
-            <label key={cat} className="flex items-center gap-3 cursor-pointer group">
+            <label key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
               <input 
                 type="checkbox" 
                 checked={filters.categories.includes(cat)}
                 onChange={() => handleCategoryToggle(cat)}
-                className="w-4 h-4 rounded border-border-divider text-brand focus:ring-brand bg-background-subtle cursor-pointer" 
+                style={{ width: '1rem', height: '1rem', borderRadius: '0.25rem', border: '1px solid #E2E8F0', cursor: 'pointer' }} 
               />
-              <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">{cat}</span>
+              <span style={{ fontSize: '0.875rem', color: '#64748B' }}>{cat}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-text-secondary" />
+      <div style={sectionStyles}>
+        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <MapPin style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Campus Location
         </label>
         <select 
           value={filters.location}
           onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-          className="w-full h-10 px-3 text-sm bg-background-subtle border border-border-divider/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:bg-background-app transition-colors text-text-primary cursor-pointer"
+          style={inputStyles}
         >
           <option value="all">Everywhere</option>
           <option value="library">Main Library</option>
@@ -121,7 +155,17 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
 
       <button 
         onClick={handleClear}
-        className="w-full py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary bg-background-subtle hover:bg-border-divider/20 rounded-lg transition-colors border border-border-divider/50"
+        style={{ 
+          width: '100%', 
+          padding: '0.625rem 0', 
+          fontSize: '0.875rem', 
+          fontWeight: '500', 
+          color: '#64748B', 
+          backgroundColor: '#F1F5F9', 
+          borderRadius: '0.5rem', 
+          border: '1px solid rgba(226, 232, 240, 0.5)', 
+          cursor: 'pointer' 
+        }}
       >
         Clear All Filters
       </button>

@@ -1,36 +1,44 @@
 import React from 'react'
-import { cn } from "@/lib/utils"
 
 export function ActionIconButton({
   label,
   icon,
-  buttonClassName,
   onClick,
-  disabled
+  disabled,
+  style
 }: {
   label: string
   icon: React.ReactNode
-  buttonClassName?: string
   onClick: () => void
   disabled?: boolean
+  style?: React.CSSProperties
 }) {
+  const buttonStyles: React.CSSProperties = {
+    width: '2.25rem',
+    height: '2.25rem',
+    borderRadius: '0.5rem',
+    border: '1px solid #E2E8F0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
+    outline: 'none',
+    ...style
+  }
+
   return (
-    <div className="relative group/action">
+    <div style={{ position: 'relative' }}>
       <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-label={label}
-        className={cn(
-          "w-9 h-9 rounded-lg border flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed",
-          buttonClassName
-        )}
+        style={buttonStyles}
       >
         {icon}
       </button>
-      <span className="pointer-events-none absolute bottom-full right-0 mb-2 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-extrabold text-white opacity-0 translate-y-1 transition-all group-hover/action:opacity-100 group-hover/action:translate-y-0 whitespace-nowrap z-50">
-        {label}
-      </span>
     </div>
   )
 }

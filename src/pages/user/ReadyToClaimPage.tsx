@@ -77,12 +77,12 @@ export function ReadyToClaimPage() {
   )
 
   return (
-    <div className="w-full min-h-full pb-24">
+    <div style={{ width: '100%', minHeight: '100vh', paddingBottom: '6rem' }}>
       <TopNavBar title="Ready to Claim" />
-      <div className="max-w-5xl mx-auto px-6 mt-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Ready to Claim</h2>
-          <p className="text-slate-500 text-sm">This is the only page where pickup tokens are displayed for physical handover.</p>
+      <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '0 1.5rem', marginTop: '2rem' }}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.25rem', margin: 0 }}>Ready to Claim</h2>
+          <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>This is the only page where pickup tokens are displayed for physical handover.</p>
         </div>
 
         <RecordsFilterBar
@@ -107,52 +107,54 @@ export function ReadyToClaimPage() {
           resultCount={filteredPickups.length}
         />
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {visiblePickups.map((pickup) => (
-            <div key={`${pickup.source}-${pickup.sourceCode}`} className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-                <div className="w-14 h-14 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-7 h-7 text-emerald-600" />
+            <div key={`${pickup.source}-${pickup.sourceCode}`} style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #A7F3D0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', padding: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <ShieldCheck style={{ width: '1.75rem', height: '1.75rem', color: '#059669' }} />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 'bold', fontFamily: 'monospace', color: '#047857', backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
+                        {pickup.sourceCode}
+                      </span>
+                      <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
+                        {pickup.inventoryCode}
+                      </span>
+                    </div>
+                    <h3 style={{ fontWeight: 'bold', color: '#0F172A', fontSize: '1.125rem', lineHeight: '1.25', margin: 0 }}>{pickup.itemTitle}</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem', fontSize: '11px', fontWeight: 'bold', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
+                        {pickup.officeLocation}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <CalendarClock style={{ width: '0.875rem', height: '0.875rem' }} />
+                        {new Date(pickup.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
-                      {pickup.sourceCode}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {pickup.inventoryCode}
-                    </span>
+                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderRadius: '0.75rem', border: '1px solid #A7F3D0', borderTop: '1px solid #F1F5F9', backgroundColor: '#ECFDF5', padding: '0.75rem 1rem' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Pickup Token</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#065F46', letterSpacing: '0.025em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Ticket style={{ width: '1.25rem', height: '1.25rem' }} /> {pickup.pickupToken}
                   </div>
-                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{pickup.itemTitle}</h3>
-                  <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {pickup.officeLocation}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CalendarClock className="w-3.5 h-3.5" />
-                      {new Date(pickup.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#047857', margin: 0 }}>
+                    Present this token and your ID at the Admin Office.
+                    {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
+                  </p>
                 </div>
-              </div>
-
-              <div className="mt-5 pt-5 rounded-xl border border-emerald-200 border-t-slate-100 bg-emerald-50 px-4 py-3">
-                <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Pickup Token</div>
-                <div className="text-xl font-black text-emerald-800 tracking-wide flex items-center gap-2">
-                  <Ticket className="w-5 h-5" /> {pickup.pickupToken}
-                </div>
-                <p className="mt-2 text-xs font-semibold text-emerald-700">
-                  Present this token and your ID at the Admin Office.
-                  {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
-                </p>
               </div>
             </div>
           ))}
 
           {visiblePickups.length === 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-sm font-semibold text-slate-500">
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', padding: '2rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600', color: '#64748B' }}>
               No ready-for-pickup items yet.
             </div>
           )}

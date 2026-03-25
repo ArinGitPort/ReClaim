@@ -1,4 +1,4 @@
-﻿import { useCallback, useState } from "react"
+import { useCallback, useState } from "react"
 import { GalleryFilters } from "@/features/gallery/GalleryFilters"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { TopNavBar } from "@/layouts/TopNavBar"
@@ -46,39 +46,39 @@ export function GalleryPage() {
   const pageSize = 12
 
   return (
-    <div className="w-full min-h-full pb-24">
+    <div style={{ width: '100%', minHeight: '100vh', paddingBottom: '6rem' }}>
       {/* Top Navigation Bar */}
       <TopNavBar title="Browse Found Items" />
 
       {/* Main Layout Area */}
-      <main className="max-w-[1600px] mx-auto px-6 mt-8">
+      <main style={{ maxWidth: '100rem', margin: '2rem auto 0', padding: '0 1.5rem' }}>
         {/* Primary Action Banner for Finders */}
-        <div className="mb-10 bg-brand rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-brand/10 border border-brand/20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="max-w-xl">
-              <h2 className="text-3xl font-black tracking-tight mb-2 italic">Found something?</h2>
-              <p className="text-white/80 font-bold text-sm tracking-wide uppercase">
+        <div style={{ marginBottom: '2.5rem', backgroundColor: '#1E2F85', borderRadius: '1.5rem', padding: '2rem', color: '#FFFFFF', position: 'relative', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(30, 47, 133, 0.1)', border: '1px solid rgba(30, 47, 133, 0.2)' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '24rem', height: '24rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '50%', filter: 'blur(64px)', transform: 'translate(50%, -50%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
+            <div style={{ maxWidth: '40rem' }}>
+              <h2 style={{ fontSize: '1.875rem', fontWeight: 900, letterSpacing: '-0.025em', marginBottom: '0.5rem', fontStyle: 'italic', margin: 0 }}>Found something?</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: 'bold', fontSize: '0.875rem', letterSpacing: '0.025em', textTransform: 'uppercase', margin: 0 }}>
                  Turn in lost items at the ITSO Office and we'll handle the rest.
               </p>
             </div>
             <Button
               onClick={() => setShowDropOffModal(true)}
-              className="bg-white text-brand hover:bg-white/90 font-black px-8 py-6 rounded-2xl text-base shadow-lg shadow-black/5 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+              style={{ backgroundColor: '#FFFFFF', color: '#1E2F85', fontWeight: 900, padding: '0 2rem', height: '4rem', borderRadius: '1rem', fontSize: '1rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)', border: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
             >
-              <Plus className="w-6 h-6" />
+              <Plus style={{ width: '1.5rem', height: '1.5rem' }} />
               Turn In a Lost Item
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '2rem', alignItems: 'flex-start' }}>
           <GalleryFilters filters={filters} setFilters={handleFiltersChange} />
 
-          <div className="flex-1 w-full relative">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-text-primary">Found Items</h2>
-              <span className="text-sm font-medium text-text-secondary bg-background-app px-3 py-1 rounded-full border border-border-divider/40">
+          <div style={{ flex: 1, width: '100%', position: 'relative' }}>
+            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', margin: 0 }}>Found Items</h2>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748B', backgroundColor: '#F8FAFC', padding: '0.25rem 0.75rem', borderRadius: '9999px', border: '1px solid rgba(241, 245, 249, 0.4)' }}>
                 Showing {itemCount} of {totalCount} items
               </span>
             </div>
@@ -90,20 +90,21 @@ export function GalleryPage() {
               onDataChange={handleGalleryDataChange}
             />
 
-            <AdminPaginationControls
-              className="mt-4"
-              page={page}
-              pageCount={pageCount}
-              total={totalCount}
-              visibleCount={itemCount}
-              rowsPerPage={pageSize}
-              onPageChange={setPage}
-              onRowsPerPageChange={() => {
-                // Browse Found Items uses fixed public page size.
-              }}
-              showRowsPerPage={false}
-              itemLabel="items"
-            />
+            <div style={{ marginTop: '1rem' }}>
+              <AdminPaginationControls
+                page={page}
+                pageCount={pageCount}
+                total={totalCount}
+                visibleCount={itemCount}
+                rowsPerPage={pageSize}
+                onPageChange={setPage}
+                onRowsPerPageChange={() => {
+                  // Browse Found Items uses fixed public page size.
+                }}
+                showRowsPerPage={false}
+                itemLabel="items"
+              />
+            </div>
           </div>
         </div>
       </main>

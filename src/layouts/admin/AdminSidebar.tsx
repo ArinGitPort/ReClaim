@@ -1,4 +1,3 @@
-import React, { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
@@ -6,150 +5,140 @@ import {
   FileSearch, 
   HandMetal, 
   History,
-  Users,
-  Archive,
-  Settings as SettingsIcon,
+  Settings,
   LogOut,
-  Menu,
-  ChevronLeft,
-  Bot,
-  User
+  User,
+  ShieldCheck
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function AdminSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  
+  const { user } = useAuth()
+
   return (
-    <aside 
-      className={cn(
-        "hidden md:flex bg-[#1E2F85] border-r border-[#172363] flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
-        isCollapsed ? "w-20" : "w-64"
-      )}
-    >
-      {/* Admin Title Header */}
-      <div className="h-16 flex items-center justify-between px-4 flex-shrink-0 overflow-hidden mt-2">
-        {!isCollapsed && (
-          <div className="font-extrabold text-xl tracking-tight text-white overflow-hidden whitespace-nowrap">
-            <span className="text-white/60">Admin</span>Portal
+    <aside style={{ 
+      width: '18rem', 
+      backgroundColor: '#1E2F85', 
+      color: '#FFFFFF', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      boxShadow: '4px 0 10px -3px rgba(0, 0, 0, 0.1)', 
+      zIndex: 50,
+      minHeight: '100vh',
+      position: 'sticky',
+      top: 0
+    }}>
+      {/* Branding */}
+      <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ width: '2.5rem', height: '2.5rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Package style={{ width: '1.5rem', height: '1.5rem', color: '#1E2F85' }} />
+        </div>
+        <div style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.025em' }}>
+          ReClaim<span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Admin</span>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
+        {/* Group: Core Operations */}
+        <div>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '1rem', padding: '0 0.75rem' }}>Action Queue</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <SidebarItem to="/admin/dashboard" icon={<LayoutDashboard style={{ width: '1.125rem', height: '1.125rem' }} />} label="Dashboard" />
+            <SidebarItem to="/admin/inventory" icon={<Package style={{ width: '1.125rem', height: '1.125rem' }} />} label="Inventory" />
+            <SidebarItem to="/admin/reports" icon={<FileSearch style={{ width: '1.125rem', height: '1.125rem' }} />} label="Missing Items" />
+            <SidebarItem to="/admin/claims" icon={<HandMetal style={{ width: '1.125rem', height: '1.125rem' }} />} label="Claims Verification" />
           </div>
-        )}
-        <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn(
-            "p-2 text-white bg-white/10 hover:bg-white/20 transition-all rounded-lg shadow-sm border border-white/10 hover:border-white/30 active:scale-95",
-            isCollapsed && "mx-auto"
-          )}
-          aria-label="Toggle sidebar"
+        </div>
+
+        {/* Group: Records */}
+        <div>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '1rem', padding: '0 0.75rem' }}>Accountability</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <SidebarItem to="/admin/handover-log" icon={<History style={{ width: '1.125rem', height: '1.125rem' }} />} label="Handover Log" />
+            <SidebarItem to="/admin/user-directory" icon={<User style={{ width: '1.125rem', height: '1.125rem' }} />} label="User Directory" />
+            <SidebarItem to="/admin/expired-inventory" icon={<Package style={{ width: '1.125rem', height: '1.125rem' }} />} label="Expired Items" />
+          </div>
+        </div>
+
+        {/* Group: System */}
+        <div>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '1rem', padding: '0 0.75rem' }}>System</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <SidebarItem to="/admin/logs" icon={<History style={{ width: '1.125rem', height: '1.125rem' }} />} label="Audit Archive" />
+            <SidebarItem to="/admin/settings" icon={<Settings style={{ width: '1.125rem', height: '1.125rem' }} />} label="Settings" />
+          </div>
+        </div>
+      </nav>
+
+      {/* Footer / User Profile */}
+      <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '9999px', backgroundColor: 'rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User style={{ width: '1.25rem', height: '1.25rem', color: 'rgba(255, 255, 255, 0.4)' }} />
+            )}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'rgba(255, 255, 255, 0.5)' }}>
+              <ShieldCheck style={{ width: '0.75rem', height: '0.75rem' }} />
+              <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>Administrator</span>
+            </div>
+          </div>
+        </div>
+
+        <NavLink 
+          to="/"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.75rem', 
+            padding: '0.75rem', 
+            borderRadius: '0.75rem', 
+            fontSize: '0.875rem', 
+            fontWeight: 700, 
+            color: 'rgba(255, 255, 255, 0.6)', 
+            textDecoration: 'none',
+            backgroundColor: 'transparent',
+            transition: 'all 0.2s'
+          }}
         >
-          {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* Navigation Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1 scrollbar-hide">
-        <div className="mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Action Queue</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/captured-items" icon={<Bot className="w-5 h-5" />} label="Captured Items" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
-
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Records & Accountability</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/expired-inventory" icon={<Archive className="w-5 h-5" />} label="Expired Inventory" isCollapsed={isCollapsed} />
-
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Administration</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="System Settings" isCollapsed={isCollapsed} />
-      </div>
-
-      {/* Footer Area */}
-      <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0">
-        <AdminSidebarItem 
-          to="/admin/profile" 
-          icon={<User className="w-5 h-5" />} 
-          label="My Profile" 
-          isCollapsed={isCollapsed} 
-        />
-        <AdminSidebarItem 
-          to="/" 
-          icon={<LogOut className="w-5 h-5" />} 
-          label="Log Out" 
-          isCollapsed={isCollapsed} 
-          variant="secondary"
-        />
+          <LogOut style={{ width: '1.125rem', height: '1.125rem' }} />
+          Exit to Portal
+        </NavLink>
       </div>
     </aside>
   )
 }
 
-interface AdminSidebarItemProps {
-  to: string
-  icon: React.ReactNode
-  label: string
-  isCollapsed: boolean
-  variant?: "default" | "secondary"
-}
-
-function AdminSidebarItem({ to, icon, label, isCollapsed, variant = "default" }: AdminSidebarItemProps) {
+function SidebarItem({ to, icon, label }: { to: string, icon: React.ReactNode, label: string }) {
   const { pathname } = useLocation()
   const isActive = pathname === to || pathname.startsWith(to + "/")
 
-  const navLink = (
+  return (
     <NavLink 
-      to={to}
-      className={cn(
-        "flex flex-row items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
-        isCollapsed ? "justify-center" : "justify-start",
-        variant === "secondary"
-          ? "text-white/60 hover:bg-rose-500/20 hover:text-rose-200"
-          : isActive
-            ? "bg-white/10 text-white font-semibold shadow-sm"
-            : "text-white/70 hover:bg-white/5 hover:text-white font-medium"
-      )}
+      to={to} 
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '0.75rem', 
+        padding: '0.75rem', 
+        borderRadius: '0.75rem', 
+        fontSize: '0.875rem', 
+        fontWeight: isActive ? 700 : 500, 
+        color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)', 
+        textDecoration: 'none',
+        backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+        boxShadow: isActive ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)' : 'none',
+        transition: 'all 0.2s'
+      }}
     >
-      <div className={cn(
-        "flex-shrink-0 transition-transform group-hover:scale-110",
-        isActive ? "text-white" : "text-white/70 group-hover:text-white"
-      )}>
-        {icon}
-      </div>
-      
-      {!isCollapsed && (
-        <span className="text-sm flex-1 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">
-          {label}
-        </span>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s', transform: isActive ? 'scale(1.1)' : 'scale(1)' }}>{icon}</div>
+      <span style={{ flex: 1 }}>{label}</span>
     </NavLink>
   )
-
-  if (isCollapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {navLink}
-        </TooltipTrigger>
-        <TooltipContent side="right" className="bg-brand text-white font-semibold border-brand ml-2 outline-none">
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  return navLink
 }

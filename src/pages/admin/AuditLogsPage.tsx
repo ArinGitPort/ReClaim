@@ -122,7 +122,7 @@ export function AuditLogsPage() {
   }, [logs?.length, total])
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {selectedLog && (
         <AuditDetailModal 
           log={selectedLog} 
@@ -130,21 +130,21 @@ export function AuditLogsPage() {
         />
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Audit Archive</h1>
-        <p className="mt-1 text-sm font-medium text-slate-500">Activity feed of verified system actions and administrative updates.</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Audit Archive</h1>
+        <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', fontWeight: 500, color: '#64748B', margin: '0.25rem 0 0 0' }}>Activity feed of verified system actions and administrative updates.</p>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+        <div style={{ borderRadius: '0.75rem', border: '1px solid #FECACA', backgroundColor: '#FEF2F2', padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: 600, color: '#B91C1C' }}>
           {error}
         </div>
       )}
 
-      <div className="space-y-3">
-        <div className="flex flex-col gap-4 md:flex-row">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', height: '1rem', width: '1rem', color: '#94A3B8' }} />
             <Input
               value={searchQuery}
               onChange={(event) => {
@@ -152,17 +152,17 @@ export function AuditLogsPage() {
                 setPage(1)
               }}
               placeholder="Search by action, user, record code, or details"
-              className="h-12 rounded-xl border-slate-200 bg-white pl-12 text-sm font-medium shadow-sm focus:ring-brand/10"
+              style={{ height: '3rem', width: '100%', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', paddingLeft: '3rem', fontSize: '0.875rem', fontWeight: 500, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          <div className="w-full md:w-60">
+          <div style={{ width: '15rem' }}>
             <Select
               value={actionFilter}
               onChange={(event) => {
                 setActionFilter(event.target.value as AuditAction | "")
                 setPage(1)
               }}
-              className="h-12 rounded-xl border-slate-200 bg-white text-sm font-semibold shadow-sm"
+              style={{ height: '3rem', width: '100%', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
             >
               {actionOptions.map((option) => (
                 <option key={option.label} value={option.value}>{option.label}</option>
@@ -171,7 +171,7 @@ export function AuditLogsPage() {
           </div>
           <Button
             variant="outline"
-            className="h-12 rounded-xl border-slate-200 bg-white px-6 text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm hover:text-brand"
+            style={{ height: '3rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '0 1.5rem', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
             onClick={() => {
               setSearchQuery("")
               setActionFilter("")
@@ -179,17 +179,17 @@ export function AuditLogsPage() {
             }}
             disabled={!searchQuery.length && !actionFilter.length}
           >
-            <Filter className="mr-2 h-4 w-4" /> Reset
+            <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} /> Reset
           </Button>
         </div>
 
-        <p className="text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">{resultLabel}</p>
+        <p style={{ textAlign: 'right', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>{resultLabel}</p>
       </div>
 
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        {logs.length > 0 && !isLoading && <div className="absolute bottom-8 left-12 top-8 w-px bg-slate-200" />}
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+        {logs.length > 0 && !isLoading && <div style={{ position: 'absolute', bottom: '2rem', left: '3rem', top: '2rem', width: '1px', backgroundColor: '#E2E8F0' }} />}
 
-        <div className="space-y-6 p-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
           {logs.map((log) => {
             const visual = getTimelineVisual(log.action)
 
@@ -204,29 +204,29 @@ export function AuditLogsPage() {
           })}
 
           {isLoading && (
-            <div className="py-12 text-center text-sm font-semibold text-slate-500">
+            <div style={{ padding: '3rem 0', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#64748B' }}>
               Loading activity timeline...
             </div>
           )}
 
           {!isLoading && logs.length === 0 && (
-            <div className="py-12 text-center text-sm font-semibold text-slate-500">
+            <div style={{ padding: '3rem 0', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#64748B' }}>
               No activity found for current filters.
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Rows per page</span>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>Rows per page</span>
           <Select
             value={String(rowsPerPage)}
             onChange={(event) => {
               setRowsPerPage(Number(event.target.value))
               setPage(1)
             }}
-            className="h-9 w-24 border-slate-200 bg-white text-xs font-bold"
+            style={{ height: '2.25rem', width: '6rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', borderRadius: '0.375rem', fontSize: '0.75rem', fontWeight: 700 }}
           >
             {[10, 25, 50, 100].map((size) => (
               <option key={size} value={size}>{size}</option>
@@ -234,21 +234,21 @@ export function AuditLogsPage() {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Button
             type="button"
             variant="outline"
-            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            style={{ height: '2.25rem', border: '1px solid #E2E8F0', padding: '0 0.75rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', backgroundColor: '#FFFFFF', borderRadius: '0.375rem' }}
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
             Previous
           </Button>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Page {page} of {pageCount}</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>Page {page} of {pageCount}</span>
           <Button
             type="button"
             variant="outline"
-            className="h-9 border-slate-200 px-3 text-xs font-bold uppercase tracking-widest"
+            style={{ height: '2.25rem', border: '1px solid #E2E8F0', padding: '0 0.75rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', backgroundColor: '#FFFFFF', borderRadius: '0.375rem' }}
             disabled={page >= pageCount}
             onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
           >
@@ -266,41 +266,41 @@ function ActivityLogCard({
   onViewChanges
 }: {
   log: AuditLogRow
-  visual: { icon: LucideIcon; nodeClass: string }
+  visual: { icon: LucideIcon; nodeStyle: React.CSSProperties }
   onViewChanges: () => void
 }) {
   const Icon = visual.icon
   return (
-    <div className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-4">
-      <div className="flex justify-center pt-1">
-        <div className={visual.nodeClass}>
-          <Icon className="h-4 w-4" />
+    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '3rem minmax(0, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '0.25rem' }}>
+        <div style={visual.nodeStyle}>
+          <Icon style={{ height: '1rem', width: '1rem' }} />
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/50">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatTimelineDate(log.createdAt)}</p>
-          <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
+      <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '1rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+        <div style={{ marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>{formatTimelineDate(log.createdAt)}</p>
+          <span style={{ borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', padding: '0.25rem 0.5rem', fontSize: '10px', fontWeight: 600, color: '#64748B' }}>
             Log ID: {log.id.slice(0, 8)}
           </span>
         </div>
 
-        <p className="text-sm font-semibold leading-6 text-slate-800">
+        <p style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: '1.5rem', color: '#1E293B', margin: 0 }}>
           {renderNarrativeSentence(log)}
         </p>
 
-        {log.description && <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>}
+        {log.description && <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', fontWeight: 500, color: '#64748B', margin: '0.25rem 0 0 0' }}>{log.description}</p>}
 
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <div className="text-[11px] font-semibold text-slate-500">
+        <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
             {log.actorUser.role} · {log.actorUser.email}
           </div>
           <Button
             type="button"
             variant="outline"
             onClick={onViewChanges}
-            className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+            style={{ height: '2rem', border: '1px solid #E2E8F0', padding: '0 0.75rem', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', backgroundColor: '#FFFFFF', borderRadius: '0.375rem', cursor: 'pointer' }}
           >
             View Changes
           </Button>
@@ -312,25 +312,25 @@ function ActivityLogCard({
 
 function AuditDetailModal({ log, onClose }: { log: AuditLogRow; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto px-4 py-10">
-      <div className="fixed inset-0 bg-slate-900/80" onClick={onClose} />
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
+      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={onClose} />
+      <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', overflow: 'hidden', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', margin: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', backgroundColor: 'rgba(248, 250, 252, 0.7)', padding: '1rem 1.5rem' }}>
           <div>
-            <h3 className="text-base font-extrabold uppercase tracking-tight text-slate-900">Activity Details</h3>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{log.id}</p>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.025em', color: '#0F172A', margin: 0 }}>Activity Details</h3>
+            <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>{log.id}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            style={{ borderRadius: '9999px', padding: '0.5rem', color: '#94A3B8', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}
           >
-            <X className="h-5 w-5" />
+            <X style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         </div>
 
-        <div className="space-y-6 p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
             <DataRow label="Log ID" value={log.id} mono />
             <DataRow label="Date & Time" value={new Date(log.createdAt).toLocaleString()} />
             <DataRow label="User" value={log.actorUser.name} />
@@ -339,11 +339,11 @@ function AuditDetailModal({ log, onClose }: { log: AuditLogRow; onClose: () => v
             <DataRow label="Record" value={`${toRecordLabel(log.targetType)} (${log.targetReferenceCode})`} />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</div>
-            <p className="mt-2 text-sm font-semibold text-slate-700">{renderNarrativeSentence(log)}</p>
+          <div style={{ borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '1rem' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>Action</div>
+            <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#334155', margin: '0.5rem 0 0 0' }}>{renderNarrativeSentence(log)}</p>
             {log.description && (
-              <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>
+              <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', fontWeight: 500, color: '#64748B', margin: '0.25rem 0 0 0' }}>{log.description}</p>
             )}
           </div>
 
@@ -360,44 +360,44 @@ function PayloadPanel({ payload }: { payload: unknown }) {
   const changes = Array.isArray(payloadObject?.changes) ? (payloadObject?.changes as ChangeRow[]) : []
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Before &amp; After Payload</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: 'rgba(248, 250, 252, 0.7)', padding: '1rem' }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>Before &amp; After Payload</div>
 
       {changes.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-180 border-collapse text-left">
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr className="border-b border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <th className="py-2 pr-3">Field</th>
-                <th className="px-3 py-2">Before</th>
-                <th className="px-3 py-2">After</th>
+              <tr style={{ borderBottom: '1px solid #E2E8F0', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>
+                <th style={{ padding: '0.5rem 0.75rem 0.5rem 0' }}>Field</th>
+                <th style={{ padding: '0.5rem 0.75rem' }}>Before</th>
+                <th style={{ padding: '0.5rem 0.75rem' }}>After</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody style={{ borderTop: 'none' }}>
               {changes.map((change, index) => (
-                <tr key={`${change.changedField}-${index}`}>
-                  <td className="py-2 pr-3 text-xs font-bold text-slate-700">{change.changedField}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-600">{stringifyValue(change.oldValue)}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{stringifyValue(change.newValue)}</td>
+                <tr key={`${change.changedField}-${index}`} style={{ borderBottom: index === changes.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
+                  <td style={{ padding: '0.5rem 0.75rem 0.5rem 0', fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>{change.changedField}</td>
+                  <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>{stringifyValue(change.oldValue)}</td>
+                  <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>{stringifyValue(change.newValue)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <p className="text-xs font-semibold text-slate-500">No field delta metadata is available for this log entry.</p>
+        <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', margin: 0 }}>No field delta metadata is available for this log entry.</p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Before</div>
-          <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap text-xs font-semibold text-slate-600">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+        <div style={{ borderRadius: '0.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '0.75rem' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>Before</div>
+          <pre style={{ marginTop: '0.5rem', maxHeight: '13rem', overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: '0.75rem', fontWeight: 600, color: '#475569', margin: '0.5rem 0 0 0' }}>
             {JSON.stringify(payloadObject?.before ?? {}, null, 2)}
           </pre>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">After</div>
-          <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap text-xs font-semibold text-slate-700">
+        <div style={{ borderRadius: '0.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '0.75rem' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8' }}>After</div>
+          <pre style={{ marginTop: '0.5rem', maxHeight: '13rem', overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: '0.75rem', fontWeight: 700, color: '#334155', margin: '0.5rem 0 0 0' }}>
             {JSON.stringify(payloadObject?.after ?? {}, null, 2)}
           </pre>
         </div>
@@ -453,8 +453,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "REPORT_LINKED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        linked {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span> to a Found Item.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        linked {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span> to a Found Item.
       </>
     )
   }
@@ -462,8 +462,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "REPORT_UPDATED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        updated the status of {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        updated the status of {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -471,8 +471,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "ITEM_UPDATED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        updated details for {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        updated details for {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -480,8 +480,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "ITEM_CREATED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        logged {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        logged {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -489,8 +489,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "CLAIM_DENIED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        denied {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        denied {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -498,8 +498,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "CLAIM_APPROVED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        approved {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        approved {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -507,8 +507,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "CLAIM_SUBMITTED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        submitted {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        submitted {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -516,8 +516,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "CLAIM_REVIEWED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        reviewed {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        reviewed {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -525,8 +525,8 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "HANDOVER_COMPLETED") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
-        completed handover for {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
+        completed handover for {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
       </>
     )
   }
@@ -534,7 +534,7 @@ function renderNarrativeSentence(log: AuditLogRow) {
   if (log.action === "AUTH_LOGIN") {
     return (
       <>
-        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>{" "}
         logged in to the system.
       </>
     )
@@ -542,45 +542,80 @@ function renderNarrativeSentence(log: AuditLogRow) {
 
   return (
     <>
-      <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>
+      <span style={{ fontWeight: 800, color: '#0F172A' }}>{log.actorUser.name}</span>
       {" "}
-      updated {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      updated {recordLabel} <span style={{ fontWeight: 800, color: '#0F172A' }}>{reference}</span>.
     </>
   )
 }
 
-function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeClass: string } {
+function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: React.CSSProperties } {
+  const commonStyle: React.CSSProperties = {
+    display: 'flex',
+    height: '2.25rem',
+    width: '2.25rem',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '9999px',
+    border: '1px solid',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  }
+
   if (action === "ITEM_CREATED" || action === "REPORT_SUBMITTED" || action === "CLAIM_SUBMITTED") {
     return {
       icon: Plus,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 shadow-sm",
+      nodeStyle: {
+        ...commonStyle,
+        borderColor: '#BFDBFE',
+        backgroundColor: '#EFF6FF',
+        color: '#2563EB',
+      },
     }
   }
 
   if (action === "HANDOVER_COMPLETED" || action === "REPORT_LINKED" || action === "CLAIM_APPROVED") {
     return {
       icon: Check,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm",
+      nodeStyle: {
+        ...commonStyle,
+        borderColor: '#A7F3D0',
+        backgroundColor: '#ECFDF5',
+        color: '#059669',
+      },
     }
   }
 
   if (action === "CLAIM_DENIED") {
     return {
       icon: TriangleAlert,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
+      nodeStyle: {
+        ...commonStyle,
+        borderColor: '#FECACA',
+        backgroundColor: '#FEF2F2',
+        color: '#DC2626',
+      },
     }
   }
 
   if (action.includes("DELETE")) {
     return {
       icon: Trash2,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
+      nodeStyle: {
+        ...commonStyle,
+        borderColor: '#FECACA',
+        backgroundColor: '#FEF2F2',
+        color: '#DC2626',
+      },
     }
   }
 
   return {
     icon: RefreshCcw,
-    nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600 shadow-sm",
+    nodeStyle: {
+      ...commonStyle,
+      borderColor: '#FDE68A',
+      backgroundColor: '#FFFBEB',
+      color: '#D97706',
+    },
   }
 }
-

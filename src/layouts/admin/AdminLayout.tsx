@@ -13,7 +13,7 @@ export function AdminLayout() {
   }, [pathname])
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 font-sans w-full text-slate-900">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'row', backgroundColor: '#F8FAFC', width: '100%', color: '#0F172A', boxSizing: 'border-box' }}>
       {/* Mobile Sticky Nav handles its own dropdown */}
       <AdminMobileNav />
       
@@ -21,12 +21,12 @@ export function AdminLayout() {
       <AdminSidebar />
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
         <AdminTopNavBar />
         <main 
-          className="flex-1 p-4 md:p-8"
+          style={{ flex: 1, padding: '2rem' }}
         >
-          <div className="max-w-[1600px] mx-auto">
+          <div style={{ maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto' }}>
             <Outlet />
           </div>
         </main>

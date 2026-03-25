@@ -27,13 +27,31 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   customClass?: string;
 }
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, ...rest }, ref) => (
-  <div
-    ref={ref}
-    {...rest}
-    className={`absolute top-1/2 left-1/2 rounded-xl border border-white bg-black [transform-style:preserve-3d] [will-change:transform] [backface-visibility:hidden] overflow-hidden ${customClass ?? ''} ${rest.className ?? ''}`.trim()}
-  />
-));
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, style, ...rest }, ref) => {
+  const cardStyles: React.CSSProperties = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    borderRadius: '0.75rem',
+    border: '1px solid #FFFFFF',
+    backgroundColor: '#000000',
+    transformStyle: 'preserve-3d',
+    willChange: 'transform',
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
+    overflow: 'hidden',
+    transform: 'translate(-50%, -50%)', // Default centering
+    ...style,
+  };
+
+  return (
+    <div
+      ref={ref}
+      style={cardStyles}
+      {...rest}
+    />
+  );
+});
 Card.displayName = 'Card';
 
 type CardRef = RefObject<HTMLDivElement | null>;
@@ -207,8 +225,17 @@ const CardSwap: React.FC<CardSwapProps> = ({
   return (
     <div
       ref={container}
-      className="absolute bottom-0 right-0 transform translate-x-[5%] translate-y-[20%] origin-bottom-right perspective-[900px] overflow-visible max-[768px]:translate-x-[25%] max-[768px]:translate-y-[25%] max-[768px]:scale-[0.75] max-[480px]:translate-x-[25%] max-[480px]:translate-y-[25%] max-[480px]:scale-[0.55]"
-      style={{ width, height }}
+      style={{ 
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        transform: 'translateX(5%) translateY(20%)',
+        transformOrigin: 'bottom right',
+        perspective: '900px',
+        overflow: 'visible',
+        width, 
+        height 
+      }}
     >
       {rendered}
     </div>
