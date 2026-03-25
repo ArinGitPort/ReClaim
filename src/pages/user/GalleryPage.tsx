@@ -6,6 +6,7 @@ import { AdminPaginationControls } from "@/components/admin/AdminPaginationContr
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { CampusDropOffModal } from "@/components/user/CampusDropOffModal"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 type GalleryFiltersState = {
   search: string
@@ -20,6 +21,7 @@ export function GalleryPage() {
   const [page, setPage] = useState(1)
   const [pageCount, setPageCount] = useState(1)
   const [showDropOffModal, setShowDropOffModal] = useState(false)
+  const isMobile = useIsMobile()
 
   // Filters state
   const [filters, setFilters] = useState<GalleryFiltersState>({
@@ -72,12 +74,14 @@ export function GalleryPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '2rem', alignItems: 'flex-start' }}>
-          <GalleryFilters filters={filters} setFilters={handleFiltersChange} />
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem', alignItems: 'flex-start' }}>
+          <div style={{ width: isMobile ? '100%' : 'auto' }}>
+            <GalleryFilters filters={filters} setFilters={handleFiltersChange} />
+          </div>
 
           <div style={{ flex: 1, width: '100%', position: 'relative' }}>
             <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', margin: 0 }}>Found Items</h2>
+              <h2 style={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 'bold', color: '#0F172A', margin: 0 }}>Found Items</h2>
               <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748B', backgroundColor: '#F8FAFC', padding: '0.25rem 0.75rem', borderRadius: '9999px', border: '1px solid rgba(241, 245, 249, 0.4)' }}>
                 Showing {itemCount} of {totalCount} items
               </span>

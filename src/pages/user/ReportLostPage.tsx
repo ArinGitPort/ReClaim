@@ -1,24 +1,35 @@
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { ReportLostForm } from "@/features/reports/ReportLostForm"
 import { Info, ShieldAlert } from "lucide-react"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 export function ReportLostPage() {
+  const isMobile = useIsMobile()
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
       <TopNavBar title="Report a Lost or Missing Item" />
       
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: '100rem', marginLeft: 'auto', marginRight: 'auto', display: 'flex', flexDirection: 'row', gap: '2rem', padding: '1.5rem 2rem 6rem' }}>
+        <div style={{ 
+          maxWidth: '100rem', 
+          marginLeft: 'auto', 
+          marginRight: 'auto', 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row', 
+          gap: '2rem', 
+          padding: isMobile ? '1rem 1rem 6rem' : '1.5rem 2rem 6rem' 
+        }}>
           
           {/* Main Form Area */}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', width: '100%' }}>
             <div style={{ width: '100%', maxWidth: '48rem' }}>
               <ReportLostForm />
             </div>
           </div>
 
           {/* Sidebar Instructions / Tips */}
-          <aside style={{ width: '20rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', flexShrink: 0 }}>
+          <aside style={{ width: isMobile ? '100%' : '20rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', flexShrink: 0 }}>
             <div style={{ backgroundColor: '#FFFFFF', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#1E293B', marginBottom: '1rem', margin: '0 0 1rem 0' }}>
                 <Info style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
