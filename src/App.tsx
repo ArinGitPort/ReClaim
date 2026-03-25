@@ -37,6 +37,8 @@ import { AdminProfilePage } from "@/pages/admin/AdminProfilePage"
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 import { CapturedItemsPage } from "@/pages/admin/CapturedItemsPage"
+import { CampusCamerasPage } from "@/pages/admin/CampusCamerasPage"
+import { SnapshotGalleryPage } from "@/pages/admin/SnapshotGalleryPage"
 
 import "./index.css"
 function ProtectedUserRoutes() {
@@ -89,6 +91,8 @@ function App() {
               <Route path="notifications" element={<AdminNotificationsPage />} />
               <Route path="profile" element={<AdminProfilePage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="cameras" element={<CampusCamerasPage />} />
+              <Route path="snapshots" element={<SnapshotGalleryPage />} />
             </Route>
               </Routes>
             </Router>

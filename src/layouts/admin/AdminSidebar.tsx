@@ -8,7 +8,9 @@ import {
   Settings,
   LogOut,
   User,
-  ShieldCheck
+  ShieldCheck,
+  Camera,
+  Image as ImageIcon
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -59,6 +61,15 @@ export function AdminSidebar() {
             <SidebarItem to="/admin/handover-log" icon={<History style={{ width: '1.125rem', height: '1.125rem' }} />} label="Handover Log" />
             <SidebarItem to="/admin/user-directory" icon={<User style={{ width: '1.125rem', height: '1.125rem' }} />} label="User Directory" />
             <SidebarItem to="/admin/expired-inventory" icon={<Package style={{ width: '1.125rem', height: '1.125rem' }} />} label="Expired Items" />
+          </div>
+        </div>
+
+        {/* Group: AI Monitoring */}
+        <div>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '1rem', padding: '0 0.75rem' }}>AI Monitoring</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <SidebarItem to="/admin/cameras" icon={<Camera style={{ width: '1.125rem', height: '1.125rem' }} />} label="CCTV Dashboard" />
+            <SidebarItem to="/admin/snapshots" icon={<ImageIcon style={{ width: '1.125rem', height: '1.125rem' }} />} label="Snapshot Gallery" />
           </div>
         </div>
 
