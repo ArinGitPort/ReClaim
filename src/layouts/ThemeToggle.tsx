@@ -5,25 +5,45 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const isDark = theme === "dark"
 
+  const toggleBtnStyles: React.CSSProperties = {
+    position: 'relative',
+    display: 'inline-flex',
+    height: '2rem',
+    width: '4rem',
+    alignItems: 'center',
+    borderRadius: '9999px',
+    transition: 'background-color 0.3s ease',
+    backgroundColor: isDark ? '#1E2F85' : 'rgba(226, 232, 240, 0.7)',
+    border: 'none',
+    cursor: 'pointer',
+    outline: 'none',
+  }
+
+  const knobStyles: React.CSSProperties = {
+    position: 'absolute',
+    width: '1.5rem',
+    height: '1.5rem',
+    borderRadius: '9999px',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    transition: 'transform 0.3s ease-in-out',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: isDark ? 'translateX(2.25rem)' : 'translateX(0.25rem)',
+  }
+
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={`
-        relative inline-flex h-8 w-16 items-center rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
-        ${isDark ? "bg-brand" : "bg-border-divider/70"}
-      `}
+      style={toggleBtnStyles}
       aria-label="Toggle Dark Mode"
     >
-      <span
-        className={`
-          absolute w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-300 ease-in-out flex items-center justify-center
-          ${isDark ? "translate-x-9" : "translate-x-1"}
-        `}
-      >
+      <span style={knobStyles}>
         {isDark ? (
-          <Moon className="h-3.5 w-3.5 text-brand" />
+          <Moon style={{ height: '0.875rem', width: '0.875rem', color: '#1E2F85' }} />
         ) : (
-          <Sun className="h-3.5 w-3.5 text-text-secondary" />
+          <Sun style={{ height: '0.875rem', width: '0.875rem', color: '#64748B' }} />
         )}
       </span>
     </button>

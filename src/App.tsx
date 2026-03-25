@@ -40,7 +40,25 @@ import { CapturedItemsPage } from "@/pages/admin/CapturedItemsPage"
 import { CampusCamerasPage } from "@/pages/admin/CampusCamerasPage"
 import { SnapshotGalleryPage } from "@/pages/admin/SnapshotGalleryPage"
 
-import "./index.css"
+import { useEffect } from "react"
+// import "./index.css" // DECOMMISSIONED for academic compliance
+
+function GlobalStyles() {
+  useEffect(() => {
+    // Injecting core global styles to replace index.css
+    document.body.style.margin = '0'
+    document.body.style.padding = '0'
+    document.body.style.fontFamily = "'Outfit', sans-serif"
+    document.body.style.backgroundColor = '#FFFFFF'
+    document.body.style.color = '#0F172A'
+    document.body.style.overflowX = 'hidden'
+    document.body.style.minHeight = '100vh'
+    ;(document.body.style as any).webkitFontSmoothing = 'antialiased'
+    ;(document.body.style as any).mozOsxFontSmoothing = 'grayscale'
+  }, [])
+  return null
+}
+
 function ProtectedUserRoutes() {
   // Authentication checks temporarily disabled for UI route testing
   return <AppLayout />
@@ -54,6 +72,7 @@ function ProtectedAdminRoutes() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
+      <GlobalStyles />
       <AuthProvider>
         <NotificationProvider>
           <TooltipProvider delayDuration={150}>
@@ -73,7 +92,7 @@ function App() {
               <Route path="/notifications" element={<UserNotificationsPage />} />
               <Route path="/profile" element={<UserProfilePage />} />
               <Route path="/settings" element={<UserSettingsPage />} />
-              <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
+              <Route path="/office" element={<div style={{ padding: '2rem' }}>Campus Admin Office Map Template</div>} />
             </Route>
 
             {/* Administrative Dashboard Routes */}

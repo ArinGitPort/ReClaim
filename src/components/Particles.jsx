@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
 
-import './Particles.css';
-
 const defaultColors = ['#ffffff', '#ffffff', '#ffffff'];
 
 const hexToRgb = hex => {
@@ -98,7 +96,7 @@ const Particles = ({
   cameraDistance = 20,
   disableRotation = false,
   pixelRatio = 1,
-  className
+  style
 }) => {
   const containerRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -238,7 +236,7 @@ const Particles = ({
     pixelRatio
   ]);
 
-  return <div ref={containerRef} className={`particles-container ${className}`} />;
+  return <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', ...style }} />;
 };
 
 export default Particles;

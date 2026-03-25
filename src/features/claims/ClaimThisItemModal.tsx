@@ -2,6 +2,96 @@ import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { getClaimFieldGroup } from "@/features/shared/itemCategoryRules"
+import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Select } from "@/components/ui/Select"
+import { Textarea } from "@/components/ui/Textarea"
+import { Label } from "@/components/ui/Label"
+
+const modalOverlayStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'start',
+  justifyContent: 'center',
+  overflowY: 'auto',
+  padding: '2.5rem 1rem',
+}
+
+const modalBackdropStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+}
+
+const modalContentStyles: React.CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '32rem',
+  backgroundColor: '#FFFFFF',
+  borderRadius: '0.75rem',
+  border: '1px solid #E2E8F0',
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  overflow: 'hidden',
+  margin: 'auto',
+}
+
+const modalHeaderStyles: React.CSSProperties = {
+  padding: '1.5rem',
+  borderBottom: '1px solid #F1F5F9',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: 'rgba(248, 250, 252, 0.5)',
+}
+
+const headerIconWrapperStyles: React.CSSProperties = {
+  width: '2.5rem',
+  height: '2.5rem',
+  backgroundColor: 'rgba(30, 47, 133, 0.1)',
+  borderRadius: '0.75rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+}
+
+const headerTitleStyles: React.CSSProperties = {
+  fontSize: '1.125rem',
+  fontWeight: 800,
+  color: '#0F172A',
+  textTransform: 'uppercase',
+  letterSpacing: '-0.025em',
+  margin: 0,
+}
+
+const footerStyles: React.CSSProperties = {
+  padding: '1.5rem',
+  borderTop: '1px solid #F1F5F9',
+  backgroundColor: 'rgba(248, 250, 252, 0.5)',
+  display: 'flex',
+  gap: '0.75rem',
+}
+
+const noticeBannerStyles: React.CSSProperties = {
+  display: 'flex',
+  gap: '1rem',
+  padding: '1.25rem',
+  backgroundColor: 'rgba(30, 47, 133, 0.03)',
+  borderRadius: '0.75rem',
+  border: '1px solid rgba(30, 47, 133, 0.1)',
+  color: '#475569',
+}
+
+const sectionTitleStyles: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  color: '#94A3B8',
+  marginLeft: '0.25rem',
+}
 
 interface ClaimThisItemModalProps {
   isOpen: boolean
@@ -69,116 +159,116 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
   }
 
   return (
-    <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
-      <div
-        className="fixed inset-0 bg-slate-900/80"
-        onClick={onClose}
-      />
+    <div style={modalOverlayStyles}>
+      <div style={modalBackdropStyles} onClick={onClose} />
 
-      <div className="relative w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200" data-item-id={itemId}>
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center shadow-sm">
-              <ShieldCheck className="w-5 h-5 text-brand" />
+      <div style={modalContentStyles} data-item-id={itemId}>
+        <div style={modalHeaderStyles}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={headerIconWrapperStyles}>
+              <ShieldCheck style={{ width: '1.25rem', height: '1.25rem', color: '#1E2F85' }} />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900 uppercase tracking-tight">Claim This Item</h2>
+              <h2 style={headerTitleStyles}>Claim This Item</h2>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} style={{ padding: '0.5rem', color: '#94A3B8', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '9999px' }}>
+            <X style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         </div>
 
-        <form id="claim-this-item-form" onSubmit={(event) => void handleSubmitClaim(event)} className="p-8 space-y-8">
-          <div className="bg-brand/3 border border-brand/10 rounded-xl p-5 flex gap-4 text-slate-600">
-            <ShieldCheck className="w-5 h-5 text-brand shrink-0 mt-0.5" />
-            <p className="text-[13px] leading-relaxed font-medium">
-              For security, we keep identifying details hidden. To claim this <span className="text-slate-900 font-bold">{itemTitle}</span>, please describe any specific marks, engravings, or hidden features.
+        <form id="claim-this-item-form" onSubmit={(event) => void handleSubmitClaim(event)} style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={noticeBannerStyles}>
+            <ShieldCheck style={{ width: '1.25rem', height: '1.25rem', color: '#1E2F85', flexShrink: 0 }} />
+            <p style={{ fontSize: '13px', lineHeight: '1.6', fontWeight: 500, margin: 0 }}>
+              For security, we keep identifying details hidden. To claim this <span style={{ color: '#0F172A', fontWeight: 800 }}>{itemTitle}</span>, please describe any specific marks, engravings, or hidden features.
             </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">{fieldGroup.heading}</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <h3 style={sectionTitleStyles}>{fieldGroup.heading}</h3>
 
-              {fieldGroup.fields.map((field) => (
-                <div key={field.key} className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    {field.label}
-                    {field.required ? <span className="text-rose-500 font-black">*</span> : <span className="text-slate-400 font-medium">(Optional)</span>}
-                  </label>
-
-                  {field.type === "text" && (
-                    <input
-                      type="text"
-                      placeholder={field.placeholder}
-                      value={proofValues[field.key] ?? ""}
-                      onChange={(event) => handleFieldChange(field.key, event.target.value)}
-                      className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 placeholder:text-slate-400 font-medium"
-                    />
+            {fieldGroup.fields.map((field) => (
+              <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontWeight: 700 }}>
+                  {field.label}
+                  {field.required ? (
+                    <span style={{ color: '#E11D48', fontWeight: 900 }}>*</span>
+                  ) : (
+                    <span style={{ color: '#94A3B8', fontWeight: 500, fontSize: '12px' }}>(Optional)</span>
                   )}
+                </Label>
 
-                  {field.type === "select" && (
-                    <select
-                      value={proofValues[field.key] ?? ""}
-                      onChange={(event) => handleFieldChange(field.key, event.target.value)}
-                      className="w-full h-12 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-white transition-all text-slate-900 cursor-pointer font-medium"
-                    >
-                      <option value="" disabled>Select an option</option>
-                      {(field.options ?? []).map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                  )}
+                {field.type === "text" && (
+                  <Input
+                    type="text"
+                    placeholder={field.placeholder}
+                    value={proofValues[field.key] ?? ""}
+                    onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                    style={{ backgroundColor: '#F8FAFC' }}
+                  />
+                )}
 
-                  {field.type === "textarea" && (
-                    <textarea
-                      rows={3}
-                      placeholder={field.placeholder}
-                      value={proofValues[field.key] ?? ""}
-                      onChange={(event) => handleFieldChange(field.key, event.target.value)}
-                      className="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all text-slate-900 resize-none placeholder:text-slate-400 font-medium shadow-inner"
-                    />
-                  )}
+                {field.type === "select" && (
+                   <Select
+                    value={proofValues[field.key] ?? ""}
+                    onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                    style={{ backgroundColor: '#F8FAFC' }}
+                   >
+                     <option value="" disabled>Select an option</option>
+                     {(field.options ?? []).map((option) => (
+                       <option key={option} value={option}>{option}</option>
+                     ))}
+                   </Select>
+                )}
 
-                  {field.prompt && <p className="text-[11px] text-slate-500">{field.prompt}</p>}
-                </div>
-              ))}
+                {field.type === "textarea" && (
+                  <Textarea
+                    placeholder={field.placeholder}
+                    value={proofValues[field.key] ?? ""}
+                    onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                    style={{ minHeight: '100px', backgroundColor: '#F8FAFC' }}
+                  />
+                )}
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-800">Additional Notes <span className="text-slate-400 font-medium">(Optional)</span></label>
-                <textarea
-                  rows={3}
-                  placeholder="Add any extra details that can help verification."
-                  value={additionalNotes}
-                  onChange={(event) => setAdditionalNotes(event.target.value)}
-                  className="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all text-slate-900 resize-none placeholder:text-slate-400 font-medium shadow-inner"
-                />
+                {field.prompt && <p style={{ fontSize: '11px', color: '#64748B', margin: '0.25rem 0 0' }}>{field.prompt}</p>}
               </div>
+            ))}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <Label style={{ fontWeight: 700 }}>
+                Additional Notes <span style={{ color: '#94A3B8', fontWeight: 500, fontSize: '12px' }}>(Optional)</span>
+              </Label>
+              <Textarea
+                placeholder="Add any extra details that can help verification."
+                value={additionalNotes}
+                onChange={(event) => setAdditionalNotes(event.target.value)}
+                style={{ minHeight: '100px', backgroundColor: '#F8FAFC' }}
+              />
             </div>
           </div>
-          {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
+          {error && <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#E11D48', margin: 0 }}>{error}</p>}
         </form>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
-          <button
+        <div style={footerStyles}>
+          <Button
+            type="button"
+            variant="outline"
             onClick={onClose}
-            className="flex-1 h-12 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all uppercase tracking-widest"
+            style={{ flex: 1, height: '3rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="claim-this-item-form"
             disabled={isSubmitting}
-            className="flex-1 h-12 bg-brand hover:bg-brand-active transition-all text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 shadow-sm uppercase tracking-widest"
+            style={{ flex: 1, height: '3rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', backgroundColor: '#1E2F85' }}
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             {isSubmitting ? "Submitting..." : "Submit Request"}
-          </button>
+          </Button>
         </div>
-
       </div>
     </div>
   )

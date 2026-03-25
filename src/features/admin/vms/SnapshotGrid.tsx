@@ -1,4 +1,3 @@
-import React from "react"
 import { SnapshotCard } from "./SnapshotCard"
 import { Search } from "lucide-react"
 
@@ -54,7 +53,7 @@ export function SnapshotGrid({ snapshots, onReview }: SnapshotGridProps) {
             <SnapshotCard 
               key={snap.id} 
               snapshot={snap} 
-              onAction={onReview} 
+              onReview={onReview} 
             />
           ))}
         </div>

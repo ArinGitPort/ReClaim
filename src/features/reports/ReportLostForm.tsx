@@ -13,6 +13,188 @@ import {
   getClaimFieldGroup,
   requiresColorSelection,
 } from "@/features/shared/itemCategoryRules"
+const formHeaderStyles: React.CSSProperties = { 
+  backgroundColor: '#1E2F85', 
+  padding: '2rem', 
+  color: '#FFFFFF', 
+  borderRadius: '1rem', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  marginBottom: '2rem' 
+}
+
+const headerIconWrapperStyles: React.CSSProperties = { 
+  width: '3rem', 
+  height: '3rem', 
+  backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+  backdropFilter: 'blur(12px)', 
+  WebkitBackdropFilter: 'blur(12px)', 
+  borderRadius: '0.75rem', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  border: '1px solid rgba(255, 255, 255, 0.2)' 
+}
+
+const headerTitleStyles: React.CSSProperties = { 
+  fontSize: '1.5rem', 
+  fontWeight: 'bold', 
+  letterSpacing: '-0.025em', 
+  margin: 0 
+}
+
+const sessionBarStyles: React.CSSProperties = { 
+  marginTop: '1.5rem', 
+  display: 'flex', 
+  flexDirection: 'row', 
+  alignItems: 'center', 
+  gap: '1rem', 
+  padding: '0.75rem 1rem', 
+  backgroundColor: 'rgba(0, 0, 0, 0.1)', 
+  borderRadius: '0.5rem', 
+  border: '1px solid rgba(255, 255, 255, 0.05)', 
+  fontSize: '12px' 
+}
+
+const sessionLabelStyles: React.CSSProperties = { 
+  color: 'rgba(255, 255, 255, 0.8)', 
+  textTransform: 'uppercase', 
+  fontWeight: 'bold', 
+  letterSpacing: '0.05em' 
+}
+
+const dividerStyles: React.CSSProperties = { 
+  width: '1px', 
+  height: '0.75rem', 
+  backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+}
+
+const sectionHeaderStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '0.5rem', 
+  paddingBottom: '0.5rem', 
+  borderBottom: '1px solid #F1F5F9' 
+}
+
+const sectionTitleStyles: React.CSSProperties = { 
+  fontWeight: 'bold', 
+  color: '#1E293B', 
+  textTransform: 'uppercase', 
+  letterSpacing: '0.1em', 
+  fontSize: '0.75rem', 
+  margin: 0 
+}
+
+const gridTwoColsStyles: React.CSSProperties = { 
+  display: 'grid', 
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', 
+  gap: '1.5rem' 
+}
+
+const fieldGroupStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'column', 
+  gap: '0.5rem' 
+}
+
+const inputOverrideStyles: React.CSSProperties = { 
+  backgroundColor: '#FFFFFF', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  border: '1px solid #E2E8F0' 
+}
+
+const iconInputWrapperStyles: React.CSSProperties = { 
+  position: 'relative' 
+}
+
+const inputIconStyles: React.CSSProperties = { 
+  position: 'absolute', 
+  left: '0.75rem', 
+  top: '50%', 
+  transform: 'translateY(-50%)', 
+  width: '1rem', 
+  height: '1rem', 
+  color: 'rgba(30, 47, 133, 0.6)', 
+  pointerEvents: 'none', 
+  zIndex: 10 
+}
+
+const uploadAreaStyles: React.CSSProperties = { 
+  border: '2px dashed #E2E8F0', 
+  backgroundColor: '#FFFFFF', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  borderRadius: '1rem', 
+  padding: '2rem', 
+  cursor: 'pointer', 
+  textAlign: 'center' 
+}
+
+const uploadIconWrapperStyles: React.CSSProperties = { 
+  width: '3rem', 
+  height: '3rem', 
+  backgroundColor: '#F1F5F9', 
+  borderRadius: '50%', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  margin: '0 auto 1rem',
+  transition: 'background-color 0.2s'
+}
+
+const privateNoteInputStyles: React.CSSProperties = { 
+  ...inputOverrideStyles,
+  border: '1px solid rgba(30, 47, 133, 0.2)' 
+}
+
+const submitFooterStyles: React.CSSProperties = { 
+  paddingTop: '2rem', 
+  borderTop: '1px solid #E2E8F0' 
+}
+
+const adminInfoBoxStyles: React.CSSProperties = { 
+  backgroundColor: 'rgba(30, 47, 133, 0.03)', 
+  borderRadius: '0.75rem', 
+  padding: '1.25rem', 
+  border: '1px solid rgba(30, 47, 133, 0.1)', 
+  marginBottom: '1.5rem', 
+  display: 'flex', 
+  gap: '1rem', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+}
+
+const adminInfoIconStyles: React.CSSProperties = { 
+  width: '2rem', 
+  height: '2rem', 
+  backgroundColor: '#FFFFFF', 
+  borderRadius: '0.5rem', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  flexShrink: 0, 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  border: '1px solid rgba(30, 47, 133, 0.2)' 
+}
+
+const submitButtonStyles: React.CSSProperties = { 
+  width: '100%', 
+  height: '3.5rem', 
+  fontSize: '1rem', 
+  fontWeight: 'bold', 
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+  backgroundColor: '#1E2F85', 
+  color: '#FFFFFF', 
+  border: 'none', 
+  borderRadius: '0.5rem', 
+  cursor: 'pointer' 
+}
+
+const protocolInfoStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  gap: '0.5rem', 
+  marginTop: '1rem' 
+}
 
 export function ReportLostForm() {
   const { user } = useAuth()
@@ -108,27 +290,27 @@ export function ReportLostForm() {
     <>
       <form onSubmit={handleSubmit} style={{ marginBottom: '3rem' }}>
         {/* Form Header */}
-        <div style={{ backgroundColor: '#1E2F85', padding: '2rem', color: '#FFFFFF', borderRadius: '1rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', marginBottom: '2rem' }}>
+        <div style={formHeaderStyles}>
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <div style={{ width: '3rem', height: '3rem', backgroundColor: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+            <div style={headerIconWrapperStyles}>
               <FileText style={{ width: '1.5rem', height: '1.5rem', color: '#FFFFFF' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '-0.025em', margin: 0 }}>Report a Lost or Missing Item</h1>
+              <h1 style={headerTitleStyles}>Report a Lost or Missing Item</h1>
               <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.875rem', margin: 0 }}>Institutionally verified recovery process.</p>
             </div>
           </div>
           
           {/* Session Info Bar */}
-          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '12px' }}>
+          <div style={sessionBarStyles}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ShieldCheck style={{ width: '0.875rem', height: '0.875rem', color: 'rgba(255, 255, 255, 0.6)' }} />
-              <span style={{ color: 'rgba(255, 255, 255, 0.8)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.05em' }}>Logged in as:</span>
+              <span style={sessionLabelStyles}>Logged in as:</span>
               <span style={{ fontWeight: '600' }}>{user?.name}</span>
             </div>
-            <div style={{ width: '1px', height: '0.75rem', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <div style={dividerStyles} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: 'rgba(255, 255, 255, 0.8)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.05em' }}>Student ID:</span>
+              <span style={sessionLabelStyles}>Student ID:</span>
               <span style={{ fontWeight: '600' }}>{user?.studentId}</span>
             </div>
           </div>
@@ -137,13 +319,13 @@ export function ReportLostForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
           {/* Section 1: Item Identity */}
           <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid #F1F5F9' }}>
+            <div style={sectionHeaderStyles}>
               <Package style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
-              <h3 style={{ fontWeight: 'bold', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', margin: 0 }}>Section 1: Item Identity</h3>
+              <h3 style={sectionTitleStyles}>Section 1: Item Identity</h3>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: 'span 2' }}>
+            <div style={gridTwoColsStyles}>
+              <div style={{ ...fieldGroupStyles, gridColumn: 'span 2' }}>
                 <Label htmlFor="itemName">Item Name</Label>
                 <Input
                   id="itemName"
@@ -152,17 +334,17 @@ export function ReportLostForm() {
                   placeholder="e.g. Steam Card, Black JBL Earbuds Case"
                   value={formData.itemName}
                   onChange={handleInputChange}
-                  style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                  style={inputOverrideStyles}
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label htmlFor="category">Category</Label>
                 <Select 
                   id="category" 
                   name="category" 
                   required
-                  style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                  style={inputOverrideStyles}
                   value={category} 
                   onChange={(e) => {
                     handleCategoryChange(e.target.value)
@@ -176,9 +358,9 @@ export function ReportLostForm() {
               </div>
 
               {needsColor ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={fieldGroupStyles}>
                   <Label htmlFor="color">Primary Color</Label>
-                  <Select id="color" name="color" required={needsColor} value={formData.color} onChange={handleInputChange} style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}>
+                  <Select id="color" name="color" required={needsColor} value={formData.color} onChange={handleInputChange} style={inputOverrideStyles}>
                     <option value="">Select color</option>
                     {ITEM_COLORS.map((option) => (
                       <option key={option} value={option}>{option}</option>
@@ -186,7 +368,7 @@ export function ReportLostForm() {
                   </Select>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={fieldGroupStyles}>
                   <Label>Primary Color</Label>
                   <div style={{ height: '2.5rem', padding: '0 0.75rem', borderRadius: '0.375rem', border: '1px solid #E2E8F0', backgroundColor: '#F1F5F9', color: '#64748B', fontSize: '0.875rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                     Not required for this category
@@ -194,9 +376,9 @@ export function ReportLostForm() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label htmlFor="location">Campus Location</Label>
-                <Select id="location" name="location" required value={formData.location} onChange={handleInputChange} style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}>
+                <Select id="location" name="location" required value={formData.location} onChange={handleInputChange} style={inputOverrideStyles}>
                   <option value="">Select building/zone</option>
                   {CAMPUS_LOCATIONS.map((option) => (
                     <option key={option} value={option}>{option}</option>
@@ -204,30 +386,30 @@ export function ReportLostForm() {
                 </Select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label htmlFor="date">Date Lost</Label>
-                <div style={{ position: 'relative' }}>
-                  <Calendar style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'rgba(30, 47, 133, 0.6)', pointerEvents: 'none', zIndex: 10 }} />
+                <div style={iconInputWrapperStyles}>
+                  <Calendar style={inputIconStyles} />
                   <Input 
                     type="date" 
                     id="date" 
                     name="date" 
                     required 
-                    style={{ paddingLeft: '2.5rem', backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }} 
+                    style={{ ...inputOverrideStyles, paddingLeft: '2.5rem' }} 
                     value={formData.date} 
                     onChange={handleInputChange} 
                   />
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label htmlFor="time">Time Window</Label>
-                <div style={{ position: 'relative' }}>
-                  <Clock style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'rgba(30, 47, 133, 0.6)', pointerEvents: 'none', zIndex: 10 }} />
+                <div style={iconInputWrapperStyles}>
+                  <Clock style={inputIconStyles} />
                   <Select 
                     id="time" 
                     name="time" 
                     required 
-                    style={{ paddingLeft: '2.5rem', backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                    style={{ ...inputOverrideStyles, paddingLeft: '2.5rem' }}
                     value={formData.time} 
                     onChange={handleInputChange}
                   >
@@ -245,18 +427,18 @@ export function ReportLostForm() {
           {/* Section 2: Conditional Verification Data */}
           {fieldGroup && (
             <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid #F1F5F9' }}>
+              <div style={sectionHeaderStyles}>
                 {category.toLowerCase().includes("electronics") && <Laptop style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />}
                 {(category.toLowerCase().includes("bag") || category.toLowerCase().includes("wallet") || category.toLowerCase().includes("id")) && <Wallet style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />}
                 {category.toLowerCase().includes("document") && <FileText style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />}
-                <h3 style={{ fontWeight: 'bold', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', margin: 0 }}>
+                <h3 style={sectionTitleStyles}>
                   Section 2: Category Verification
                 </h3>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {fieldGroup.fields.map((field) => (
-                  <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {fieldGroup.fields.map((field: any) => (
+                  <div key={field.key} style={fieldGroupStyles}>
                     <Label htmlFor={field.key}>
                       {field.label}
                       {field.required && <span style={{ color: '#E11D48', marginLeft: '0.25rem' }}>*</span>}
@@ -268,7 +450,7 @@ export function ReportLostForm() {
                         value={categoryProofValues[field.key] ?? ""}
                         onChange={(event) => handleCategoryProofChange(field.key, event.target.value)}
                         placeholder={field.placeholder}
-                        style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                        style={inputOverrideStyles}
                       />
                     )}
 
@@ -277,10 +459,10 @@ export function ReportLostForm() {
                         id={field.key}
                         value={categoryProofValues[field.key] ?? ""}
                         onChange={(event) => handleCategoryProofChange(field.key, event.target.value)}
-                        style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                        style={inputOverrideStyles}
                       >
                         <option value="">Select an option</option>
-                        {(field.options ?? []).map((option) => (
+                        {(field.options ?? []).map((option: any) => (
                           <option key={option} value={option}>{option}</option>
                         ))}
                       </Select>
@@ -292,7 +474,7 @@ export function ReportLostForm() {
                         value={categoryProofValues[field.key] ?? ""}
                         onChange={(event) => handleCategoryProofChange(field.key, event.target.value)}
                         placeholder={field.placeholder}
-                        style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                        style={inputOverrideStyles}
                       />
                     )}
 
@@ -305,29 +487,21 @@ export function ReportLostForm() {
 
           {/* Section 3: Proof & Verification */}
           <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid #F1F5F9' }}>
+            <div style={sectionHeaderStyles}>
               <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
-              <h3 style={{ fontWeight: 'bold', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', margin: 0 }}>Section 3: Proof & Verification</h3>
+              <h3 style={sectionTitleStyles}>Section 3: Proof & Verification</h3>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {/* Photo Upload Placeholder */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label>Reference Photo (Optional)</Label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  style={{ 
-                    border: '2px dashed #E2E8F0', 
-                    backgroundColor: '#FFFFFF', 
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
-                    borderRadius: '1rem', 
-                    padding: '2rem', 
-                    cursor: 'pointer', 
-                    textAlign: 'center' 
-                  }}
+                  style={uploadAreaStyles}
                 >
                   <input type="file" style={{ display: 'none' }} ref={fileInputRef} accept="image/*" multiple />
-                  <div style={{ width: '3rem', height: '3rem', backgroundColor: '#F1F5F9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem transition-colors' }}>
+                  <div style={uploadIconWrapperStyles}>
                     <Upload style={{ width: '1.25rem', height: '1.25rem', color: '#94A3B8' }} />
                   </div>
                   <h4 style={{ fontWeight: 'bold', color: '#334155', margin: 0 }}>Click or drag to upload</h4>
@@ -335,7 +509,7 @@ export function ReportLostForm() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <Label htmlFor="marks">Distinguishing Marks</Label>
                 <Textarea 
                   id="marks" 
@@ -343,11 +517,11 @@ export function ReportLostForm() {
                   placeholder="List unique scratches, stickers, charms or personalized features..." 
                   value={formData.marks}
                   onChange={handleInputChange}
-                  style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                  style={inputOverrideStyles}
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={fieldGroupStyles}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Label htmlFor="privateNote" style={{ color: '#1E2F85' }}>Additional Notes (Only for Admin Review)</Label>
                   <AlertCircle style={{ width: '0.75rem', height: '0.75rem', color: 'rgba(30, 47, 133, 0.6)' }} />
@@ -358,7 +532,7 @@ export function ReportLostForm() {
                   placeholder="Add any extra details that can help verification." 
                   value={formData.privateNote}
                   onChange={handleInputChange}
-                  style={{ backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid rgba(30, 47, 133, 0.2)' }} 
+                  style={privateNoteInputStyles} 
                 />
                 <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>This field is encrypted and visible only to the reviewing Administrator.</p>
               </div>
@@ -366,9 +540,9 @@ export function ReportLostForm() {
           </section>
 
           {/* Submit UI */}
-          <div style={{ paddingTop: '2rem', borderTop: '1px solid #E2E8F0' }}>
-            <div style={{ backgroundColor: 'rgba(30, 47, 133, 0.03)', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(30, 47, 133, 0.1)', marginBottom: '1.5rem', display: 'flex', gap: '1rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-              <div style={{ width: '2rem', height: '2rem', backgroundColor: '#FFFFFF', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid rgba(30, 47, 133, 0.2)' }}>
+          <div style={submitFooterStyles}>
+            <div style={adminInfoBoxStyles}>
+              <div style={adminInfoIconStyles}>
                 <ShieldCheck style={{ width: '1rem', height: '1rem', color: '#1E2F85' }} />
               </div>
               <p style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.5', fontWeight: '500', margin: 0 }}>
@@ -379,7 +553,7 @@ export function ReportLostForm() {
             <Button 
               type="submit"
               disabled={isSubmitting}
-              style={{ width: '100%', height: '3.5rem', fontSize: '1rem', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', backgroundColor: '#1E2F85', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
+              style={submitButtonStyles}
             >
               {isSubmitting ? (
                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -390,7 +564,7 @@ export function ReportLostForm() {
                 "Submit Official Report"
               )}
             </Button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+            <div style={protocolInfoStyles}>
               <span style={{ width: '0.375rem', height: '0.375rem', backgroundColor: '#CBD5E1', borderRadius: '50%' }} />
               <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Protocol: Direct Admin Submission</p>
             </div>

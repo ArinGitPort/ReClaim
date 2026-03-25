@@ -8,13 +8,14 @@ export function AppLayout() {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      height: isMobile ? 'auto' : '100vh', 
+      minHeight: '100vh',
       display: 'flex', 
       flexDirection: isMobile ? 'column' : 'row', 
       backgroundColor: '#F1F5F9', 
       width: '100%', 
       fontFamily: 'sans-serif',
-      overflowX: 'hidden'
+      overflow: 'hidden' // Root is fixed
     }}>
       {/* Mobile Header and Dropdown Menu */}
       {isMobile && <MobileNav />}
@@ -28,9 +29,10 @@ export function AppLayout() {
         display: 'flex', 
         flexDirection: 'column', 
         minWidth: 0, 
-        overflowX: 'hidden', 
         position: 'relative',
-        width: '100%'
+        width: '100%',
+        height: isMobile ? 'auto' : '100%',
+        overflowY: isMobile ? 'visible' : 'auto' // Scrolling happens here on desktop
       }}>
         <Outlet />
       </main>

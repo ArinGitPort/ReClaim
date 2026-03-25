@@ -3,6 +3,144 @@ import { Button } from "@/components/ui/Button"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 
+const modalOverlayStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'start',
+  justifyContent: 'center',
+  overflowY: 'auto',
+  padding: '2.5rem 1rem',
+}
+
+const modalBackdropStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+}
+
+const modalContentStyles: React.CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '28rem',
+  backgroundColor: '#FFFFFF',
+  borderRadius: '0.75rem',
+  border: '1px solid #E2E8F0',
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  padding: '2rem',
+  margin: 'auto',
+  textAlign: 'center',
+}
+
+const closeBtnStyles: React.CSSProperties = {
+  position: 'absolute',
+  right: '1.5rem',
+  top: '1.5rem',
+  padding: '0.5rem',
+  color: '#94A3B8',
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  borderRadius: '0.75rem',
+  display: 'flex',
+  alignItems: 'center',
+  transition: 'all 0.2s',
+}
+
+const iconWrapperStyles: React.CSSProperties = {
+  width: '4rem',
+  height: '4rem',
+  backgroundColor: 'rgba(30, 47, 133, 0.1)',
+  borderRadius: '1rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: '0 auto 1.5rem',
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+}
+
+const titleStyles: React.CSSProperties = {
+  fontSize: '1.875rem',
+  fontWeight: 900,
+  color: '#0F172A',
+  letterSpacing: '-0.025em',
+  marginBottom: '0.5rem',
+  lineHeight: 1,
+}
+
+const descriptionStyles: React.CSSProperties = {
+  color: '#64748B',
+  fontSize: '0.875rem',
+  marginBottom: '2rem',
+  lineHeight: '1.625',
+  fontWeight: 500,
+}
+
+const infoCardStyles: React.CSSProperties = {
+  backgroundColor: '#F8FAFC',
+  borderRadius: '1rem',
+  padding: '1.5rem',
+  border: '1px solid #F1F5F9',
+  marginBottom: '2rem',
+  textAlign: 'left',
+}
+
+const infoRowStyles: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+}
+
+const labelStyles: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  color: '#94A3B8',
+}
+
+const refNumberStyles: React.CSSProperties = {
+  fontSize: '0.875rem',
+  fontFamily: 'monospace',
+  fontWeight: 900,
+  color: '#334155',
+}
+
+const statusBadgeStyles: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.375rem',
+  padding: '0.25rem 0.75rem',
+  backgroundColor: 'rgba(30, 47, 133, 0.1)',
+  color: '#1E2F85',
+  fontSize: '10px',
+  fontWeight: 900,
+  borderRadius: '9999px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+}
+
+const statusDotStyles: React.CSSProperties = {
+  width: '0.375rem',
+  height: '0.375rem',
+  backgroundColor: '#1E2F85',
+  borderRadius: '9999px',
+}
+
+const footerNoteStyles: React.CSSProperties = {
+  marginTop: '2rem',
+  fontSize: '11px',
+  color: '#94A3B8',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.15em',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '0.5rem',
+}
+
 interface ReportConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
@@ -26,59 +164,51 @@ export function ReportConfirmationModal({ isOpen, onClose }: ReportConfirmationM
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      {/* Backdrop - Clean, no blur */}
-      <div
-        className="fixed inset-0 bg-slate-900/80"
-        onClick={onClose}
-      />
+    <div style={modalOverlayStyles}>
+      <div style={modalBackdropStyles} onClick={onClose} />
 
-      {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl p-8 sm:p-10 text-center my-auto animate-in zoom-in-95 duration-200">
-        <button
-          onClick={onClose}
-          className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
-        >
-          <X className="w-5 h-5" />
+      <div style={modalContentStyles}>
+        <button onClick={onClose} style={closeBtnStyles}>
+          <X style={{ width: '1.25rem', height: '1.25rem' }} />
         </button>
 
-        <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-          <CheckCircle className="w-8 h-8 text-brand" />
+        <div style={iconWrapperStyles}>
+          <CheckCircle style={{ width: '2rem', height: '2rem', color: '#1E2F85' }} />
         </div>
 
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2 leading-none">Report Active</h1>
-        <p className="text-slate-500 text-sm mb-8 leading-relaxed font-medium">
+        <h1 style={titleStyles}>Report Active</h1>
+        <p style={descriptionStyles}>
           Your missing item report has been logged. The Campus Admin Office will manually review your submission soon.
         </p>
 
-        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-8 text-left">
-          <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Reference #</span>
-            <span className="text-sm font-mono font-black text-slate-700">{refNumber}</span>
+        <div style={infoCardStyles}>
+          <div style={{ ...infoRowStyles, marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #E2E8F0' }}>
+            <span style={labelStyles}>Reference #</span>
+            <span style={refNumberStyles}>{refNumber}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Current Status</span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand/10 text-brand text-[10px] font-black rounded-full uppercase tracking-widest">
-              <span className="w-1.5 h-1.5 bg-brand rounded-full animate-pulse" />
+          <div style={infoRowStyles}>
+            <span style={labelStyles}>Current Status</span>
+            <span style={statusBadgeStyles}>
+              <span style={statusDotStyles} />
               Submitted
             </span>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Button asChild className="w-full h-12 font-black bg-brand hover:bg-brand/90 transition-all active:scale-95 shadow-sm" onClick={onClose}>
-            <Link to="/my-reports">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <Button asChild style={{ width: '100%', height: '3rem', fontWeight: 900, backgroundColor: '#1E2F85' }} onClick={onClose}>
+            <Link to="/my-reports" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               VIEW MY REPORTS
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight style={{ width: '1rem', height: '1rem', marginLeft: '0.5rem' }} />
             </Link>
           </Button>
-          <Button variant="outline" className="w-full h-12 font-bold border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl uppercase tracking-widest text-[11px]" onClick={onClose}>
+          <Button variant="outline" style={{ width: '100%', height: '3rem', fontWeight: 700, border: '1px solid #E2E8F0', color: '#475569', borderRadius: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '11px' }} onClick={onClose}>
             Back to Form
           </Button>
         </div>
 
-        <p className="mt-8 text-[11px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-          <FileText className="w-3.5 h-3.5 opacity-50" />
+        <p style={footerNoteStyles}>
+          <FileText style={{ width: '0.875rem', height: '0.875rem', opacity: 0.5 }} />
           Real-time verification history available
         </p>
       </div>

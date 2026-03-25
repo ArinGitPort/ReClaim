@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Maximize2, Settings, Shield } from "lucide-react"
 
 interface CameraFeedProps {

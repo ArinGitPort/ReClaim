@@ -1,4 +1,3 @@
-import React from "react"
 import { AlertCircle, History, Package } from "lucide-react"
 
 interface Detection {
@@ -16,13 +15,6 @@ interface DetectionLogProps {
 }
 
 export function DetectionLog({ detections, onClear }: DetectionLogProps) {
-  const getSeverityStyles = (severity: string) => {
-    switch(severity) {
-      case "#E11D48": return { color: "#E11D48", pillBg: "rgba(225, 29, 72, 0.1)" }
-      case "#F59E0B": return { color: "#D97706", pillBg: "rgba(217, 119, 6, 0.1)" }
-      default: return { color: "#10B981", pillBg: "rgba(16, 185, 129, 0.1)" }
-    }
-  }
 
   // Refined Severity Styles using your project colors
   const getStyles = (severity: string) => {

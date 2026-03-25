@@ -1,15 +1,16 @@
 import React from 'react'
 
-export function StatusBadge({ status, weight }: { status?: string; weight?: number }) {
-  const baseStyles: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    letterSpacing: '0.1em',
-    border: '1px solid transparent',
-    textTransform: 'uppercase',
-  }
+const badgeBaseStyles: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  fontSize: '10px',
+  fontWeight: 'bold',
+  letterSpacing: '0.1em',
+  border: '1px solid transparent',
+  textTransform: 'uppercase',
+}
+
+export function StatusBadge({ status, weight, style }: { status?: string; weight?: number; style?: React.CSSProperties }) {
 
   if (weight !== undefined) {
     let weightStyles: React.CSSProperties = {}
@@ -22,7 +23,7 @@ export function StatusBadge({ status, weight }: { status?: string; weight?: numb
     }
 
     return (
-      <span style={{ ...baseStyles, padding: '0.125rem 0.5rem', borderRadius: '0.25rem', borderStyle: 'solid', ...weightStyles }}>
+      <span style={{ ...badgeBaseStyles, padding: '0.125rem 0.5rem', borderRadius: '0.25rem', borderStyle: 'solid', ...weightStyles, ...style }}>
         {weight}% MATCH
       </span>
     )
@@ -65,13 +66,14 @@ export function StatusBadge({ status, weight }: { status?: string; weight?: numb
 
   return (
     <span style={{ 
-      ...baseStyles, 
+      ...badgeBaseStyles, 
       padding: '0.375rem 0.75rem', 
       borderRadius: '9999px', 
       borderStyle: 'solid', 
       boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
       gap: '0.5rem',
-      ...getStatusStyles() 
+      ...getStatusStyles(),
+      ...style
     }}>
       {status === 'CLAIM_PENDING' && (
         <div style={{ 

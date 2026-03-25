@@ -1,4 +1,3 @@
-import React from "react"
 import { CheckCircle2, XCircle, MapPin, Clock } from "lucide-react"
 
 interface Snapshot {

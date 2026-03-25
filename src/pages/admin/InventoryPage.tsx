@@ -26,6 +26,187 @@ import { InventoryItemDetailsModal } from "@/features/admin/InventoryItemDetails
 import { InventoryHandoverModal } from "@/features/admin/InventoryHandoverModal"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
 
+const pageContainerStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'column', 
+  gap: '2rem' 
+}
+
+const modalOverlayStyles: React.CSSProperties = { 
+  position: 'fixed', 
+  inset: 0, 
+  zIndex: 100, 
+  display: 'flex', 
+  alignItems: 'flex-start', 
+  justifyContent: 'center', 
+  overflowY: 'auto', 
+  padding: '2.5rem 1rem' 
+}
+
+const modalBackdropStyles: React.CSSProperties = { 
+  position: 'fixed', 
+  inset: 0, 
+  backgroundColor: 'rgba(15, 23, 42, 0.8)' 
+}
+
+const modalContentStyles = (maxWidth: string): React.CSSProperties => ({ 
+  position: 'relative', 
+  width: '100%', 
+  maxWidth, 
+  backgroundColor: '#FFFFFF', 
+  borderRadius: '0.75rem', 
+  overflow: 'hidden', 
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', 
+  border: '1px solid #E2E8F0', 
+  margin: 'auto' 
+})
+
+const headerWrapperStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'row', 
+  alignItems: 'center', 
+  justifyContent: 'space-between', 
+  gap: '1rem', 
+  marginBottom: '2rem' 
+}
+
+const headerTitleStyles: React.CSSProperties = { 
+  fontSize: '1.875rem', 
+  fontWeight: 800, 
+  color: '#0F172A', 
+  letterSpacing: '-0.025em', 
+  margin: 0 
+}
+
+const headerSubtitleStyles: React.CSSProperties = { 
+  color: '#64748B', 
+  fontSize: '0.875rem', 
+  fontWeight: 500, 
+  marginTop: '0.25rem', 
+  margin: '0.25rem 0 0 0' 
+}
+
+const headerActionsStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '0.5rem' 
+}
+
+const primaryBtnStyles: React.CSSProperties = { 
+  height: '2.5rem', 
+  padding: '0 1rem', 
+  backgroundColor: '#1E2F85', 
+  color: '#FFFFFF', 
+  fontWeight: 700, 
+  borderRadius: '0.75rem', 
+  border: 'none', 
+  cursor: 'pointer', 
+  display: 'flex', 
+  alignItems: 'center', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+}
+
+const outlineBtnStyles: React.CSSProperties = { 
+  height: '2.5rem', 
+  padding: '0 1rem', 
+  border: '1px solid #E2E8F0', 
+  color: '#475569', 
+  fontWeight: 700, 
+  borderRadius: '0.75rem', 
+  backgroundColor: '#FFFFFF', 
+  cursor: 'pointer', 
+  display: 'flex', 
+  alignItems: 'center' 
+}
+
+const filterAreaStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'row', 
+  gap: '1rem' 
+}
+
+const searchWrapperStyles: React.CSSProperties = { 
+  position: 'relative', 
+  flex: 1 
+}
+
+const searchIconStyles: React.CSSProperties = { 
+  position: 'absolute', 
+  left: '1rem', 
+  top: '50%', 
+  transform: 'translateY(-50%)', 
+  width: '1rem', 
+  height: '1rem', 
+  color: '#94A3B8' 
+}
+
+const searchInputStyles: React.CSSProperties = { 
+  paddingLeft: '3rem', 
+  height: '3rem', 
+  width: '100%', 
+  backgroundColor: '#FFFFFF', 
+  border: '1px solid #E2E8F0', 
+  borderRadius: '0.75rem', 
+  fontSize: '0.875rem', 
+  fontWeight: 500, 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  boxSizing: 'border-box' 
+}
+
+const filterSelectWrapperStyles: React.CSSProperties = { 
+  width: '13rem' 
+}
+
+const filterSelectStyles: React.CSSProperties = { 
+  height: '3rem', 
+  width: '100%', 
+  backgroundColor: '#FFFFFF', 
+  border: '1px solid #E2E8F0', 
+  borderRadius: '0.75rem', 
+  fontSize: '0.875rem', 
+  fontWeight: 600, 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+}
+
+const resetBtnStyles: React.CSSProperties = { 
+  height: '3rem', 
+  padding: '0 1.5rem', 
+  border: '1px solid #E2E8F0', 
+  backgroundColor: '#FFFFFF', 
+  borderRadius: '0.75rem', 
+  color: '#475569', 
+  fontWeight: 700, 
+  textTransform: 'uppercase', 
+  letterSpacing: '0.1em', 
+  fontSize: '0.75rem', 
+  display: 'flex', 
+  alignItems: 'center', 
+  cursor: 'pointer', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+}
+
+const tableContainerStyles: React.CSSProperties = { 
+  backgroundColor: '#FFFFFF', 
+  borderRadius: '0.75rem', 
+  border: '1px solid #E2E8F0', 
+  overflow: 'hidden', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' 
+}
+
+const tableHeaderRowStyles: React.CSSProperties = { 
+  backgroundColor: '#F8FAFC', 
+  borderBottom: '1px solid #F1F5F9', 
+  textTransform: 'uppercase', 
+  letterSpacing: '0.1em', 
+  fontWeight: 700, 
+  fontSize: '10px', 
+  color: '#334155' 
+}
+
+const tableHeaderCellStyles: React.CSSProperties = { 
+  padding: '1.25rem 2rem' 
+}
+
 type InventoryRow = {
   id: string
   code: string
@@ -40,6 +221,97 @@ type InventoryRow = {
   storage: string
   privateDiscoveryNote?: string
   photoUrl?: string
+}
+
+const tableRowStyles: React.CSSProperties = { 
+  borderBottom: '1px solid #F1F5F9' 
+}
+
+const tableCellStyles: React.CSSProperties = { 
+  padding: '1.25rem 2rem' 
+}
+
+const itemCodeBadgeStyles: React.CSSProperties = { 
+  fontSize: '11px', 
+  fontWeight: 700, 
+  color: '#64748B', 
+  fontFamily: 'monospace', 
+  letterSpacing: '-0.025em', 
+  backgroundColor: '#F1F5F9', 
+  padding: '0.375rem 0.75rem', 
+  borderRadius: '0.5rem', 
+  border: '1px solid rgba(226, 232, 240, 0.5)' 
+}
+
+const itemSpecWrapperStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '1rem' 
+}
+
+const itemImageContainerStyles: React.CSSProperties = { 
+  width: '2.75rem', 
+  height: '2.75rem', 
+  backgroundColor: '#FFFFFF', 
+  border: '1px solid #F1F5F9', 
+  borderRadius: '0.75rem', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+  flexShrink: 0, 
+  overflow: 'hidden' 
+}
+
+const itemTitleStyles: React.CSSProperties = { 
+  fontWeight: 700, 
+  color: '#0F172A', 
+  letterSpacing: '-0.025em' 
+}
+
+const itemCategoryBadgeStyles: React.CSSProperties = { 
+  fontSize: '10px', 
+  color: '#94A3B8', 
+  fontWeight: 700, 
+  textTransform: 'uppercase', 
+  letterSpacing: '0.05em', 
+  marginTop: '0.125rem' 
+}
+
+const recordListStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'column', 
+  gap: '0.375rem' 
+}
+
+const secondaryTextStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '0.5rem', 
+  color: '#94A3B8', 
+  fontSize: '11px', 
+  fontWeight: 500 
+}
+
+const storageBadgeStyles: React.CSSProperties = { 
+  display: 'inline-flex', 
+  alignItems: 'center', 
+  gap: '0.5rem', 
+  padding: '0.375rem 0.75rem', 
+  backgroundColor: '#F8FAFC', 
+  borderRadius: '0.5rem', 
+  border: '1px solid rgba(226, 232, 240, 0.5)', 
+  fontSize: '11px', 
+  fontWeight: 700, 
+  color: '#475569', 
+  fontFamily: 'monospace' 
+}
+
+const rowActionsWrapperStyles: React.CSSProperties = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'flex-end', 
+  gap: '0.5rem' 
 }
 
 export function InventoryPage() {
@@ -164,11 +436,11 @@ export function InventoryPage() {
   const visibleItems = useMemo(() => inventoryItems.filter((item) => item.status !== "RETURNED"), [inventoryItems])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={pageContainerStyles}>
       {showFastEntry && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setShowFastEntry(false)} />
-          <div style={{ position: 'relative', width: '100%', maxWidth: '36rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
+        <div style={modalOverlayStyles}>
+          <div style={modalBackdropStyles} onClick={() => setShowFastEntry(false)} />
+          <div style={modalContentStyles('36rem')}>
             <LogNewItemModal
               onClose={() => setShowFastEntry(false)}
               onSaved={() => {
@@ -180,9 +452,9 @@ export function InventoryPage() {
       )}
 
       {editItem && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setEditItem(null)} />
-          <div style={{ position: 'relative', width: '100%', maxWidth: '42rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
+        <div style={modalOverlayStyles}>
+          <div style={modalBackdropStyles} onClick={() => setEditItem(null)} />
+          <div style={modalContentStyles('42rem')}>
             <EditInventoryItemModal
               item={editItem}
               onClose={() => setEditItem(null)}
@@ -195,9 +467,9 @@ export function InventoryPage() {
       )}
 
       {linkItem && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setLinkItem(null)} />
-          <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
+        <div style={modalOverlayStyles}>
+          <div style={modalBackdropStyles} onClick={() => setLinkItem(null)} />
+          <div style={modalContentStyles('48rem')}>
             <InventoryLinkReportModal
               item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category, color: linkItem.color }}
               onClose={() => setLinkItem(null)}
@@ -210,9 +482,9 @@ export function InventoryPage() {
       )}
 
       {detailsItem && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setDetailsItem(null)} />
-          <div style={{ position: 'relative', width: '100%', maxWidth: '42rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
+        <div style={modalOverlayStyles}>
+          <div style={modalBackdropStyles} onClick={() => setDetailsItem(null)} />
+          <div style={modalContentStyles('42rem')}>
             <InventoryItemDetailsModal
               item={detailsItem}
               onClose={() => setDetailsItem(null)}
@@ -222,9 +494,9 @@ export function InventoryPage() {
       )}
 
       {handoverItem && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={() => setHandoverItem(null)} />
-          <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E2E8F0', margin: 'auto' }}>
+        <div style={modalOverlayStyles}>
+          <div style={modalBackdropStyles} onClick={() => setHandoverItem(null)} />
+          <div style={modalContentStyles('48rem')}>
             <InventoryHandoverModal
               item={{ id: handoverItem.id, code: handoverItem.code, title: handoverItem.title, status: handoverItem.status }}
               onClose={() => setHandoverItem(null)}
@@ -237,20 +509,20 @@ export function InventoryPage() {
       )}
 
       {/* Consistent Header Pattern */}
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={headerWrapperStyles}>
         <div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Inventory Control</h1>
-          <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Manage and audit all securely logged physical items.</p>
+          <h1 style={headerTitleStyles}>Inventory Control</h1>
+          <p style={headerSubtitleStyles}>Manage and audit all securely logged physical items.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={headerActionsStyles}>
           <Button 
             onClick={() => setShowFastEntry(true)}
-            style={{ height: '2.5rem', padding: '0 1rem', backgroundColor: '#1E2F85', color: '#FFFFFF', fontWeight: 700, borderRadius: '0.75rem', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+            style={primaryBtnStyles}
           >
             <Plus style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             Log New Item
           </Button>
-          <Button variant="outline" style={{ height: '2.5rem', padding: '0 1rem', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, borderRadius: '0.75rem', backgroundColor: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <Button variant="outline" style={outlineBtnStyles}>
             <Download style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             Export
           </Button>
@@ -258,12 +530,12 @@ export function InventoryPage() {
       </div>
 
       {/* List Search and Filter Area */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
+      <div style={filterAreaStyles}>
+        <div style={searchWrapperStyles}>
+          <Search style={searchIconStyles} />
           <Input 
             placeholder="Search by Item ID, Title, or Description..." 
-            style={{ paddingLeft: '3rem', height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}
+            style={searchInputStyles}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -271,11 +543,11 @@ export function InventoryPage() {
             }}
           />
         </div>
-        <div style={{ width: '13rem' }}>
+        <div style={filterSelectWrapperStyles}>
           <Select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            style={{ height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+            style={filterSelectStyles}
           >
             <option value="">All Statuses</option>
             {statusOptions.map((status) => (
@@ -283,11 +555,11 @@ export function InventoryPage() {
             ))}
           </Select>
         </div>
-        <div style={{ width: '13rem' }}>
+        <div style={filterSelectWrapperStyles}>
           <Select
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value)}
-            style={{ height: '3rem', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+            style={filterSelectStyles}
           >
             <option value="">All Categories</option>
             {categoryOptions.map((category) => (
@@ -303,24 +575,24 @@ export function InventoryPage() {
             setSearch("")
             setPage(1)
           }}
-          style={{ height: '3rem', padding: '0 1.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', display: 'flex', alignItems: 'center', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+          style={resetBtnStyles}
         >
           <Filter style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Reset
         </Button>
       </div>
 
       {/* Inventory Table Container */}
-      <div style={{ backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+      <div style={tableContainerStyles}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '1000px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #F1F5F9', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, fontSize: '10px', color: '#334155' }}>
-                <th style={{ padding: '1.25rem 2rem' }}>Item Identifier</th>
-                <th style={{ padding: '1.25rem 2rem' }}>Found Item Specifications</th>
-                <th style={{ padding: '1.25rem 2rem' }}>Detection Record</th>
-                <th style={{ padding: '1.25rem 2rem' }}>Storage Facility</th>
-                <th style={{ padding: '1.25rem 2rem' }}>Status</th>
-                <th style={{ padding: '1.25rem 2rem', textAlign: 'right' }}>Item Actions</th>
+              <tr style={tableHeaderRowStyles}>
+                <th style={tableHeaderCellStyles}>Item Identifier</th>
+                <th style={tableHeaderCellStyles}>Found Item Specifications</th>
+                <th style={tableHeaderCellStyles}>Detection Record</th>
+                <th style={tableHeaderCellStyles}>Storage Facility</th>
+                <th style={tableHeaderCellStyles}>Status</th>
+                <th style={{ ...tableHeaderCellStyles, textAlign: 'right' }}>Item Actions</th>
               </tr>
             </thead>
             <tbody style={{ borderTop: 'none' }}>
@@ -385,15 +657,15 @@ function InventoryTableRow({
   onHandover: () => void
 }) {
   return (
-    <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-      <td style={{ padding: '1.25rem 2rem', whiteSpace: 'nowrap' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', fontFamily: 'monospace', letterSpacing: '-0.025em', backgroundColor: '#F1F5F9', padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(226, 232, 240, 0.5)' }}>
+    <tr style={tableRowStyles}>
+      <td style={{ ...tableCellStyles, whiteSpace: 'nowrap' }}>
+        <span style={itemCodeBadgeStyles}>
           {item.code}
         </span>
       </td>
-      <td style={{ padding: '1.25rem 2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '2.75rem', height: '2.75rem', backgroundColor: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', flexShrink: 0, overflow: 'hidden' }}>
+      <td style={tableCellStyles}>
+        <div style={itemSpecWrapperStyles}>
+          <div style={itemImageContainerStyles}>
             {item.photoUrl ? (
               <img src={item.photoUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
@@ -401,33 +673,33 @@ function InventoryTableRow({
             )}
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: '#0F172A', letterSpacing: '-0.025em' }}>{item.title}</div>
-            <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.125rem' }}>{item.category}</div>
+            <div style={itemTitleStyles}>{item.title}</div>
+            <div style={itemCategoryBadgeStyles}>{item.category}</div>
           </div>
         </div>
       </td>
-      <td style={{ padding: '1.25rem 2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+      <td style={tableCellStyles}>
+        <div style={recordListStyles}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '12px', fontWeight: 700 }}>
             <Calendar style={{ width: '0.875rem', height: '0.875rem', color: '#CBD5E1' }} />
             {item.date}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94A3B8', fontSize: '11px', fontWeight: 500 }}>
+          <div style={secondaryTextStyles}>
             <MapPin style={{ width: '0.875rem', height: '0.875rem', color: '#E2E8F0', flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>{item.location}</span>
           </div>
         </div>
       </td>
-      <td style={{ padding: '1.25rem 2rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem', backgroundColor: '#F8FAFC', borderRadius: '0.5rem', border: '1px solid rgba(226, 232, 240, 0.5)', fontSize: '11px', fontWeight: 700, color: '#475569', fontFamily: 'monospace' }}>
+      <td style={tableCellStyles}>
+        <div style={storageBadgeStyles}>
           {item.storage}
         </div>
       </td>
-      <td style={{ padding: '1.25rem 2rem' }}>
+      <td style={tableCellStyles}>
         <StatusBadge status={item.status} />
       </td>
-      <td style={{ padding: '1.25rem 2rem', textAlign: 'right' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+      <td style={{ ...tableCellStyles, textAlign: 'right' }}>
+        <div style={rowActionsWrapperStyles}>
           <ActionIconButton
             label="Edit item"
             icon={<Edit style={{ width: '1rem', height: '1rem' }} />}

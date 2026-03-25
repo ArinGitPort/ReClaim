@@ -30,8 +30,10 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, style, ...rest }, ref) => {
   const cardStyles: React.CSSProperties = {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
     borderRadius: '0.75rem',
     border: '1px solid #FFFFFF',
     backgroundColor: '#000000',
@@ -40,7 +42,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, style,
     backfaceVisibility: 'hidden',
     WebkitBackfaceVisibility: 'hidden',
     overflow: 'hidden',
-    transform: 'translate(-50%, -50%)', // Default centering
     ...style,
   };
 
@@ -233,8 +234,8 @@ const CardSwap: React.FC<CardSwapProps> = ({
         transformOrigin: 'bottom right',
         perspective: '900px',
         overflow: 'visible',
-        width, 
-        height 
+        width: width, 
+        height: height 
       }}
     >
       {rendered}

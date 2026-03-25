@@ -5,6 +5,53 @@ import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 
+const loadingContainerStyles: React.CSSProperties = { 
+  padding: '3rem', 
+  textAlign: 'center', 
+  color: '#64748B', 
+  fontWeight: '600' 
+}
+
+const emptyContainerStyles: React.CSSProperties = { 
+  display: 'flex', 
+  flexDirection: 'column', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  padding: '6rem', 
+  border: '2px dashed rgba(226, 232, 240, 0.5)', 
+  borderRadius: '0.75rem', 
+  backgroundColor: 'rgba(241, 245, 249, 0.3)' 
+}
+
+const emptyIconStyles: React.CSSProperties = { 
+  width: '3rem', 
+  height: '3rem', 
+  color: '#64748B', 
+  marginBottom: '1rem', 
+  opacity: 0.5 
+}
+
+const emptyTitleStyles: React.CSSProperties = { 
+  fontSize: '1.25rem', 
+  fontWeight: 'bold', 
+  color: '#0F172A', 
+  marginBottom: '0.5rem', 
+  marginTop: 0 
+}
+
+const emptyTextStyles: React.CSSProperties = { 
+  color: '#64748B', 
+  textAlign: 'center', 
+  maxWidth: '24rem', 
+  margin: 0 
+}
+
+const gridStyles: React.CSSProperties = { 
+  display: 'grid', 
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', 
+  gap: '1.5rem' 
+}
+
 export function GalleryGrid({
   page,
   pageSize,
@@ -94,26 +141,15 @@ export function GalleryGrid({
   }, [loadItems])
 
   if (isLoading) {
-    return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', fontWeight: '600' }}>Loading items...</div>
+    return <div style={loadingContainerStyles}>Loading items...</div>
   }
 
   if (items.length === 0) {
     return (
-      <div 
-        style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          padding: '6rem', 
-          border: '2px dashed rgba(226, 232, 240, 0.5)', 
-          borderRadius: '0.75rem', 
-          backgroundColor: 'rgba(241, 245, 249, 0.3)' 
-        }}
-      >
-        <SearchX style={{ width: '3rem', height: '3rem', color: '#64748B', marginBottom: '1rem', opacity: 0.5 }} />
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.5rem', marginTop: 0 }}>No items found</h3>
-        <p style={{ color: '#64748B', textAlign: 'center', maxWidth: '24rem', margin: 0 }}>
+      <div style={emptyContainerStyles}>
+        <SearchX style={emptyIconStyles} />
+        <h3 style={emptyTitleStyles}>No items found</h3>
+        <p style={emptyTextStyles}>
           We couldn't find any items matching your current filters. Try adjusting your search criteria.
         </p>
       </div>
@@ -121,13 +157,7 @@ export function GalleryGrid({
   }
 
   return (
-    <div 
-      style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', 
-        gap: '1.5rem' 
-      }}
-    >
+    <div style={gridStyles}>
       {items.map(item => (
         <ItemCard key={item.id} item={item} />
       ))}

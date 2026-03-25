@@ -2,7 +2,6 @@ import { Search, SlidersHorizontal, X } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
-import { cn } from "@/lib/utils"
 
 type Option = {
   label: string
@@ -27,44 +26,46 @@ export function RecordsFilterBar({
   const canReset = searchValue.length > 0 || statusValue.length > 0
 
   return (
-    <div className="mb-4">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={searchPlaceholder}
-            className="pl-10 h-11 bg-slate-50 border-slate-200"
-          />
-        </div>
+    <div style={{ marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <Search style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8' }} />
+            <Input
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={searchPlaceholder}
+              style={{ paddingLeft: '2.5rem', height: '2.75rem', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}
+            />
+          </div>
 
-        <div className="relative w-full lg:w-56">
-          <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          <Select
-            value={statusValue}
-            onChange={(event) => onStatusChange(event.target.value)}
-            className="pl-10 h-11 bg-slate-50 border-slate-200"
+          <div style={{ position: 'relative', width: '224px' }}>
+            <SlidersHorizontal style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#94A3B8', pointerEvents: 'none', zIndex: 1 }} />
+            <Select
+              value={statusValue}
+              onChange={(event) => onStatusChange(event.target.value)}
+              style={{ paddingLeft: '2.5rem', height: '2.75rem', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}
+            >
+              <option value="">All Statuses</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </Select>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onSearchChange("")
+              onStatusChange("")
+            }}
+            disabled={!canReset}
+            style={{ height: '2.75rem', padding: '0 1rem', borderColor: '#E2E8F0', color: '#475569' }}
           >
-            <option value="">All Statuses</option>
-            {statusOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </Select>
+            <X style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Reset
+          </Button>
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            onSearchChange("")
-            onStatusChange("")
-          }}
-          disabled={!canReset}
-          className="h-11 px-4 border-slate-200 text-slate-600"
-        >
-          <X className="w-4 h-4 mr-2" /> Reset
-        </Button>
       </div>
     </div>
   )
@@ -75,28 +76,53 @@ export function RecordsStatusChips({
   onStatusChange,
   statusOptions,
   resultCount,
-  className,
+  style,
 }: {
   statusValue: string
   onStatusChange: (value: string) => void
   statusOptions: Option[]
   resultCount: number
-  className?: string
+  style?: React.CSSProperties
 }) {
   const quickStatusOptions = statusOptions.slice(0, 5)
 
+  const chipBaseStyles: React.CSSProperties = {
+    height: '2rem',
+    padding: '0 0.75rem',
+    borderRadius: '9999px',
+    border: '1px solid #E2E8F0',
+    fontSize: '10px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    transition: 'all 0.2s',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  }
+
+  const activeChipStyles: React.CSSProperties = {
+    backgroundColor: '#1E2F85',
+    color: '#FFFFFF',
+    borderColor: '#1E2F85',
+  }
+
+  const inactiveChipStyles: React.CSSProperties = {
+    backgroundColor: '#FFFFFF',
+    color: '#64748B',
+  }
+
   return (
-    <div className={cn("mb-6", className)}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="overflow-x-auto pb-1">
-          <div className="flex items-center gap-2 min-w-max">
+    <div style={{ marginBottom: '1.5rem', ...style }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ overflowX: 'auto', paddingBottom: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 'max-content' }}>
             <button
               type="button"
               onClick={() => onStatusChange("")}
-              className={[
-                "h-8 px-3 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-colors",
-                statusValue === "" ? "bg-brand text-white border-brand" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300",
-              ].join(" ")}
+              style={{
+                ...chipBaseStyles,
+                ...(statusValue === "" ? activeChipStyles : inactiveChipStyles)
+              }}
             >
               All
             </button>
@@ -107,10 +133,10 @@ export function RecordsStatusChips({
                   key={option.value}
                   type="button"
                   onClick={() => onStatusChange(isActive ? "" : option.value)}
-                  className={[
-                    "h-8 px-3 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-colors whitespace-nowrap",
-                    isActive ? "bg-brand text-white border-brand" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300",
-                  ].join(" ")}
+                  style={{
+                    ...chipBaseStyles,
+                    ...(isActive ? activeChipStyles : inactiveChipStyles)
+                  }}
                 >
                   {option.label}
                 </button>
@@ -119,7 +145,7 @@ export function RecordsStatusChips({
           </div>
         </div>
 
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">
+        <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>
           Showing {resultCount} result{resultCount === 1 ? "" : "s"}
         </p>
       </div>

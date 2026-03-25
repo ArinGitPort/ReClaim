@@ -1,4 +1,6 @@
 import { Search, MapPin, Calendar, Tag, SlidersHorizontal, X } from "lucide-react"
+import { Input } from "@/components/ui/Input"
+import { Select } from "@/components/ui/Select"
 
 interface GalleryFiltersProps {
   filters: {
@@ -81,17 +83,17 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
           Quick Search
         </label>
         <div style={{ position: 'relative' }}>
-          <input
+          <Input
             type="text"
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             placeholder="e.g. Black laptop, keys..."
-            style={inputStyles}
+            style={{ ...inputStyles, paddingRight: '2.5rem' }}
           />
           {filters.search && (
             <button 
               onClick={() => setFilters({ ...filters, search: "" })}
-              style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#64748B' }}
+              style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#64748B', zIndex: 10 }}
             >
               <X style={{ width: '1rem', height: '1rem' }} />
             </button>
@@ -104,7 +106,7 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
           <Calendar style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Date Lost
         </label>
-        <select 
+        <Select 
           value={filters.dateLost}
           onChange={(e) => setFilters({ ...filters, dateLost: e.target.value })}
           style={inputStyles}
@@ -113,7 +115,7 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
           <option value="today">Today</option>
           <option value="7days">Last 7 Days</option>
           <option value="30days">Last 30 Days</option>
-        </select>
+        </Select>
       </div>
 
       <div style={sectionStyles}>
@@ -141,7 +143,7 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
           <MapPin style={{ width: '1rem', height: '1rem', color: '#64748B' }} />
           Campus Location
         </label>
-        <select 
+        <Select 
           value={filters.location}
           onChange={(e) => setFilters({ ...filters, location: e.target.value })}
           style={inputStyles}
@@ -150,7 +152,7 @@ export function GalleryFilters({ filters, setFilters }: GalleryFiltersProps) {
           <option value="library">Main Library</option>
           <option value="student_union">Student Union</option>
           <option value="gym">Gymnasium</option>
-        </select>
+        </Select>
       </div>
 
       <button 

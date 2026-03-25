@@ -1,7 +1,147 @@
 import { useEffect } from "react"
 import { X, XCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/Button"
+import { Label } from "@/components/ui/Label"
+import { Textarea } from "@/components/ui/Textarea"
 
+const modalOverlayStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'start',
+  justifyContent: 'center',
+  overflowY: 'auto',
+  padding: '2.5rem 1rem',
+}
+
+const modalBackdropStyles: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+}
+
+const modalContentStyles: React.CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '32rem',
+  backgroundColor: '#FFFFFF',
+  borderRadius: '0.75rem',
+  border: '1px solid #E2E8F0',
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  overflow: 'hidden',
+  margin: 'auto',
+}
+
+const modalHeaderStyles: React.CSSProperties = {
+  padding: '1.5rem',
+  borderBottom: '1px solid #F1F5F9',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: 'rgba(244, 63, 94, 0.05)',
+}
+
+const modalHeaderIconWrapperStyles: React.CSSProperties = {
+  width: '2.5rem',
+  height: '2.5rem',
+  backgroundColor: '#FFE4E6',
+  borderRadius: '0.75rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+}
+
+const modalHeaderTitleStyles: React.CSSProperties = {
+  fontSize: '1.125rem',
+  fontWeight: 800,
+  color: '#881337',
+  textTransform: 'uppercase',
+  letterSpacing: '-0.025em',
+  margin: 0,
+}
+
+const closeBtnStyles: React.CSSProperties = {
+  padding: '0.5rem',
+  color: '#94A3B8',
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  borderRadius: '9999px',
+  display: 'flex',
+  alignItems: 'center',
+  transition: 'color 0.2s',
+}
+
+const formAreaStyles: React.CSSProperties = {
+  padding: '2rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.5rem',
+}
+
+const noticeBannerStyles: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'start',
+  gap: '1rem',
+  padding: '1rem',
+  backgroundColor: '#FFFBEB',
+  borderRadius: '0.75rem',
+  border: '1px solid #FEF3C7',
+  marginBottom: '0.5rem',
+}
+
+const noticeTextStyles: React.CSSProperties = {
+  color: '#92400E',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  lineHeight: '1.625',
+  margin: 0,
+}
+
+const fieldLabelStyles: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 900,
+  color: '#94A3B8',
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  marginLeft: '0.25rem',
+}
+
+const footerStyles: React.CSSProperties = {
+  padding: '1.5rem',
+  borderTop: '1px solid #F1F5F9',
+  backgroundColor: 'rgba(248, 250, 252, 0.5)',
+  display: 'flex',
+  gap: '0.75rem',
+}
+
+const cancelBtnStyles: React.CSSProperties = {
+  flex: 1,
+  height: '3rem',
+  border: '1px solid #E2E8F0',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  fontSize: '0.75rem',
+  borderRadius: '0.75rem',
+}
+
+const confirmBtnStyles = (disabled: boolean): React.CSSProperties => ({
+  flex: 1,
+  height: '3rem',
+  backgroundColor: disabled ? '#CBD5E1' : '#E11D48',
+  color: '#FFFFFF',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  fontSize: '0.75rem',
+  borderRadius: '0.75rem',
+  border: 'none',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  boxShadow: disabled ? 'none' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+})
 interface DenyClaimModalProps {
   isOpen: boolean
   onClose: () => void
@@ -32,60 +172,58 @@ export function DenyClaimModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-slate-900/80" onClick={onClose} />
+    <div style={modalOverlayStyles}>
+      <div style={modalBackdropStyles} onClick={onClose} />
 
-      {/* Modal Content */}
-      <div className="relative w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+      <div style={modalContentStyles}>
         {/* Header */}
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-rose-50/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center shadow-sm">
-              <XCircle className="w-5 h-5 text-rose-600" />
+        <div style={modalHeaderStyles}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={modalHeaderIconWrapperStyles}>
+              <XCircle style={{ width: '1.25rem', height: '1.25rem', color: '#E11D48' }} />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-rose-900 uppercase tracking-tight">Deny Claim Request</h2>
+              <h2 style={modalHeaderTitleStyles}>Deny Claim Request</h2>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} style={closeBtnStyles}>
+            <X style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         </div>
 
         {/* Form Area */}
-        <div className="p-8 space-y-6">
-          <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-xl border border-amber-100 mb-2">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-amber-800 text-sm font-medium leading-relaxed">
+        <div style={formAreaStyles}>
+          <div style={noticeBannerStyles}>
+            <AlertCircle style={{ width: '1.25rem', height: '1.25rem', color: '#B45309', flexShrink: 0, marginTop: '0.125rem' }} />
+            <p style={noticeTextStyles}>
               A reason for denial is mandatory. This message will be sent to the student to help them understand why their claim was rejected.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Reason for Denial</label>
-            <textarea 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <Label style={fieldLabelStyles}>Reason for Denial</Label>
+            <Textarea 
               value={denyReason}
               onChange={(e) => setDenyReason(e.target.value)}
               placeholder="e.g. The serial number provided does not match our records or the uploaded proof is insufficient..."
-              className="w-full min-h-[160px] bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm font-medium focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all outline-none shadow-inner resize-none"
+              style={{ minHeight: '160px', backgroundColor: '#F8FAFC' }}
             />
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
+        <div style={footerStyles}>
           <Button 
             variant="outline" 
             onClick={onClose} 
-            className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs rounded-xl"
+            style={cancelBtnStyles}
           >
             Cancel
           </Button>
           <Button 
             disabled={!denyReason.trim()}
             onClick={() => onConfirm(denyReason)}
-            className="flex-1 h-12 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95"
+            style={confirmBtnStyles(!denyReason.trim())}
           >
             Confirm Denial
           </Button>
