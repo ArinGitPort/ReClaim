@@ -285,35 +285,10 @@ function ReportCard({
   isClosing: boolean
   onCloseTicket: () => void
 }) {
-  const cardStyles: React.CSSProperties = {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '1rem',
-    border: '1px solid #E2E8F0',
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    padding: '1.5rem',
-  }
-
   const isFocused = report.id.toUpperCase() === focusCode
-  const focusStyles: React.CSSProperties = isFocused ? {
-    boxShadow: '0 0 0 2px rgba(30, 47, 133, 0.4)',
-    borderColor: '#1E2F85',
-    backgroundColor: 'rgba(30, 47, 133, 0.03)'
-  } : {}
-
-  const badgeStyles: React.CSSProperties = {
-    fontSize: '10px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: '#94A3B8',
-    backgroundColor: '#F8FAFC',
-    border: '1px solid #F1F5F9',
-    padding: '0.125rem 0.5rem',
-    borderRadius: '0.25rem'
-  }
 
   return (
-    <div style={{ ...cardStyles, ...focusStyles }}>
+    <div style={{ borderRadius: '1rem', border: '1px solid #E2E8F0', padding: '1.5rem', ...(isFocused ? { boxShadow: '0 0 0 2px rgba(30, 47, 133, 0.4)', borderColor: '#1E2F85', backgroundColor: 'rgba(30, 47, 133, 0.03)' } : { backgroundColor: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }) }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1.25rem' }}>
           {/* Icon */}
@@ -324,13 +299,13 @@ function ReportCard({
           {/* Details */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ ...badgeStyles, fontFamily: 'monospace' }}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontFamily: 'monospace' }}>
                 {report.id}
               </span>
-              <span style={badgeStyles}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
                 {report.category}
               </span>
-              <span style={badgeStyles}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
                 {report.color}
               </span>
             </div>
@@ -397,31 +372,8 @@ function ReportCard({
 }
 
 function ReportStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, React.CSSProperties> = {
-    "Submitted": { backgroundColor: '#ECFEFF', color: '#0891B2', borderColor: '#CFFAFE' },
-    "Under Review": { backgroundColor: '#FFF7ED', color: '#D97706', borderColor: '#FFEDD5' },
-    "Active Search": { backgroundColor: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' },
-    "Closed": { backgroundColor: '#F1F5F9', color: '#334155', borderColor: '#E2E8F0' },
-    "Rejected": { backgroundColor: '#FFF1F2', color: '#E11D48', borderColor: '#FFE4E6' },
-  }
-
-  const baseStyle: React.CSSProperties = {
-    padding: '0.375rem 0.75rem',
-    borderRadius: '9999px',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    border: '1px solid',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.375rem'
-  }
-
-  const currentStyle = styles[status] ?? { backgroundColor: '#F8FAFC', color: '#64748B', borderColor: '#F1F5F9' }
-
   return (
-    <span style={{ ...baseStyle, ...currentStyle }}>
+    <span style={{ padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', ...(status === "Submitted" ? { backgroundColor: '#ECFEFF', color: '#0891B2', borderColor: '#CFFAFE' } : status === "Under Review" ? { backgroundColor: '#FFF7ED', color: '#D97706', borderColor: '#FFEDD5' } : status === "Active Search" ? { backgroundColor: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' } : status === "Closed" ? { backgroundColor: '#F1F5F9', color: '#334155', borderColor: '#E2E8F0' } : status === "Rejected" ? { backgroundColor: '#FFF1F2', color: '#E11D48', borderColor: '#FFE4E6' } : { backgroundColor: '#F8FAFC', color: '#64748B', borderColor: '#F1F5F9' }) }}>
       <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', backgroundColor: 'currentColor', opacity: 0.7 }} />
       {status}
     </span>

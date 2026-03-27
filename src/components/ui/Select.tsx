@@ -16,6 +16,7 @@ const selectBaseStyles: React.CSSProperties = {
   outline: 'none',
   appearance: 'none',
   color: '#0F172A',
+  boxSizing: 'border-box',
 }
 
 const selectWrapperStyles: React.CSSProperties = {

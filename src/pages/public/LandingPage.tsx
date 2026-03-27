@@ -76,7 +76,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div style={{ position: 'relative', width: '46.875rem', height: '18.75rem', flexShrink: 0, marginTop: '5rem', marginRight: '3rem', zIndex: 20 }}>
+          <div style={{ position: 'relative', width: '46.875rem', height: '18.75rem', flexShrink: 0, marginTop: '30rem', marginRight: '-10rem', zIndex: 20 }}>
             <CardSwap
               cardDistance={40}
               verticalDistance={60}

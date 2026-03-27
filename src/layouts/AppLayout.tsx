@@ -13,9 +13,8 @@ export function AppLayout() {
       display: 'flex', 
       flexDirection: isMobile ? 'column' : 'row', 
       backgroundColor: '#F1F5F9', 
-      width: '100%', 
-      fontFamily: 'sans-serif',
-      overflow: 'hidden' // Root is fixed
+      width: '100%',
+      overflow: isMobile ? 'visible' : 'hidden'
     }}>
       {/* Mobile Header and Dropdown Menu */}
       {isMobile && <MobileNav />}

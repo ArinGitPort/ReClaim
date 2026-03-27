@@ -46,15 +46,28 @@ import { useEffect } from "react"
 function GlobalStyles() {
   useEffect(() => {
     // Injecting core global styles to replace index.css
-    document.body.style.margin = '0'
-    document.body.style.padding = '0'
-    document.body.style.fontFamily = "'Outfit', sans-serif"
-    document.body.style.backgroundColor = '#FFFFFF'
-    document.body.style.color = '#0F172A'
-    document.body.style.overflowX = 'hidden'
-    document.body.style.minHeight = '100vh'
-    ;(document.body.style as any).webkitFontSmoothing = 'antialiased'
-    ;(document.body.style as any).mozOsxFontSmoothing = 'grayscale'
+    const styleId = 'reclaim-global-styles'
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style')
+      style.id = styleId
+      style.innerHTML = `
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Outfit', sans-serif;
+          background-color: #FFFFFF;
+          color: #0F172A;
+          overflow-x: hidden;
+          min-height: 100vh;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+      `
+      document.head.appendChild(style)
+    }
   }, [])
   return null
 }

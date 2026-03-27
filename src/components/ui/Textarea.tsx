@@ -12,6 +12,7 @@ const textareaBaseStyles: React.CSSProperties = {
   boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
   outline: 'none',
   color: '#0F172A',
+  boxSizing: 'border-box',
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
