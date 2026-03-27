@@ -16,144 +16,6 @@ type PickupRow = {
   createdAt: string
 }
 
-const pageWrapperStyles: React.CSSProperties = { 
-  width: '100%', 
-  minHeight: '100vh', 
-  paddingBottom: '6rem' 
-}
-
-const mainContainerStyles: React.CSSProperties = { 
-  maxWidth: '64rem', 
-  margin: '0 auto', 
-  padding: '0 1.5rem', 
-  marginTop: '2rem' 
-}
-
-const headerWrapperStyles: React.CSSProperties = { 
-  marginBottom: '2rem' 
-}
-
-const pickupCardWrapperStyles: React.CSSProperties = { 
-  backgroundColor: '#FFFFFF', 
-  borderRadius: '1rem', 
-  border: '1px solid #A7F3D0', 
-  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
-  padding: '1.5rem' 
-}
-
-const pickupCardContentStyles: React.CSSProperties = { 
-  display: 'flex', 
-  flexDirection: 'column', 
-  gap: '1.25rem' 
-}
-
-const pickupHeaderInfoStyles: React.CSSProperties = { 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '1.25rem' 
-}
-
-const iconWrapperStyles: React.CSSProperties = { 
-  width: '3.5rem', 
-  height: '3.5rem', 
-  backgroundColor: '#ECFDF5', 
-  border: '1px solid #D1FAE5', 
-  borderRadius: '1rem', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'center', 
-  flexShrink: 0 
-}
-
-const badgeBaseStyles: React.CSSProperties = { 
-  fontSize: '10px', 
-  fontWeight: 'bold', 
-  padding: '0.125rem 0.5rem', 
-  borderRadius: '0.25rem' 
-}
-
-const sourceCodeBadgeStyles: React.CSSProperties = { 
-  ...badgeBaseStyles,
-  fontFamily: 'monospace', 
-  color: '#047857', 
-  backgroundColor: '#ECFDF5', 
-  border: '1px solid #D1FAE5' 
-}
-
-const inventoryCodeBadgeStyles: React.CSSProperties = { 
-  ...badgeBaseStyles,
-  textTransform: 'uppercase', 
-  letterSpacing: '0.1em', 
-  color: '#64748B', 
-  backgroundColor: '#F8FAFC', 
-  border: '1px solid #F1F5F9' 
-}
-
-const itemTitleStyles: React.CSSProperties = { 
-  fontWeight: 'bold', 
-  color: '#0F172A', 
-  fontSize: '1.125rem', 
-  lineHeight: '1.25', 
-  margin: 0 
-}
-
-const metaInfoWrapperStyles: React.CSSProperties = { 
-  display: 'flex', 
-  flexWrap: 'wrap', 
-  gap: '1rem', 
-  marginTop: '0.5rem', 
-  fontSize: '11px', 
-  fontWeight: 'bold', 
-  color: '#94A3B8' 
-}
-
-const metaItemStyles: React.CSSProperties = { 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '0.375rem' 
-}
-
-const tokenSectionStyles: React.CSSProperties = { 
-  marginTop: '1.25rem', 
-  paddingTop: '1.25rem', 
-  borderRadius: '0.75rem', 
-  border: '1px solid #A7F3D0', 
-  borderTop: '1px solid #F1F5F9', 
-  backgroundColor: '#ECFDF5', 
-  padding: '0.75rem 1rem' 
-}
-
-const tokenLabelStyles: React.CSSProperties = { 
-  fontSize: '10px', 
-  fontWeight: 'bold', 
-  color: '#047857', 
-  textTransform: 'uppercase', 
-  letterSpacing: '0.1em', 
-  marginBottom: '0.5rem' 
-}
-
-const tokenValueStyles: React.CSSProperties = { 
-  fontSize: '1.25rem', 
-  fontWeight: 900, 
-  color: '#065F46', 
-  letterSpacing: '0.025em', 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '0.5rem' 
-}
-
-const emptyStateStyles: React.CSSProperties = { 
-  backgroundColor: '#FFFFFF', 
-  borderRadius: '1rem', 
-  border: '1px solid #E2E8F0', 
-  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
-  padding: '2rem', 
-  textAlign: 'center', 
-  fontSize: '0.875rem', 
-  fontWeight: '600', 
-  color: '#64748B' 
-}
-
 export function ReadyToClaimPage() {
   const [pickups, setPickups] = useState<PickupRow[]>([])
   const [search, setSearch] = useState("")
@@ -215,10 +77,10 @@ export function ReadyToClaimPage() {
   )
 
   return (
-    <div style={pageWrapperStyles}>
+    <div style={{ width: '100%', minHeight: '100vh', paddingBottom: '6rem' }}>
       <TopNavBar title="Ready to Claim" />
-      <div style={mainContainerStyles}>
-        <div style={headerWrapperStyles}>
+      <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '0 1.5rem', marginTop: '2rem' }}>
+        <div style={{ marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.25rem', margin: 0 }}>Ready to Claim</h2>
           <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>This is the only page where pickup tokens are displayed for physical handover.</p>
         </div>
@@ -247,29 +109,29 @@ export function ReadyToClaimPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {visiblePickups.map((pickup) => (
-            <div key={`${pickup.source}-${pickup.sourceCode}`} style={pickupCardWrapperStyles}>
-              <div style={pickupCardContentStyles}>
-                <div style={pickupHeaderInfoStyles}>
-                  <div style={iconWrapperStyles}>
+            <div key={`${pickup.source}-${pickup.sourceCode}`} style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #A7F3D0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', padding: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <ShieldCheck style={{ width: '1.75rem', height: '1.75rem', color: '#059669' }} />
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span style={sourceCodeBadgeStyles}>
+                      <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontFamily: 'monospace', color: '#047857', backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5' }}>
                         {pickup.sourceCode}
                       </span>
-                      <span style={inventoryCodeBadgeStyles}>
+                      <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                         {pickup.inventoryCode}
                       </span>
                     </div>
-                    <h3 style={itemTitleStyles}>{pickup.itemTitle}</h3>
-                    <div style={metaInfoWrapperStyles}>
-                      <div style={metaItemStyles}>
+                    <h3 style={{ fontWeight: 'bold', color: '#0F172A', fontSize: '1.125rem', lineHeight: '1.25', margin: 0 }}>{pickup.itemTitle}</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem', fontSize: '11px', fontWeight: 'bold', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
                         {pickup.officeLocation}
                       </div>
-                      <div style={metaItemStyles}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <CalendarClock style={{ width: '0.875rem', height: '0.875rem' }} />
                         {new Date(pickup.createdAt).toLocaleDateString()}
                       </div>
@@ -277,9 +139,9 @@ export function ReadyToClaimPage() {
                   </div>
                 </div>
 
-                <div style={tokenSectionStyles}>
-                  <div style={tokenLabelStyles}>Pickup Token</div>
-                  <div style={tokenValueStyles}>
+                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderRadius: '0.75rem', border: '1px solid #A7F3D0', borderTop: '1px solid #F1F5F9', backgroundColor: '#ECFDF5', padding: '0.75rem 1rem' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Pickup Token</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#065F46', letterSpacing: '0.025em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Ticket style={{ width: '1.25rem', height: '1.25rem' }} /> {pickup.pickupToken}
                   </div>
                   <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#047857', margin: 0 }}>
@@ -292,7 +154,7 @@ export function ReadyToClaimPage() {
           ))}
 
           {visiblePickups.length === 0 && (
-            <div style={emptyStateStyles}>
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '1rem', border: '1px solid #E2E8F0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', padding: '2rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600', color: '#64748B' }}>
               No ready-for-pickup items yet.
             </div>
           )}

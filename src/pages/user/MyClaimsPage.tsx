@@ -214,34 +214,14 @@ function ClaimCard({
   isClosing: boolean
   onCloseTicket: () => void
 }) {
-  const cardStyles: React.CSSProperties = {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '1rem',
-    border: '1px solid #E2E8F0',
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    padding: '1.5rem',
-  }
-
-  const focusStyles: React.CSSProperties = isFocused ? {
-    boxShadow: '0 0 0 2px rgba(30, 47, 133, 0.4)',
-    borderColor: '#1E2F85',
-    backgroundColor: 'rgba(30, 47, 133, 0.03)'
-  } : {}
-
-  const badgeStyles: React.CSSProperties = {
-    fontSize: '10px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: '#94A3B8',
-    backgroundColor: '#F8FAFC',
-    border: '1px solid #F1F5F9',
-    padding: '0.125rem 0.5rem',
-    borderRadius: '0.25rem'
-  }
-
   return (
-    <div style={{ ...cardStyles, ...focusStyles }}>
+    <div style={{
+      backgroundColor: isFocused ? 'rgba(30, 47, 133, 0.03)' : '#FFFFFF',
+      borderRadius: '1rem',
+      border: isFocused ? '1px solid #1E2F85' : '1px solid #E2E8F0',
+      boxShadow: isFocused ? '0 0 0 2px rgba(30, 47, 133, 0.4)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      padding: '1.5rem',
+    }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1.25rem' }}>
           {/* Icon */}
@@ -252,13 +232,13 @@ function ClaimCard({
           {/* Details */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ ...badgeStyles, fontFamily: 'monospace' }}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontFamily: 'monospace' }}>
                 {claim.id}
               </span>
-              <span style={badgeStyles}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
                 {claim.category}
               </span>
-              <span style={badgeStyles}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
                 {claim.inventoryId}
               </span>
             </div>
@@ -326,31 +306,21 @@ function ClaimCard({
 }
 
 function ClaimStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, React.CSSProperties> = {
-    "Pending Verification": { backgroundColor: '#FFFBEB', color: '#D97706', borderColor: '#FEF3C7' },
-    "Inquiry Required": { backgroundColor: '#FFF7ED', color: '#EA580C', borderColor: '#FFEDD5' },
-    "Approved": { backgroundColor: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' },
-    "Denied": { backgroundColor: '#FFF1F2', color: '#E11D48', borderColor: '#FFE4E6' },
-    "Ready for Pickup": { backgroundColor: '#D1FAE5', color: '#065F46', borderColor: '#A7F3D0' },
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case "Pending Verification": return { backgroundColor: '#FFFBEB', color: '#D97706', borderColor: '#FEF3C7' }
+      case "Inquiry Required": return { backgroundColor: '#FFF7ED', color: '#EA580C', borderColor: '#FFEDD5' }
+      case "Approved": return { backgroundColor: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' }
+      case "Denied": return { backgroundColor: '#FFF1F2', color: '#E11D48', borderColor: '#FFE4E6' }
+      case "Ready for Pickup": return { backgroundColor: '#D1FAE5', color: '#065F46', borderColor: '#A7F3D0' }
+      default: return { backgroundColor: '#F8FAFC', color: '#64748B', borderColor: '#F1F5F9' }
+    }
   }
 
-  const baseStyle: React.CSSProperties = {
-    padding: '0.375rem 0.75rem',
-    borderRadius: '9999px',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    border: '1px solid',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.375rem'
-  }
-
-  const currentStyle = styles[status] ?? { backgroundColor: '#F8FAFC', color: '#64748B', borderColor: '#F1F5F9' }
+  const currentStyle = getStatusStyles(status)
 
   return (
-    <span style={{ ...baseStyle, ...currentStyle }}>
+    <span style={{ padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', ...currentStyle }}>
       <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', backgroundColor: 'currentColor', opacity: 0.7 }} />
       {status}
     </span>
