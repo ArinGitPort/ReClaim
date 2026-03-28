@@ -11,21 +11,19 @@ export function UserNotificationsPage() {
       <TopNavBar title="Notifications" backLink="/gallery" backLabel="Back" />
 
       <main style={{ maxWidth: '64rem', margin: '2rem auto 0', padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Realtime Updates</h2>
-            <p style={{ color: '#64748B', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>All system alerts and report status changes appear here.</p>
-          </div>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>System Alerts</h2>
+          <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Realtime updates on your lost reports, claim status, and site-wide notifications.</p>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '1rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569', margin: 0 }}>Unread notifications: {unreadCount}</p>
           <button
             onClick={markAllRead}
-            style={{ height: '2.5rem', padding: '0 1rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            style={{ height: '2.25rem', padding: '0 1rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
             <CheckCheck style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Mark all read
           </button>
-        </div>
-
-        <div style={{ borderRadius: '1rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', padding: '1.25rem', fontSize: '0.875rem', fontWeight: 600, color: '#475569', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-          Unread notifications: {unreadCount}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

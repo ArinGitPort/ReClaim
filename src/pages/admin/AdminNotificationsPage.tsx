@@ -1,16 +1,17 @@
 import { Bell, CheckCheck } from "lucide-react"
 import { Link } from "react-router-dom"
 import { type AppNotification, useNotifications } from "@/contexts/NotificationContext"
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader"
 
 export function AdminNotificationsPage() {
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Notifications</h1>
-        <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Realtime operational alerts for admin workflows.</p>
-      </div>
+      <AdminPageHeader 
+        title="Administrative Alerts" 
+        subtitle="Realtime operational alerts and system notifications for admin workflows." 
+      />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', border: '1px solid #E2E8F0', padding: '1rem' }}>
         <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569', margin: 0 }}>Unread notifications: {unreadCount}</p>

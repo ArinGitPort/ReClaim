@@ -133,10 +133,10 @@ export function MyClaimsPage() {
     <div style={{ width: '100%', minHeight: '100%', paddingBottom: '6rem' }}>
       <TopNavBar title="My Claims" />
       <div style={{ maxWidth: '64rem', marginLeft: 'auto', marginRight: 'auto', padding: '0 1.5rem', marginTop: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.25rem', margin: 0 }}>Tracking & Status</h2>
-            <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>View the status of items you have claimed from the gallery.</p>
+            <h2 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Claim History</h2>
+            <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Track the verification and pickup status of your claimed items.</p>
           </div>
           <Link
             to="/gallery"

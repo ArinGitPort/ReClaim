@@ -20,6 +20,9 @@ const MOCK_SNAPSHOTS: Snapshot[] = [
   { id: "s4", item: "Smartphone", confidence: 96, location: "CAM 07 - Student Center", timestamp: "02:05 PM", imageUrl: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80", severity: "high" },
   { id: "s5", item: "Umbrella", confidence: 87, location: "CAM 09 - Cafeteria", timestamp: "03:30 PM", imageUrl: "https://images.unsplash.com/photo-1520113204905-24e54854f3a7?w=400&q=80", severity: "low" },
   { id: "s6", item: "Key Ring", confidence: 94, location: "CAM 01 - Engineering North", timestamp: "04:12 PM", imageUrl: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=400&q=80", severity: "high" },
+  { id: "s7", item: "Calculus Book", confidence: 91, location: "CAM 05 - Library Level 3", timestamp: "04:45 PM", imageUrl: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80", severity: "medium" },
+  { id: "s8", item: "Bluetooth Headphones", confidence: 97, location: "CAM 02 - Gymnasium", timestamp: "05:10 PM", imageUrl: "https://images.unsplash.com/photo-1618366712214-8c0751893558?w=400&q=80", severity: "high" },
+  { id: "s9", item: "Mechanical Keyboard", confidence: 85, location: "CAM 08 - Computer Lab", timestamp: "05:30 PM", imageUrl: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=400&q=80", severity: "low" }
 ]
 
 export function SnapshotGalleryPage() {

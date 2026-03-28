@@ -17,16 +17,16 @@ export function UserSettingsPage() {
       <TopNavBar title="Settings" />
       
       <main style={{ maxWidth: '56rem', margin: '2rem auto 0', padding: '0 1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '-0.025em', color: '#0F172A', margin: 0 }}>Settings</h1>
-            <p style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem', margin: 0 }}>Manage your account preferences and system behavior.</p>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Account Settings</h1>
+            <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748B', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>Manage your university profile, notifications, and visual preferences.</p>
           </div>
           <button 
             onClick={handleSave}
-            style={{ display: 'inline-flex', height: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', backgroundColor: '#1E2F85', padding: '0 1rem', fontSize: '0.875rem', fontWeight: 500, color: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: 'none', cursor: 'pointer' }}
+            style={{ display: 'inline-flex', height: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', backgroundColor: '#1E2F85', padding: '0 1rem', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#FFFFFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: 'none', cursor: 'pointer' }}
           >
-             {isSaving ? "Saving..." : <><Save style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} /> Save</>}
+             {isSaving ? "Saving..." : <><Save style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} /> Save Changes</>}
           </button>
         </div>
 

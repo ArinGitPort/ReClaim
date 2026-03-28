@@ -4,6 +4,8 @@ import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
 import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { BaseModal } from "@/components/ui/BaseModal"
+import { CampusOfficeMap } from "@/components/user/CampusOfficeMap"
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
@@ -22,6 +24,8 @@ export function ReadyToClaimPage() {
   const [sourceFilter, setSourceFilter] = useState("")
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [showMap, setShowMap] = useState(false)
+  const [selectedOffice, setSelectedOffice] = useState("")
 
   useEffect(() => {
     async function fetchPickups(): Promise<void> {
@@ -126,11 +130,20 @@ export function ReadyToClaimPage() {
                       </span>
                     </div>
                     <h3 style={{ fontWeight: 'bold', color: '#0F172A', fontSize: '1.125rem', lineHeight: '1.25', margin: 0 }}>{pickup.itemTitle}</h3>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem', fontSize: '11px', fontWeight: 'bold', color: '#94A3B8' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem', fontSize: '11px', fontWeight: 'bold', color: '#94A3B8', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <MapPin style={{ width: '0.875rem', height: '0.875rem' }} />
                         {pickup.officeLocation}
                       </div>
+                      <button 
+                        onClick={() => {
+                          setSelectedOffice(pickup.officeLocation)
+                          setShowMap(true)
+                        }}
+                        style={{ border: 'none', backgroundColor: 'transparent', color: '#1E2F85', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        View Map
+                      </button>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <CalendarClock style={{ width: '0.875rem', height: '0.875rem' }} />
                         {new Date(pickup.createdAt).toLocaleDateString()}
@@ -174,6 +187,23 @@ export function ReadyToClaimPage() {
           itemLabel="items"
         />
       </div>
+
+      {showMap && (
+        <BaseModal 
+          onClose={() => setShowMap(false)} 
+          title="Item Pickup Location" 
+          id={selectedOffice}
+        >
+          <div style={{ padding: '1.5rem' }}>
+            <CampusOfficeMap />
+            <div style={{ marginTop: '1.5rem', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '0.75rem', padding: '1rem' }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                Please proceed to the <strong>{selectedOffice}</strong>. Bring your Student ID and your pickup token (TK-...) for verification.
+              </p>
+            </div>
+          </div>
+        </BaseModal>
+      )}
     </div>
   )
 }

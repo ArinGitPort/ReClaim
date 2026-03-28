@@ -36,12 +36,12 @@ export function UserProfilePage() {
                 </div>
                 <div style={{ width: '100%', paddingTop: '1rem', borderTop: '1px solid #F1F5F9', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0F172A' }}>12</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>Reports</div>
+                    <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0F172A' }}>2</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>Active Reports</div>
                   </div>
                   <div style={{ textAlign: 'center', borderLeft: '1px solid #F1F5F9' }}>
                     <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0F172A' }}>4</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>Claims</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>My Claims</div>
                   </div>
                 </div>
               </div>

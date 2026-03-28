@@ -62,6 +62,8 @@ export function AdminSidebar() {
         </button>
       </div>
 
+      <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.12)', margin: '0 1.5rem' }} />
+
       {/* Navigation */}
       <nav 
         className="sidebar-nav-container"

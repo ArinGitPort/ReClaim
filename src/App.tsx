@@ -13,6 +13,7 @@ import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
 import { UserNotificationsPage } from "@/pages/user/UserNotificationsPage"
 import { UserProfilePage } from "@/pages/user/UserProfilePage"
 import { UserSettingsPage } from "@/pages/user/UserSettingsPage"
+import { CampusOfficePage } from "@/pages/user/CampusOfficePage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -105,7 +106,7 @@ function App() {
               <Route path="/notifications" element={<UserNotificationsPage />} />
               <Route path="/profile" element={<UserProfilePage />} />
               <Route path="/settings" element={<UserSettingsPage />} />
-              <Route path="/office" element={<div style={{ padding: '2rem' }}>Campus Admin Office Map Template</div>} />
+              <Route path="/office" element={<CampusOfficePage />} />
             </Route>
 
             {/* Administrative Dashboard Routes */}

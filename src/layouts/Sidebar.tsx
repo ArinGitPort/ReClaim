@@ -59,6 +59,8 @@ export function Sidebar() {
             {isCollapsed ? <Menu style={{ width: '1.25rem', height: '1.25rem' }} /> : <ChevronLeft style={{ width: '1.25rem', height: '1.25rem' }} />}
           </button>
         </div>
+        
+        <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.12)', margin: '0 1rem' }} />
 
         {/* Main Navigation Area */}
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: isCollapsed ? '0.75rem' : '0.25rem' }}>

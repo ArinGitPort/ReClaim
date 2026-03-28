@@ -40,6 +40,38 @@ export const MOCK_USERS: User[] = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
   },
   {
+    id: "u2",
+    name: "Sarah Jenkins",
+    studentId: "2021-100293",
+    email: "sarah.j@university.edu",
+    role: "STUDENT",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+  },
+  {
+    id: "u3",
+    name: "Mike Peterson",
+    studentId: "2020-009281",
+    email: "mike.p@university.edu",
+    role: "STUDENT",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike"
+  },
+  {
+    id: "u4",
+    name: "Emily Chen",
+    studentId: "2022-044212",
+    email: "emily.c@university.edu",
+    role: "STUDENT",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily"
+  },
+  {
+    id: "u5",
+    name: "Marcus Wright",
+    studentId: "2019-001234",
+    email: "marcus.w@university.edu",
+    role: "STAFF",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus"
+  },
+  {
     id: "admin1",
     name: "Admin Staff",
     email: "admin@reclaim.edu",
@@ -106,6 +138,30 @@ export const MOCK_ITEMS: FoundItem[] = [
     status: "AVAILABLE",
     isHighValue: false,
     image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: "item5",
+    code: "ITEM-005",
+    title: "Sony WH-1000XM4",
+    category: "Electronics",
+    foundLocation: "Roof Deck Lounge",
+    foundAtUtc: new Date(Date.now() - 950400000).toISOString(),
+    description: "Black wireless noise-canceling headphones.",
+    status: "EXPIRED",
+    isHighValue: true,
+    image: "https://images.unsplash.com/photo-1618366712214-8c0751893558?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: "item6",
+    code: "ITEM-006",
+    title: "Mechanical Keyboard",
+    category: "Electronics",
+    foundLocation: "IT Computer Lab",
+    foundAtUtc: new Date(Date.now() - 1209600000).toISOString(),
+    description: "Keychron K2, brown switches.",
+    status: "EXPIRED",
+    isHighValue: true,
+    image: "https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&q=80&w=400"
   }
 ]
 
@@ -127,5 +183,14 @@ export const MOCK_CAPTURED_ITEMS: CapturedItem[] = [
     timestamp: new Date(Date.now() - 7200000).toISOString(),
     status: "PENDING",
     suggestedLocation: "Gym Lobby"
+  },
+  {
+    id: "cap3",
+    imageUrl: "https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?auto=format&fit=crop&q=80&w=400",
+    aiPrediction: "Camera",
+    confidence: 0.95,
+    timestamp: new Date(Date.now() - 5400000).toISOString(),
+    status: "PENDING",
+    suggestedLocation: "Engineering Quad"
   }
 ]

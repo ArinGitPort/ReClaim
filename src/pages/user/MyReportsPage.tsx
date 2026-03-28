@@ -204,10 +204,10 @@ export function MyReportsPage() {
             {liveNotice}
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.25rem', margin: 0 }}>Tracking & Status</h2>
-            <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>View the items you reported lost and their search status.</p>
+            <h2 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>My Lost Reports</h2>
+            <p style={{ color: '#64748B', fontSize: '0.875rem', fontWeight: 500, marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>View the items you reported lost and track their active search status.</p>
           </div>
           <Link
             to="/report-lost"
