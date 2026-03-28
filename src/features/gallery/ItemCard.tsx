@@ -1,8 +1,7 @@
-import { useState } from "react"
-import { ShieldAlert, Laptop, MapPin, CalendarClock } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ShieldAlert, Laptop, MapPin, Plus } from "lucide-react"
 import { ClaimThisItemModal } from "@/features/claims/ClaimThisItemModal"
 
-// Ensure we have our shared types in place (will create types/index.ts later)
 export interface FoundItem {
   id: string
   title: string
@@ -17,66 +16,195 @@ interface ItemCardProps {
   item: FoundItem
 }
 
+const getRelativeTime = (dateString: string) => {
+  const time = new Date(dateString).getTime();
+  if (isNaN(time)) return "Just now";
+  const diffHours = Math.round((Date.now() - time) / (1000 * 60 * 60));
+  if (diffHours < 24) return `${Math.max(1, diffHours)}h ago`;
+  return `${Math.round(diffHours / 24)}d ago`;
+}
+
 export function ItemCard({ item }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  // MASONRY RANDOM FACTOR based on ID length or chars to be deterministic
+  const randomFactor = item.title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 3;
+  const desktopHeights = [240, 290, 320];
+  const mobileHeights = [180, 210, 240];
+  const cardHeight = isMobile ? mobileHeights[randomFactor] : desktopHeights[randomFactor];
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col">
-        {/* Visual Header */}
-        <div className="h-48 w-full bg-slate-50 border-b border-slate-200 flex items-center justify-center relative overflow-hidden">
+      <div 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setIsModalOpen(true)}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          width: '100%',
+          marginBottom: '16px',
+          borderRadius: isMobile ? '12px' : '16px',
+          overflow: 'hidden',
+          backgroundColor: '#fff',
+          boxShadow: isHovered ? '0 12px 24px -8px rgba(0,0,0,0.15)' : '0 4px 12px -4px rgba(0,0,0,0.08)',
+          transition: 'all 0.3s ease',
+          breakInside: 'avoid',
+          cursor: 'pointer',
+          border: '1px solid #e2e8f0'
+        }}
+      >
+        <div style={{
+          height: `${cardHeight}px`,
+          width: '100%',
+          backgroundColor: item.isHighValue ? '#0f172a' : '#f8fafc',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
           {item.isHighValue ? (
-            <div className="flex flex-col items-center justify-center text-slate-500 opacity-70 group-hover:scale-105 transition-transform duration-500">
-              <Laptop className="w-16 h-16 mb-2" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">Secure Match required</span>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              color: '#fff',
+              opacity: 0.85,
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 0.4s ease'
+            }}>       
+              <Laptop style={{ width: '40px', height: '40px', marginBottom: '8px' }} />
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#60a5fa' }}>Secured</span>
             </div>
           ) : (
-            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform duration-500">
-              {/* Placeholder for actual low-value image */}
-              <span className="text-xs font-medium">No Image Provided</span>
+            <div style={{
+              color: '#94a3b8',
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 0.4s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}>
+              <div style={{ padding: '16px', borderRadius: '50%', backgroundColor: '#e2e8f0', marginBottom: '8px', border: '1px solid #cbd5e1' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600 }}>IMG</span>    
+              </div>
             </div>
           )}
-          
-          {/* High Value Badge overlay */}
+
           {item.isHighValue && (
-            <div className="absolute top-3 left-3 bg-brand/10 backdrop-blur-md border border-brand/20 px-2.5 py-1 rounded text-[10px] font-bold text-brand flex items-center gap-1.5 shadow-sm">
-              <ShieldAlert className="w-3 h-3" />
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              backgroundColor: 'rgba(38, 61, 168, 0.9)',
+              backdropFilter: 'blur(4px)',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}>
+              <ShieldAlert style={{ width: '10px', height: '10px' }} />
               HIGH VALUE
             </div>
           )}
-        </div>
 
-        {/* Content Body */}
-        <div className="p-5 flex flex-col flex-1">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-slate-900 text-lg leading-tight line-clamp-1 group-hover:text-[#263DA8] transition-colors">
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '60%',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)',
+            pointerEvents: 'none'
+          }} />
+
+          <div style={{
+            position: 'absolute',
+            bottom: '12px',
+            left: '12px',
+            right: '12px',
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontWeight: 700,
+              fontSize: isMobile ? '14px' : '16px',
+              color: '#ffffff',
+              lineHeight: 1.25,
+              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
               {item.title}
             </h3>
           </div>
           
-          <div className="space-y-2 mt-2 mb-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <MapPin className="w-4 h-4 text-[#263DA8]/70" />
-              <span className="truncate">{item.location}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <CalendarClock className="w-4 h-4 text-[#263DA8]/70" />
-              <span>{new Date(item.dateLost).toLocaleDateString()}</span>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="mt-auto w-full py-2.5 bg-[#263DA8] hover:bg-[#203794] text-white rounded-lg text-sm font-semibold transition-all shadow-sm"
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsModalOpen(true);
+            }}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#263DA8',
+              color: '#fff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              opacity: (isMobile || isHovered) ? 1 : 0,
+              transform: (isMobile || isHovered) ? 'scale(1)' : 'scale(0.8)',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(38, 61, 168, 0.4)'
+            }}
+            title="Claim this item"
           >
-            Claim This Item
+            <Plus style={{ width: '18px', height: '18px' }} />
           </button>
+        </div>
+
+        <div style={{
+          padding: '10px 12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#fff'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px', fontWeight: 500 }}>    
+            <MapPin style={{ width: '12px', height: '12px', color: '#263DA8' }} />
+            <span style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.location}</span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {getRelativeTime(item.dateLost)}
+          </span>
         </div>
       </div>
 
-      <ClaimThisItemModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <ClaimThisItemModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         itemId={item.id}
         itemTitle={item.title}
         itemCategory={item.category}

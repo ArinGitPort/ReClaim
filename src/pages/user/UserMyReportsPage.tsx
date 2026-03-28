@@ -1,6 +1,5 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { TopNavBar } from "@/layouts/TopNavBar"
 import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
@@ -196,8 +195,7 @@ export function MyReportsPage() {
 
   return (
     <div className="w-full min-h-full pb-24">
-      <TopNavBar title="My Lost Reports" />
-      <div className="max-w-5xl mx-auto px-6 mt-8">
+<div className="max-w-5xl mx-auto px-6 mt-8">
         {liveNotice && (
           <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
             {liveNotice}
@@ -373,3 +371,4 @@ function DetailField({ label, value }: { label: string; value: string }) {
 function isClosableReportStatus(status: string): boolean {
   return status === "SUBMITTED" || status === "UNDER_REVIEW" || status === "ACTIVE_SEARCH"
 }
+

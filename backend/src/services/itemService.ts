@@ -107,12 +107,17 @@ export async function listAdminItems(filters: {
   category?: string;
   page?: number;
   limit?: number;
+  expired?: boolean;
 }) {
   const page = Math.max(filters.page ?? 1, 1);
   const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
 
   const where: Prisma.FoundItemWhereInput = {
     status: filters.status ?? { not: ItemStatus.RETURNED },
+    ...(filters.expired ? {
+      foundAtUtc: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] }
+    } : {}),
     category: filters.category,
     OR: filters.search
       ? [

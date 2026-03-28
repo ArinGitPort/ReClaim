@@ -16,6 +16,20 @@ export function GalleryGrid({
 }) {
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [columns, setColumns] = useState(getColumns())
+
+  function getColumns() {
+    if (typeof window === 'undefined') return 1
+    if (window.innerWidth >= 1280) return 4
+    if (window.innerWidth >= 768) return 3
+    return 2
+  }
+
+  useEffect(() => {
+    const handleResize = () => setColumns(getColumns())
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const loadItems = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -89,7 +103,7 @@ export function GalleryGrid({
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 lg:p-24 border-2 border-dashed border-border-divider/50 rounded-xl bg-background-subtle/30">
-        <SearchX className="w-12 h-12 text-text-secondary mb-4 opacity-50" />
+        <SearchX className="w-12 h-12 text-text-secondary mb-4 opacity-50" />   
         <h3 className="text-xl font-bold text-text-primary mb-2">No items found</h3>
         <p className="text-text-secondary text-center max-w-sm">
           We couldn't find any items matching your current filters. Try adjusting your search criteria.
@@ -99,7 +113,12 @@ export function GalleryGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div style={{
+      columnCount: columns,
+      columnGap: '16px',
+      width: '100%',
+      margin: '0 auto'
+    }}>      
       {items.map(item => (
         <ItemCard key={item.id} item={item} />
       ))}

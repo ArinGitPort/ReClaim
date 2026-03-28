@@ -11,6 +11,7 @@ import { MyClaimsPage } from "@/pages/user/UserMyClaimsPage"
 import { MyReportsPage } from "@/pages/user/UserMyReportsPage"
 import { ReadyToClaimPage } from "@/pages/user/UserReadyToClaimPage"
 import { NotificationsPage } from "@/pages/user/UserNotificationsPage"
+import { SettingsPage as UserSettingsPage } from "@/pages/user/UserSettingsPage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -91,8 +92,8 @@ function App() {
               <Route path="/my-reports" element={<MyReportsPage />} />
               <Route path="/ready-to-claim" element={<ReadyToClaimPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
-              {/* Placeholder routes */}
-              <Route path="/settings" element={<div className="p-8">Settings Page Template</div>} />
+              {/* Settings Route */}
+              <Route path="/settings" element={<UserSettingsPage />} />
               <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
             </Route>
 

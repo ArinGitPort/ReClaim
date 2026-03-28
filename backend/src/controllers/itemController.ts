@@ -60,6 +60,7 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
   const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
+  const expired = req.query.expired === "true";
   const status = statusQuery && Object.values(ItemStatus).includes(statusQuery as ItemStatus)
     ? (statusQuery as ItemStatus)
     : undefined;
@@ -84,6 +85,7 @@ export async function getAdminItems(req: Request, res: Response): Promise<void> 
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
   const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
+  const expired = req.query.expired === "true";
   const status = statusQuery && Object.values(ItemStatus).includes(statusQuery as ItemStatus)
     ? (statusQuery as ItemStatus)
     : undefined;
@@ -333,4 +335,23 @@ function buildChangePayload(
       oldValue: field[1],
       newValue: field[2],
     }));
+}
+
+export async function batchDisposeItems(req: Request, res: Response): Promise<void> {
+  const { itemIds } = req.body;
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    res.status(400).json({ error: "itemIds array is required" });
+    return;
+  }
+  
+  const updated = await prisma.foundItem.updateMany({
+    where: {
+      id: { in: itemIds }
+    },
+    data: {
+      status: ItemStatus.ARCHIVED
+    }
+  });
+  
+  res.json({ success: true, count: updated.count });
 }

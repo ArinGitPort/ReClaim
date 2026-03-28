@@ -4,7 +4,7 @@ import { TopNavBar } from "@/layouts/TopNavBar"
 export function RegisterPage() {
   return (
     <div className="min-h-screen bg-background-subtle font-sans pb-16">
-      <TopNavBar title="Account Registration" backLabel="Back to Login" backLink="/" />
+      <TopNavBar />
 
       {/* Main Registration Area */}
       <div className="w-full max-w-3xl mx-auto my-10 sm:my-16 p-8 sm:p-12">
@@ -26,3 +26,4 @@ export function RegisterPage() {
     </div>
   )
 }
+

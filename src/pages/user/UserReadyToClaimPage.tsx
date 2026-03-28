@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react"
-import { TopNavBar } from "@/layouts/TopNavBar"
 import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
@@ -73,8 +72,7 @@ export function ReadyToClaimPage() {
 
   return (
     <div className="w-full min-h-full pb-24">
-      <TopNavBar title="Ready to Claim" />
-      <div className="max-w-5xl mx-auto px-6 mt-8">
+<div className="max-w-5xl mx-auto px-6 mt-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Token Wallet</h2>
           <p className="text-slate-500 text-sm">This is the only page where pickup tokens are displayed for physical handover.</p>
@@ -170,3 +168,4 @@ export function ReadyToClaimPage() {
     </div>
   )
 }
+

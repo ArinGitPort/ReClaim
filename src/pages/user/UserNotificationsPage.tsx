@@ -1,6 +1,5 @@
 import { Bell, CheckCheck } from "lucide-react"
 import { Link } from "react-router-dom"
-import { TopNavBar } from "@/layouts/TopNavBar"
 import { type AppNotification, useNotifications } from "@/contexts/NotificationContext"
 
 export function NotificationsPage() {
@@ -8,9 +7,7 @@ export function NotificationsPage() {
 
   return (
     <div className="w-full min-h-full pb-24">
-      <TopNavBar title="Notifications" backLink="/gallery" backLabel="Back" />
-
-      <main className="max-w-5xl mx-auto px-6 mt-8 space-y-5">
+<main className="max-w-5xl mx-auto px-6 mt-8 space-y-5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Realtime Updates</h2>
@@ -86,3 +83,4 @@ function buildNotificationOpenRoute(item: AppNotification): string {
   const queryString = params.toString()
   return queryString ? `${path}?${queryString}` : path
 }
+

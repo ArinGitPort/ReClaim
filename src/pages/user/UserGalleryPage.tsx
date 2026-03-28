@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { GalleryFilters } from "@/features/gallery/GalleryFilters"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
-import { TopNavBar } from "@/layouts/TopNavBar"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 
 export function GalleryPage() {
@@ -14,49 +13,45 @@ export function GalleryPage() {
 
   return (
     <div className="w-full min-h-full pb-24">
-      {/* Top Navigation Bar */}
-      <TopNavBar title="Browse Found Items" />
-
-      {/* Main Layout Area */}
-      <main className="max-w-400 mx-auto px-6 mt-8">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          <GalleryFilters />
-          
-          <div className="flex-1 w-full relative">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-text-primary">Found Items</h2>
-              <span className="text-sm font-medium text-text-secondary bg-background-app px-3 py-1 rounded-full border border-border-divider/40">
-                Showing {itemCount} of {totalCount} items
-              </span>
-            </div>
-            
-            <GalleryGrid
-              page={page}
-              pageSize={pageSize}
-              onDataChange={({ visibleCount, totalCount: total, pageCount: totalPages }) => {
-                setItemCount(visibleCount)
-                setTotalCount(total)
-                setPageCount(totalPages)
-              }}
-            />
-
-            <PaginationControls
-              className="mt-4"
-              page={page}
-              pageCount={pageCount}
-              total={totalCount}
-              visibleCount={itemCount}
-              rowsPerPage={pageSize}
-              onPageChange={setPage}
-              onRowsPerPageChange={() => {
-                // Browse Found Items uses fixed public page size.
-              }}
-              showRowsPerPage={false}
-              itemLabel="items"
-            />
-          </div>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Found Items</h2>
+          <p className="text-sm text-slate-500 mt-1">Browse recently found items across campus.</p>
         </div>
-      </main>
+        <span className="text-sm font-medium text-slate-600 bg-white px-3 py-1.5 rounded-full border border-slate-200 inline-block w-fit">
+          Showing {itemCount} of {totalCount} items
+        </span>
+      </div>
+
+      <GalleryFilters />
+
+      <div className="w-full relative">
+        <GalleryGrid
+          page={page}
+          pageSize={pageSize}
+          onDataChange={({ visibleCount, totalCount: total, pageCount: totalPages }) => {
+            setItemCount(visibleCount)
+            setTotalCount(total)
+            setPageCount(totalPages)
+          }}
+        />
+
+        <PaginationControls
+          className="mt-8"
+          page={page}
+          pageCount={pageCount}
+          total={totalCount}
+          visibleCount={itemCount}
+          rowsPerPage={pageSize}
+          onPageChange={setPage}
+          onRowsPerPageChange={() => {
+            // Browse Found Items uses fixed public page size.
+          }}
+          showRowsPerPage={false}
+          itemLabel="items"
+        />
+      </div>
     </div>
   )
 }
+

@@ -1,6 +1,5 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useEffect, useMemo, useState } from "react"
-import { TopNavBar } from "@/layouts/TopNavBar"
 import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
@@ -126,8 +125,7 @@ export function MyClaimsPage() {
 
   return (
     <div className="w-full min-h-full pb-24">
-      <TopNavBar title="My Claims" />
-      <div className="max-w-5xl mx-auto px-6 mt-8">
+<div className="max-w-5xl mx-auto px-6 mt-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-1">Tracking & Status</h2>
@@ -299,3 +297,4 @@ function claimStatusMessage(status: string): string {
 function isClosableClaimStatus(status: string): boolean {
   return status === "PENDING_VERIFICATION" || status === "INQUIRY_REQUIRED"
 }
+
