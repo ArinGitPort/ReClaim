@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { TopNavBar } from "@/layouts/TopNavBar"
 import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
@@ -280,7 +281,7 @@ export function MyReportsPage() {
 
                 {/* Status */}
                 <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-                  <ReportStatusBadge status={report.status} />
+                  <StatusBadge status={report.status} />
                   <ReportStatusMessage status={report.status} />
                 </div>
               </div>
@@ -333,26 +334,6 @@ export function MyReportsPage() {
         />
       </div>
     </div>
-  )
-}
-
-function ReportStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    "Submitted": "bg-cyan-50 text-cyan-700 border-cyan-200",
-    "Under Review": "bg-orange-50 text-orange-700 border-orange-200",
-    "Active Search": "bg-emerald-50 text-emerald-700 border-emerald-200",
-    "Closed": "bg-slate-100 text-slate-700 border-slate-300",
-    "Rejected": "bg-rose-50 text-rose-700 border-rose-200",
-  }
-
-  return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border inline-flex items-center gap-1.5",
-      styles[status] ?? "bg-slate-50 text-slate-600 border-slate-100"
-    )}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-      {status}
-    </span>
   )
 }
 

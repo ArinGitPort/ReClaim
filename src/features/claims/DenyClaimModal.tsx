@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { Modal } from "@/components/ui/Modal"
 import { X, XCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 
@@ -10,35 +10,20 @@ interface DenyClaimModalProps {
   setDenyReason: (reason: string) => void
 }
 
-export function DenyClaimModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  denyReason, 
-  setDenyReason 
+export function DenyClaimModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  denyReason,
+  setDenyReason
 }: DenyClaimModalProps) {
-  
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "unset"
-    }
-    return () => {
-      document.body.style.overflow = "unset"
-    }
-  }, [isOpen])
-
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-slate-900/80" onClick={onClose} />
-
-      {/* Modal Content */}
-      <div className="relative w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         {/* Header */}
+
+{/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-rose-50/30">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center shadow-sm">
@@ -90,8 +75,7 @@ export function DenyClaimModal({
             Confirm Denial
           </Button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

@@ -1,6 +1,6 @@
+import { Modal } from "@/components/ui/Modal"
 import { CheckCircle2, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/Button"
-import { useEffect } from "react"
 
 interface ClaimSuccessModalProps {
   isOpen: boolean
@@ -9,28 +9,12 @@ interface ClaimSuccessModalProps {
 }
 
 export function ClaimSuccessModal({ isOpen, onClose, claimId }: ClaimSuccessModalProps) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "unset"
-    }
-    return () => {
-      document.body.style.overflow = "unset"
-    }
-  }, [isOpen])
-
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-slate-900/80" onClick={onClose} />
-
-      {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl p-8 sm:p-12 text-center my-auto animate-in zoom-in-95 duration-200">
-        <button
-          onClick={onClose}
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl p-8 sm:p-12 text-center my-auto animate-in zoom-in-95 duration-200">
+      <button
+        onClick={onClose}
           className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
         >
           <X className="w-5 h-5" />
@@ -61,8 +45,6 @@ export function ClaimSuccessModal({ isOpen, onClose, claimId }: ClaimSuccessModa
             System Ledger Updated
           </p>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
-

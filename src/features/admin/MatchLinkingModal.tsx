@@ -227,7 +227,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
                   <div className="flex-1 min-w-0 pr-12">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">{item.code}</span>
-                        <StatusBadge weight={item.matchScore} />
+                        <MatchScoreBadge weight={item.matchScore} />
                       </div>
                      <h5 className="font-bold text-slate-900 text-[17px] leading-tight mb-2 truncate group-hover:text-brand transition-colors tracking-tight">{item.title}</h5>
                                           <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500">
@@ -302,7 +302,7 @@ function computeMatchScore(item: { category: string; color: string }, prefill?: 
   return Math.min(score, 99)
 }
 
-function StatusBadge({ weight }: { weight: number }) {
+function MatchScoreBadge({ weight }: { weight: number }) {
   const getStyles = () => {
     if (weight > 80) return 'bg-emerald-100 text-emerald-800 border-emerald-200'
     if (weight > 50) return 'bg-orange-100 text-orange-800 border-orange-200'

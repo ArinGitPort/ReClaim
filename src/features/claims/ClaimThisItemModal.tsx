@@ -1,3 +1,4 @@
+import { Modal } from "@/components/ui/Modal"
 import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
@@ -21,15 +22,9 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden"
-      setError(null)
       setProofValues({})
       setAdditionalNotes("")
-    } else {
-      document.body.style.overflow = "unset"
-    }
-    return () => {
-      document.body.style.overflow = "unset"
+      setError(null)
     }
   }, [isOpen])
 
@@ -69,13 +64,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
   }
 
   return (
-    <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
-      <div
-        className="fixed inset-0 bg-slate-900/80"
-        onClick={onClose}
-      />
-
-      <div className="relative w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200" data-item-id={itemId}>
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center shadow-sm">
@@ -179,7 +168,6 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
           </button>
         </div>
 
-      </div>
-    </div>
+    </Modal>
   )
 }

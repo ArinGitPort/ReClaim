@@ -1,3 +1,4 @@
+import { Modal } from "@/components/ui/Modal"
 import { CheckCircle, ArrowRight, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Link } from "react-router-dom"
@@ -13,30 +14,16 @@ export function ReportConfirmationModal({ isOpen, onClose }: ReportConfirmationM
 
   useEffect(() => {
     if (isOpen) {
-      setRefNumber("REC-" + Math.random().toString(36).substr(2, 9).toUpperCase())
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "unset"
-    }
-    return () => {
-      document.body.style.overflow = "unset"
+      setRefNumber("REP-" + Math.random().toString(36).substring(2, 8).toUpperCase())
     }
   }, [isOpen])
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      {/* Backdrop - Clean, no blur */}
-      <div
-        className="fixed inset-0 bg-slate-900/80"
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl p-8 sm:p-10 text-center my-auto animate-in zoom-in-95 duration-200">
+      <button
         onClick={onClose}
-      />
-
-      {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl p-8 sm:p-10 text-center my-auto animate-in zoom-in-95 duration-200">
-        <button
-          onClick={onClose}
           className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
         >
           <X className="w-5 h-5" />
@@ -81,8 +68,7 @@ export function ReportConfirmationModal({ isOpen, onClose }: ReportConfirmationM
           <FileText className="w-3.5 h-3.5 opacity-50" />
           Real-time verification history available
         </p>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

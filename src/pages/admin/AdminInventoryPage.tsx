@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useEffect, useMemo, useState } from "react"
 import { 
   Search, 
@@ -491,29 +492,5 @@ function resolveImageUrl(path?: string): string | undefined {
   const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
   const origin = apiBase.endsWith("/api") ? apiBase.slice(0, -4) : apiBase
   return `${origin}${path.startsWith("/") ? path : `/${path}`}`
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const label = status === "CLAIM_PENDING" ? "CLAIM PENDING" : status.replaceAll("_", " ")
-
-  const getStyles = () => {
-    switch(status) {
-      case 'AVAILABLE': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      case 'CLAIM_PENDING': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-      case 'RETURNED': return 'bg-slate-50 text-slate-500 border-slate-100'
-      case 'ARCHIVED': return 'bg-rose-50 text-rose-700 border-rose-100'
-      default: return 'bg-slate-50 text-slate-700 border-slate-100'
-    }
-  }
-
-  return (
-    <span className={cn(
-      "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border shadow-sm inline-flex items-center gap-2",
-      getStyles()
-    )}>
-      {status === 'CLAIM_PENDING' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-      {label}
-    </span>
-  )
 }
 

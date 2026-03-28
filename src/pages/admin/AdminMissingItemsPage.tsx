@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FileText,
@@ -623,29 +624,6 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 leading-none">{label}</div>
       <div className="text-[15px] font-bold text-slate-800 tracking-tight">{value}</div>
     </div>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const getStyles = () => {
-    switch (status) {
-      case 'SUBMITTED': return 'bg-blue-50 text-blue-700 border-blue-100'
-      case 'UNDER_REVIEW': return 'bg-amber-50 text-amber-700 border-amber-100'
-      case 'ACTIVE_SEARCH': return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
-      case 'MATCHED': return 'bg-indigo-50 text-indigo-700 border-indigo-100'
-      case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100'
-      case 'RESOLVED': return 'bg-slate-100 text-slate-700 border-slate-200'
-      default: return 'bg-slate-50 text-slate-600 border-slate-100'
-    }
-  }
-
-  return (
-    <span className={cn(
-      "px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-all",
-      getStyles()
-    )}>
-      {status.replaceAll("_", " ")}
-    </span>
   )
 }
 
