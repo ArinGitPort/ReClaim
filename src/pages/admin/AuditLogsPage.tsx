@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon, X } from "lucide-react"
+import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon } from "lucide-react"
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader"
+import { AdminSearchFilterBar } from "@/components/admin/AdminSearchFilterBar"
+import { BaseModal } from "@/components/ui/BaseModal"
 import { DataRow } from "@/components/ui/DataRow"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
@@ -130,10 +133,10 @@ export function AuditLogsPage() {
         />
       )}
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Audit Archive</h1>
-        <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', fontWeight: 500, color: '#64748B', margin: '0.25rem 0 0 0' }}>Activity feed of verified system actions and administrative updates.</p>
-      </div>
+      <AdminPageHeader 
+        title="Audit Archive" 
+        subtitle="Activity feed of verified system actions and administrative updates." 
+      />
 
       {error && (
         <div style={{ borderRadius: '0.75rem', border: '1px solid #FECACA', backgroundColor: '#FEF2F2', padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: 600, color: '#B91C1C' }}>
@@ -142,7 +145,7 @@ export function AuditLogsPage() {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+        <AdminSearchFilterBar>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', height: '1rem', width: '1rem', color: '#94A3B8' }} />
             <Input
@@ -181,7 +184,7 @@ export function AuditLogsPage() {
           >
             <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} /> Reset
           </Button>
-        </div>
+        </AdminSearchFilterBar>
 
         <p style={{ textAlign: 'right', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>{resultLabel}</p>
       </div>
@@ -312,23 +315,11 @@ function ActivityLogCard({
 
 function AuditDetailModal({ log, onClose }: { log: AuditLogRow; onClose: () => void }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2.5rem 1rem' }}>
-      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)' }} onClick={onClose} />
-      <div style={{ position: 'relative', width: '100%', maxWidth: '48rem', overflow: 'hidden', borderRadius: '0.75rem', border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', margin: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', backgroundColor: 'rgba(248, 250, 252, 0.7)', padding: '1rem 1.5rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.025em', color: '#0F172A', margin: 0 }}>Activity Details</h3>
-            <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', margin: 0 }}>{log.id}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ borderRadius: '9999px', padding: '0.5rem', color: '#94A3B8', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}
-          >
-            <X style={{ width: '1.25rem', height: '1.25rem' }} />
-          </button>
-        </div>
-
+    <BaseModal 
+      onClose={onClose} 
+      title="Activity Details" 
+      id={log.id}
+    >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
             <DataRow label="Log ID" value={log.id} mono />
@@ -349,8 +340,7 @@ function AuditDetailModal({ log, onClose }: { log: AuditLogRow; onClose: () => v
 
           <PayloadPanel payload={log.payload} />
         </div>
-      </div>
-    </div>
+    </BaseModal>
   )
 }
 
@@ -550,22 +540,18 @@ function renderNarrativeSentence(log: AuditLogRow) {
 }
 
 function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: React.CSSProperties } {
-  const commonStyle: React.CSSProperties = {
-    display: 'flex',
-    height: '2.25rem',
-    width: '2.25rem',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '9999px',
-    border: '1px solid',
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  }
-
   if (action === "ITEM_CREATED" || action === "REPORT_SUBMITTED" || action === "CLAIM_SUBMITTED") {
     return {
       icon: Plus,
       nodeStyle: {
-        ...commonStyle,
+        display: 'flex',
+        height: '2.25rem',
+        width: '2.25rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '9999px',
+        border: '1px solid',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         borderColor: '#BFDBFE',
         backgroundColor: '#EFF6FF',
         color: '#2563EB',
@@ -577,7 +563,14 @@ function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: 
     return {
       icon: Check,
       nodeStyle: {
-        ...commonStyle,
+        display: 'flex',
+        height: '2.25rem',
+        width: '2.25rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '9999px',
+        border: '1px solid',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         borderColor: '#A7F3D0',
         backgroundColor: '#ECFDF5',
         color: '#059669',
@@ -589,7 +582,14 @@ function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: 
     return {
       icon: TriangleAlert,
       nodeStyle: {
-        ...commonStyle,
+        display: 'flex',
+        height: '2.25rem',
+        width: '2.25rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '9999px',
+        border: '1px solid',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         borderColor: '#FECACA',
         backgroundColor: '#FEF2F2',
         color: '#DC2626',
@@ -601,7 +601,14 @@ function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: 
     return {
       icon: Trash2,
       nodeStyle: {
-        ...commonStyle,
+        display: 'flex',
+        height: '2.25rem',
+        width: '2.25rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '9999px',
+        border: '1px solid',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         borderColor: '#FECACA',
         backgroundColor: '#FEF2F2',
         color: '#DC2626',
@@ -612,7 +619,14 @@ function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeStyle: 
   return {
     icon: RefreshCcw,
     nodeStyle: {
-      ...commonStyle,
+      display: 'flex',
+      height: '2.25rem',
+      width: '2.25rem',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '9999px',
+      border: '1px solid',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       borderColor: '#FDE68A',
       backgroundColor: '#FFFBEB',
       color: '#D97706',
