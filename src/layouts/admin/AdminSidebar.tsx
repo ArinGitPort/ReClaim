@@ -39,9 +39,6 @@ export function AdminSidebar() {
       <div style={{ padding: '2rem 1rem', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between', gap: '0.75rem' }}>
         {!isCollapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: '2.5rem', height: '2.5rem', backgroundColor: '#FFFFFF', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Package style={{ width: '1.5rem', height: '1.5rem', color: '#1E2F85' }} />
-            </div>
             <div style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.025em', whiteSpace: 'nowrap' }}>
               ReClaim<span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Admin</span>
             </div>
@@ -66,7 +63,19 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: '0 0.75rem', display: 'flex', flexDirection: 'column', gap: isCollapsed ? '1.5rem' : '2rem', overflowY: 'auto', overflowX: 'hidden' }}>
+      <nav 
+        className="sidebar-nav-container"
+        style={{ flex: 1, padding: '0 0.75rem', display: 'flex', flexDirection: 'column', gap: isCollapsed ? '1.5rem' : '2rem', overflowY: 'auto', overflowX: 'hidden' }}
+      >
+        <style>{`
+          .sidebar-nav-container::-webkit-scrollbar {
+            display: none;
+          }
+          .sidebar-nav-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
         
         {/* Group: Core Operations */}
         <div>
