@@ -6,7 +6,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type ReportRealtimeEvent = {
   reportId: string
@@ -318,7 +318,7 @@ export function MyReportsPage() {
           )}
         </div>
 
-        <AdminPaginationControls
+        <PaginationControls
           page={page}
           pageCount={pageCount}
           total={filteredReports.length}

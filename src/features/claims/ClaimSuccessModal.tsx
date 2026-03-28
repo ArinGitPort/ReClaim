@@ -1,5 +1,5 @@
 import { CheckCircle2, X, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { useEffect } from "react"
 
 interface ClaimSuccessModalProps {

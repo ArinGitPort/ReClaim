@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { X, XCircle, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 interface DenyClaimModalProps {
   isOpen: boolean

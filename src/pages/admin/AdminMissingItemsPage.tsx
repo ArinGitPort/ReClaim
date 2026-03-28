@@ -13,11 +13,11 @@ import {
   HelpCircle,
   MessageSquare
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
 import { api } from "@/lib/api"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { useSearchParams } from "react-router-dom"
 
@@ -384,7 +384,7 @@ export function MissingItemsPage() {
               </div>
             )}
 
-            <AdminPaginationControls
+            <PaginationControls
               page={page}
               pageCount={pageCount}
               total={totalReports}

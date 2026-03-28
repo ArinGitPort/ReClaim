@@ -12,7 +12,7 @@ import {
   MapPin,
   Calendar
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
@@ -23,7 +23,7 @@ import { EditInventoryItemModal } from "@/features/admin/EditInventoryItemModal"
 import { InventoryLinkReportModal } from "@/features/admin/InventoryLinkReportModal"
 import { InventoryItemDetailsModal } from "@/features/admin/InventoryItemDetailsModal"
 import { InventoryHandoverModal } from "@/features/admin/InventoryHandoverModal"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type InventoryRow = {
   id: string
@@ -420,7 +420,7 @@ export function InventoryPage() {
         
       </div>
 
-      <AdminPaginationControls
+      <PaginationControls
         page={page}
         pageCount={pageCount}
         total={totalItems}

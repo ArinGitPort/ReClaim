@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { api } from "@/lib/api"

@@ -1,16 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 
 // Public pages
-import { LandingPage } from "@/pages/public/LandingPage"
-import { RegisterPage } from "@/pages/public/RegisterPage"
+import { LandingPage } from "@/pages/public/PublicLandingPage"
+import { RegisterPage } from "@/pages/public/PublicRegisterPage"
 
 // User pages
-import { GalleryPage } from "@/pages/user/GalleryPage"
-import { ReportLostPage } from "@/pages/user/ReportLostPage"
-import { MyClaimsPage } from "@/pages/user/MyClaimsPage"
-import { MyReportsPage } from "@/pages/user/MyReportsPage"
-import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
-import { NotificationsPage } from "@/pages/user/NotificationsPage"
+import { GalleryPage } from "@/pages/user/UserGalleryPage"
+import { ReportLostPage } from "@/pages/user/UserReportLostPage"
+import { MyClaimsPage } from "@/pages/user/UserMyClaimsPage"
+import { MyReportsPage } from "@/pages/user/UserMyReportsPage"
+import { ReadyToClaimPage } from "@/pages/user/UserReadyToClaimPage"
+import { NotificationsPage } from "@/pages/user/UserNotificationsPage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -22,16 +22,16 @@ import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
 
 // Admin pages
-import { DashboardPage } from "@/pages/admin/DashboardPage"
-import { InventoryPage } from "@/pages/admin/InventoryPage"
-import { MissingItemsPage } from "@/pages/admin/MissingItemsPage"
-import { ClaimsVerificationPage } from "@/pages/admin/ClaimsVerificationPage"
-import { AuditLogsPage } from "@/pages/admin/AuditLogsPage"
-import { HandoverLogPage } from "@/pages/admin/HandoverLogPage"
-import { UserDirectoryPage } from "@/pages/admin/UserDirectoryPage"
-import { ExpiredInventoryPage } from "@/pages/admin/ExpiredInventoryPage"
-import { SettingsPage } from "@/pages/admin/SettingsPage"
-import { AdminNotificationsPage } from "@/pages/admin/NotificationsPage"
+import { DashboardPage } from "@/pages/admin/AdminDashboardPage"
+import { InventoryPage } from "@/pages/admin/AdminInventoryPage"
+import { MissingItemsPage } from "@/pages/admin/AdminMissingItemsPage"
+import { ClaimsVerificationPage } from "@/pages/admin/AdminClaimsVerificationPage"
+import { AuditLogsPage } from "@/pages/admin/AdminAuditLogsPage"
+import { HandoverLogPage } from "@/pages/admin/AdminHandoverLogPage"
+import { UserDirectoryPage } from "@/pages/admin/AdminUserDirectoryPage"
+import { ExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
+import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
+import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"

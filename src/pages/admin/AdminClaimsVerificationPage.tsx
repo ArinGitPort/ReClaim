@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
 
@@ -228,7 +228,7 @@ export function ClaimsVerificationPage() {
               </button>
             ))}
 
-            <AdminPaginationControls
+            <PaginationControls
               page={page}
               pageCount={pageCount}
               total={totalClaims}

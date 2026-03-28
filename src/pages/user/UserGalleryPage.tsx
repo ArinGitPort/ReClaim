@@ -2,7 +2,7 @@ import { useState } from "react"
 import { GalleryFilters } from "@/features/gallery/GalleryFilters"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { TopNavBar } from "@/layouts/TopNavBar"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 export function GalleryPage() {
   const [itemCount, setItemCount] = useState(0)
@@ -40,7 +40,7 @@ export function GalleryPage() {
               }}
             />
 
-            <AdminPaginationControls
+            <PaginationControls
               className="mt-4"
               page={page}
               pageCount={pageCount}

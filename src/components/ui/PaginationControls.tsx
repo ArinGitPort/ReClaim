@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
 
-type AdminPaginationControlsProps = {
+type PaginationControlsProps = {
   page: number
   pageCount: number
   total: number
@@ -16,7 +16,7 @@ type AdminPaginationControlsProps = {
   showRowsPerPage?: boolean
 }
 
-export function AdminPaginationControls({
+export function PaginationControls({
   page,
   pageCount,
   total,
@@ -28,7 +28,7 @@ export function AdminPaginationControls({
   itemLabel = "records",
   className,
   showRowsPerPage = true,
-}: AdminPaginationControlsProps) {
+}: PaginationControlsProps) {
   const safePageCount = Math.max(1, pageCount)
   const safePage = Math.min(Math.max(1, page), safePageCount)
 

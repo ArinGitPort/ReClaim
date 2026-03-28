@@ -1,5 +1,5 @@
 import { Image as ImageIcon, Info, MapPin, Package, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 type InventoryItemDetails = {
   code: string

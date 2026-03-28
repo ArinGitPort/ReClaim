@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 interface ClaimView {
   ticketId: string
@@ -244,7 +244,7 @@ export function MyClaimsPage() {
           )}
         </div>
 
-        <AdminPaginationControls
+        <PaginationControls
           page={page}
           pageCount={pageCount}
           total={filteredClaims.length}

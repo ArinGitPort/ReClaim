@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { CheckCircle2, Search, ShieldCheck, User, Package, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { api } from "@/lib/api"
 

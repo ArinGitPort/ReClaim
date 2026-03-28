@@ -3,7 +3,7 @@ import { TopNavBar } from "@/layouts/TopNavBar"
 import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
 import { api } from "@/lib/api"
 import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
-import { AdminPaginationControls } from "@/components/admin/AdminPaginationControls"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
@@ -153,7 +153,7 @@ export function ReadyToClaimPage() {
           )}
         </div>
 
-        <AdminPaginationControls
+        <PaginationControls
           page={page}
           pageCount={pageCount}
           total={filteredPickups.length}
