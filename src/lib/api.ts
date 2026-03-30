@@ -42,7 +42,7 @@ export const api = {
               category: "Electronics",
               color: "Silver",
               location: "Library Basement",
-              reportedLostAtUtc: new Date(Date.now() - 3600000).toISOString(),
+              reportedLostAtUtc: new Date().toISOString(),
               status: "SUBMITTED",
               reporterUser: { name: "Sarah Jenkins", studentId: "2021-100293" }
             },
@@ -53,45 +53,12 @@ export const api = {
               category: "Everyday Items",
               color: "Blue",
               location: "Gymnasium",
-              reportedLostAtUtc: new Date(Date.now() - 7200000).toISOString(),
+              reportedLostAtUtc: new Date().toISOString(),
               status: "ACTIVE_SEARCH",
               reporterUser: { name: "Mike Peterson", studentId: "2020-009281" }
-            },
-            {
-              id: "rep-3",
-              reportCode: "RL-8823",
-              title: "Black Leather Wallet",
-              category: "Wallets/IDs",
-              color: "Black",
-              location: "Student Center",
-              reportedLostAtUtc: new Date(Date.now() - 172800000).toISOString(),
-              status: "UNDER_REVIEW",
-              reporterUser: { name: "Emily Chen", studentId: "2022-044212" }
-            },
-            {
-              id: "rep-4",
-              reportCode: "RL-8824",
-              title: "Red Muji Notebook",
-              category: "Stationery",
-              color: "Red",
-              location: "Engineering Quad",
-              reportedLostAtUtc: new Date(Date.now() - 86400000).toISOString(),
-              status: "ACTIVE_SEARCH",
-              reporterUser: { name: "John Doe", studentId: "2023-0001" }
-            },
-            {
-              id: "rep-5",
-              reportCode: "RL-8825",
-              title: "Sony Earbuds Case",
-              category: "Electronics",
-              color: "Black",
-              location: "Library Hub",
-              reportedLostAtUtc: new Date(Date.now() - 432000000).toISOString(),
-              status: "RESOLVED",
-              reporterUser: { name: "John Doe", studentId: "2023-0001" }
             }
           ],
-          pagination: { page: 1, limit: 25, total: 5, pageCount: 1 }
+          pagination: { page: 1, limit: 25, total: 2, pageCount: 1 }
         } as any
       };
     }
@@ -171,41 +138,13 @@ export const api = {
               id: "claim-1",
               claimCode: "CL-9901",
               status: "PENDING_VERIFICATION",
-              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              createdAt: new Date().toISOString(),
               submittedProof: { brand: "Apple", serialNumber: "C02XG..." },
-              claimantUser: { name: "John Doe", studentId: "2023-0001", email: "john@students.nu.edu.ph" },
+              claimantUser: { name: "Johnathan Doe", studentId: "2020-112233", email: "john@students.nu.edu.ph" },
               foundItem: MOCK_ITEMS[0]
-            },
-            {
-              id: "claim-2",
-              claimCode: "CL-9902",
-              status: "APPROVED",
-              createdAt: new Date(Date.now() - 86400000).toISOString(),
-              submittedProof: { color: "Brown", material: "Leather" },
-              claimantUser: { name: "John Doe", studentId: "2023-0001", email: "john@students.nu.edu.ph" },
-              foundItem: MOCK_ITEMS[1]
-            },
-            {
-              id: "claim-3",
-              claimCode: "CL-9903",
-              status: "INQUIRY_REQUIRED",
-              createdAt: new Date(Date.now() - 172800000).toISOString(),
-              reviewerNote: "Please upload a photo of the bottom showing the stickers.",
-              submittedProof: { color: "White", size: "32oz" },
-              claimantUser: { name: "John Doe", studentId: "2023-0001", email: "john@students.nu.edu.ph" },
-              foundItem: MOCK_ITEMS[2]
-            },
-            {
-              id: "claim-4",
-              claimCode: "CL-9904",
-              status: "DENIED",
-              createdAt: new Date(Date.now() - 259200000).toISOString(),
-              reviewerNote: "Physical description did not match the item in custody.",
-              claimantUser: { name: "John Doe", studentId: "2023-0001", email: "john@students.nu.edu.ph" },
-              foundItem: MOCK_ITEMS[3]
             }
           ],
-          pagination: { page: 1, limit: 25, total: 4, pageCount: 1 }
+          pagination: { page: 1, limit: 25, total: 1, pageCount: 1 }
         } as any
       };
     }
@@ -303,80 +242,17 @@ export const api = {
           pickups: [
             {
               source: "CLAIM",
-              sourceCode: "CL-9902",
-              itemTitle: "Leather Wallet",
-              inventoryCode: "ITM-002",
+              sourceCode: "CL-9901",
+              itemTitle: "iPhone 13 Pro",
+              inventoryCode: "ITM-001",
               pickupToken: "TK-4921-X",
-              pickupTokenExpires: new Date(Date.now() + 172800000).toISOString(),
-              officeLocation: "Lost & Found Desk, Student Affairs Office",
-              createdAt: new Date(Date.now() - 86400000).toISOString()
-            },
-            {
-              source: "REPORT_MATCH",
-              sourceCode: "RL-8825",
-              itemTitle: "Sony Earbuds Case",
-              inventoryCode: "ITM-005",
-              pickupToken: "TK-8822-Y",
               pickupTokenExpires: new Date(Date.now() + 86400000).toISOString(),
-              officeLocation: "ITS Helpdesk, Engineering Building",
-              createdAt: new Date(Date.now() - 43200000).toISOString()
+              officeLocation: "Lost & Found Desk, Student Affairs Office",
+              createdAt: new Date().toISOString()
             }
           ]
         } as any
       };
-    }
-
-    if (url === "/notifications") {
-      return {
-        data: {
-          notifications: [
-            { id: "s-n1", title: "Claim Approved!", message: "Your claim CL-9902 for Leather Wallet has been approved. View token in 'Ready to Claim'.", route: "/user/ready-to-claim", createdAt: new Date(Date.now() - 1800000).toISOString(), readAt: null },
-            { id: "s-n2", title: "Verification Update", message: "Admin requires additional proof for your Hydro Flask claim (CL-9903).", route: "/user/claims", createdAt: new Date(Date.now() - 3600000).toISOString(), readAt: null },
-            { id: "s-n3", title: "Potential Match Found", message: "A new item matching your 'Red Notebook' report has been logged.", route: "/gallery", createdAt: new Date(Date.now() - 86400000).toISOString(), readAt: new Date().toISOString() },
-            { id: "n1", title: "New Item Captured", message: "AI Camera at Engineering Quad detected a potential Camera.", route: "/admin/captured-items", createdAt: new Date(Date.now() - 1800000).toISOString(), readAt: null },
-            { id: "n2", title: "Claim Pending Review", message: "Sarah Jenkins submitted a claim for MacBook Air (ITM-002).", route: "/admin/claims", createdAt: new Date(Date.now() - 3600000).toISOString(), readAt: null }
-          ]
-        } as any
-      }
-    }
-
-    if (url === "/admin/users") {
-      const search = config?.params?.search?.toLowerCase();
-      let users = MOCK_USERS.filter(u => u.role !== "ADMIN");
-      
-      if (search) {
-        users = users.filter(u => 
-          u.name.toLowerCase().includes(search) || 
-          u.email.toLowerCase().includes(search) || 
-          u.studentId?.toLowerCase().includes(search)
-        );
-      }
-
-      return {
-         data: {
-           users: users.map(u => ({
-             ...u,
-             stats: {
-               totalClaims: Math.floor(Math.random() * 5),
-               totalReports: Math.floor(Math.random() * 3),
-               verificationStatus: u.role === "STAFF" ? "VERIFIED" : (Math.random() > 0.2 ? "VERIFIED" : "PENDING")
-             }
-           }))
-         } as any
-      };
-    }
-
-    if (url === "/inventory/expired") {
-      const expiredItems = MOCK_ITEMS.filter(i => i.status === "EXPIRED");
-      return {
-        data: {
-          items: expiredItems.map(i => ({
-            ...i,
-            daysExpired: Math.floor(Math.random() * 14) + 1,
-            disposalEligibility: "DONATION"
-          }))
-        } as any
-      }
     }
 
     return { data: {} as T };

@@ -13,7 +13,6 @@ import { ReadyToClaimPage } from "@/pages/user/ReadyToClaimPage"
 import { UserNotificationsPage } from "@/pages/user/UserNotificationsPage"
 import { UserProfilePage } from "@/pages/user/UserProfilePage"
 import { UserSettingsPage } from "@/pages/user/UserSettingsPage"
-import { CampusOfficePage } from "@/pages/user/CampusOfficePage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -41,38 +40,7 @@ import { CapturedItemsPage } from "@/pages/admin/CapturedItemsPage"
 import { CampusCamerasPage } from "@/pages/admin/CampusCamerasPage"
 import { SnapshotGalleryPage } from "@/pages/admin/SnapshotGalleryPage"
 
-import { useEffect } from "react"
-// import "./index.css" // DECOMMISSIONED for academic compliance
-
-function GlobalStyles() {
-  useEffect(() => {
-    // Injecting core global styles to replace index.css
-    const styleId = 'reclaim-global-styles'
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style')
-      style.id = styleId
-      style.innerHTML = `
-        *, *::before, *::after {
-          box-sizing: border-box;
-        }
-        body {
-          margin: 0;
-          padding: 0;
-          font-family: 'Outfit', sans-serif;
-          background-color: #FFFFFF;
-          color: #0F172A;
-          overflow-x: hidden;
-          min-height: 100vh;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-      `
-      document.head.appendChild(style)
-    }
-  }, [])
-  return null
-}
-
+import "./index.css"
 function ProtectedUserRoutes() {
   // Authentication checks temporarily disabled for UI route testing
   return <AppLayout />
@@ -86,7 +54,6 @@ function ProtectedAdminRoutes() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
-      <GlobalStyles />
       <AuthProvider>
         <NotificationProvider>
           <TooltipProvider delayDuration={150}>
@@ -106,7 +73,7 @@ function App() {
               <Route path="/notifications" element={<UserNotificationsPage />} />
               <Route path="/profile" element={<UserProfilePage />} />
               <Route path="/settings" element={<UserSettingsPage />} />
-              <Route path="/office" element={<CampusOfficePage />} />
+              <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
             </Route>
 
             {/* Administrative Dashboard Routes */}
