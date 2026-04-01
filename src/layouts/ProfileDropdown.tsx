@@ -3,10 +3,12 @@ import { useNavigate, Link } from "react-router-dom"
 import { User, FileText, Settings, MapPin, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { TurnInGuideModal } from "@/features/shared/TurnInGuideModal"
 
 export function ProfileDropdown() {
   const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [isGuideOpen, setIsGuideOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [isRightAligned, setIsRightAligned] = useState(false)
@@ -103,18 +105,20 @@ export function ProfileDropdown() {
               <Settings className="w-4 h-4" />
               Profile Settings
             </Link>
-            <Link 
-              to="/office" 
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-background-subtle transition-colors"
+<button
+              onClick={() => {
+                setIsOpen(false)
+                setIsGuideOpen(true)
+              }}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-background-subtle transition-colors w-full text-left"
             >
               <MapPin className="w-4 h-4" />
               Campus Admin Office
-            </Link>
-            
+            </button>
+
             <div className="h-px bg-border-divider my-1.5" />
-            
-            <button 
+
+            <button
               onClick={handleLogout}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-status-error hover:bg-status-error/10 transition-colors w-full text-left"
             >
@@ -124,6 +128,12 @@ export function ProfileDropdown() {
           </div>
         </div>
       )}
+
+      {/* Guide Modal */}
+      <TurnInGuideModal 
+        isOpen={isGuideOpen} 
+        onClose={() => setIsGuideOpen(false)} 
+      />
     </div>
   )
 }

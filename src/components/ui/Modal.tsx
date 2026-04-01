@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 
 interface ModalProps {
@@ -23,10 +24,10 @@ export function Modal({ isOpen, onClose, children, className, closeOnOutsideClic
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-      <div 
-        className="fixed inset-0 bg-slate-900/80 transition-opacity" 
+      <div
+        className="fixed inset-0 bg-slate-900/80 transition-opacity"
         onClick={closeOnOutsideClick ? onClose : undefined}
       />
       <div className={cn(
@@ -35,6 +36,7 @@ export function Modal({ isOpen, onClose, children, className, closeOnOutsideClic
       )}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
