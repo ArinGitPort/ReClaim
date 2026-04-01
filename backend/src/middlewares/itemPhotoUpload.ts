@@ -1,17 +1,27 @@
 import fs from "node:fs";
-import path from "node:path";
 import multer from "multer";
 import { itemUploadsRoot } from "@/config/paths.js";
 import { HttpError } from "@/utils/errors.js";
 
 fs.mkdirSync(itemUploadsRoot, { recursive: true });
 
+const mimeToExtension: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, itemUploadsRoot);
   },
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
+    const ext = mimeToExtension[file.mimetype];
+    if (!ext) {
+      cb(new HttpError(400, "Only JPG, PNG, and WEBP images are allowed"), "");
+      return;
+    }
+
     const token = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, `${token}${ext}`);
   },

@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import { AuditAction, ItemStatus, type Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
@@ -48,6 +49,12 @@ const idParamsSchema = z.object({
 export async function postItemPhoto(req: Request, res: Response): Promise<void> {
   if (!req.file) {
     throw new HttpError(400, "Photo file is required");
+  }
+
+  const fileType = await detectImageType(req.file.path);
+  if (!fileType) {
+    await fs.unlink(req.file.path).catch(() => undefined);
+    throw new HttpError(400, "Uploaded file is not a valid image");
   }
 
   const photoUrl = `/uploads/items/${req.file.filename}`;
@@ -335,6 +342,44 @@ function buildChangePayload(
       oldValue: field[1],
       newValue: field[2],
     }));
+}
+
+async function detectImageType(filePath: string): Promise<"jpeg" | "png" | "webp" | null> {
+  const fileHandle = await fs.open(filePath, "r");
+  try {
+    const buffer = Buffer.alloc(16);
+    const { bytesRead } = await fileHandle.read(buffer, 0, 16, 0);
+    const header = buffer.subarray(0, bytesRead);
+
+    const isJpeg = header.length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+    if (isJpeg) {
+      return "jpeg";
+    }
+
+    const isPng =
+      header.length >= 8 &&
+      header[0] === 0x89 &&
+      header[1] === 0x50 &&
+      header[2] === 0x4e &&
+      header[3] === 0x47 &&
+      header[4] === 0x0d &&
+      header[5] === 0x0a &&
+      header[6] === 0x1a &&
+      header[7] === 0x0a;
+    if (isPng) {
+      return "png";
+    }
+
+    const riff = header.length >= 12 && header.subarray(0, 4).toString("ascii") === "RIFF";
+    const webp = header.length >= 12 && header.subarray(8, 12).toString("ascii") === "WEBP";
+    if (riff && webp) {
+      return "webp";
+    }
+
+    return null;
+  } finally {
+    await fileHandle.close();
+  }
 }
 
 export async function batchDisposeItems(req: Request, res: Response): Promise<void> {

@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmActionModal } from "@/components/ui/ConfirmActionModal"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/modals"
 import { api } from "@/lib/api"
@@ -65,6 +66,7 @@ export function MissingItemsPage() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [revealedPrivateNotes, setRevealedPrivateNotes] = useState<Record<string, boolean>>({})
   const [showLinker, setShowLinker] = useState(false)
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
   const [pageCount, setPageCount] = useState(1)
@@ -572,7 +574,7 @@ export function MissingItemsPage() {
                     {/* Footer Decision Unit */}
                     {canReviewReport ? (
                       <div className="pt-8 border-t border-slate-100 flex gap-4">
-                        <Button disabled={isUpdating} onClick={() => void updateReportStatus("REJECTED")} variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
+                        <Button disabled={isUpdating} onClick={() => setShowRejectConfirm(true)} variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
                           <XCircle className="w-4 h-4 mr-2" /> Reject Report
                         </Button>
                         <Button disabled={isUpdating} onClick={() => void updateReportStatus("ACTIVE_SEARCH")} className="flex-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all active:scale-95 shadow-sm">
@@ -588,6 +590,23 @@ export function MissingItemsPage() {
                   </div>
                 </div>
               </div>
+
+              <ConfirmActionModal
+                isOpen={showRejectConfirm}
+                title="Reject this report?"
+                description="Rejecting will end this report in the triage flow. Continue only if the report is invalid or unverifiable."
+                confirmLabel="Yes, reject"
+                isLoading={isUpdating}
+                onClose={() => {
+                  if (!isUpdating) {
+                    setShowRejectConfirm(false)
+                  }
+                }}
+                onConfirm={() => {
+                  void updateReportStatus("REJECTED")
+                  setShowRejectConfirm(false)
+                }}
+              />
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center animate-pulse">

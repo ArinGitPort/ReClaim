@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { ConfirmActionModal } from "@/components/ui/ConfirmActionModal"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 
@@ -42,6 +43,7 @@ export function ClaimsVerificationPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [note, setNote] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [showDenyConfirm, setShowDenyConfirm] = useState(false)
 
   const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -328,7 +330,7 @@ export function ClaimsVerificationPage() {
                     type="button"
                     variant="outline"
                     disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("DENIED")}
+                    onClick={() => setShowDenyConfirm(true)}
                     className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Deny
@@ -343,6 +345,23 @@ export function ClaimsVerificationPage() {
                   </Button>
                 </div>
               </div>
+
+              <ConfirmActionModal
+                isOpen={showDenyConfirm}
+                title="Deny this claim?"
+                description="This will deny the claimant request. Ensure your reviewer note clearly explains the decision."
+                confirmLabel="Yes, deny claim"
+                isLoading={isSubmitting}
+                onClose={() => {
+                  if (!isSubmitting) {
+                    setShowDenyConfirm(false)
+                  }
+                }}
+                onConfirm={() => {
+                  void decide("DENIED")
+                  setShowDenyConfirm(false)
+                }}
+              />
             </>
           )}
         </div>

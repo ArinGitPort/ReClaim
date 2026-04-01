@@ -2,6 +2,7 @@ import { AlertTriangle, Trash2, Clock } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { ConfirmActionModal } from "@/components/ui/ConfirmActionModal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 
@@ -21,6 +22,8 @@ export function ExpiredInventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDisposing, setIsDisposing] = useState(false)
+  const [showDisposeConfirm, setShowDisposeConfirm] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const fetchItems = async () => {
     try {
@@ -58,17 +61,18 @@ export function ExpiredInventoryPage() {
 
   const handleBatchDispose = async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`Are you sure you want to dispose ${selectedIds.size} items?`)) return
 
     try {
       setIsDisposing(true)
+      setActionError(null)
       await api.post('/items/batch-dispose', { itemIds: Array.from(selectedIds) })
       // Clear selection and refresh
       setSelectedIds(new Set())
-      fetchItems()
+      setShowDisposeConfirm(false)
+      await fetchItems()
     } catch (err) {
       console.error("Failed to dispose items", err)
-      alert("Failed to dispose items")
+      setActionError("Failed to dispose selected items. Please try again.")
     } finally {
       setIsDisposing(false)
     }
@@ -83,7 +87,7 @@ export function ExpiredInventoryPage() {
           <>
             <AdminExportButton label="Export Selected" disabled={selectedIds.size === 0} />
             <Button
-               onClick={handleBatchDispose}
+              onClick={() => setShowDisposeConfirm(true)}
                disabled={selectedIds.size === 0 || isDisposing}
                className="flex-1 sm:flex-initial h-10 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-sm border-none disabled:opacity-50">
               <Trash2 className="w-4 h-4 mr-2" />
@@ -120,7 +124,7 @@ export function ExpiredInventoryPage() {
       </div>
 
       <AdminTableContainer>
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left border-collapse min-w-250">
             <thead className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
               <tr>
                 <th className="px-8 py-5 w-10 text-center">
@@ -192,6 +196,26 @@ export function ExpiredInventoryPage() {
             </tbody>
           </table>
       </AdminTableContainer>
+
+      {actionError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {actionError}
+        </div>
+      )}
+
+      <ConfirmActionModal
+        isOpen={showDisposeConfirm}
+        title="Dispose selected expired items?"
+        description={`This action will permanently mark ${selectedIds.size} selected item${selectedIds.size === 1 ? "" : "s"} as disposed.`}
+        confirmLabel="Yes, dispose"
+        isLoading={isDisposing}
+        onClose={() => {
+          if (!isDisposing) {
+            setShowDisposeConfirm(false)
+          }
+        }}
+        onConfirm={() => void handleBatchDispose()}
+      />
     </div>
   )
 }

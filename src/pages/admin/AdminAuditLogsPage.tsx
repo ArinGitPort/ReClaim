@@ -235,7 +235,7 @@ export function AuditLogsPage() {
                 <td className="px-8 py-5 text-xs font-semibold text-slate-600">{new Date(log.createdAt).toLocaleString()}</td>
                 <td className="px-8 py-5">
                   <div className="text-xs font-bold text-slate-800">{log.actorUser.name}</div>
-                  <div className="text-xs font-semibold text-slate-500">{log.actorUser.role} â€¢ {log.actorUser.email}</div>
+                  <div className="text-xs font-semibold text-slate-500">{log.actorUser.role} - {log.actorUser.email}</div>
                 </td>
                 <td className="px-8 py-5 text-xs font-bold text-slate-700">{log.action.replaceAll("_", " ")}</td>
                 <td className="px-8 py-5">

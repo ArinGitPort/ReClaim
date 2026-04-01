@@ -10,9 +10,10 @@ export async function registerUser(input: {
   email: string;
   studentId?: string;
   password: string;
-  role?: UserRole;
+  role: UserRole;
 }) {
-  const existing = await prisma.user.findUnique({ where: { email: input.email } });
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
     throw new HttpError(409, "Email already exists");
   }
@@ -22,10 +23,10 @@ export async function registerUser(input: {
   const user = await prisma.user.create({
     data: {
       name: input.name,
-      email: input.email,
+      email: normalizedEmail,
       studentId: input.studentId ?? null,
       passwordHash,
-      role: input.role ?? UserRole.STUDENT,
+      role: input.role,
     },
   });
 

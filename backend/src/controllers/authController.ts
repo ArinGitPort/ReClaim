@@ -11,7 +11,6 @@ const registerSchema = z.object({
   email: z.string().email(),
   studentId: z.string().optional(),
   password: z.string().min(8),
-  role: z.nativeEnum(UserRole).optional(),
 });
 
 const loginSchema = z.object({
@@ -21,7 +20,10 @@ const loginSchema = z.object({
 
 export async function register(req: Request, res: Response): Promise<void> {
   const body = registerSchema.parse(req.body);
-  const user = await registerUser(body);
+  const user = await registerUser({
+    ...body,
+    role: UserRole.STUDENT,
+  });
 
   await logAudit({
     actorUserId: user.id,
