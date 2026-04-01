@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { Check, Filter, Plus, RefreshCcw, Search, Trash2, TriangleAlert, type LucideIcon, X } from "lucide-react"
-import { Button } from "@/components/ui/Button"
-import { Input } from "@/components/ui/Input"
+import { Filter, Eye, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
+import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { api } from "@/lib/api"
 
 type AuditAction =
@@ -163,10 +164,11 @@ export function AuditLogsPage() {
         </div>
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Audit Archive</h1>
-        <p className="mt-1 text-sm font-medium text-slate-500">Activity feed of verified system actions and administrative updates.</p>
-      </div>
+      <AdminListHeader
+        title="Records & Accountability"
+        description="Activity feed of verified system actions and administrative updates."
+        actions={<AdminExportButton disabled={!logs.length} />}
+      />
 
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
@@ -175,19 +177,15 @@ export function AuditLogsPage() {
       )}
 
       <div className="space-y-3">
-        <div className="flex flex-col gap-4 md:flex-row">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors" />
-            <Input
-              value={searchQuery}
-              onChange={(event) => {
-                setSearchQuery(event.target.value)
-                setPage(1)
-              }}
-              placeholder="Search by action, user, record code, or details"
-              className="h-12 rounded-xl border-slate-200 bg-white pl-12 text-sm font-medium shadow-sm focus:ring-brand/10"
-            />
-          </div>
+        <AdminListFilters>
+          <AdminSearchInput
+            value={searchQuery}
+            onChange={(value) => {
+              setSearchQuery(value)
+              setPage(1)
+            }}
+            placeholder="Search by action, user, record code, or details"
+          />
           <div className="w-full md:w-60">
             <Select
               value={actionFilter}
@@ -204,7 +202,7 @@ export function AuditLogsPage() {
           </div>
           <Button
             variant="outline"
-            className="h-12 rounded-xl border-slate-200 bg-white px-6 text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm hover:text-brand"
+            className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
             onClick={() => {
               setSearchQuery("")
               setActionFilter("")
@@ -214,72 +212,68 @@ export function AuditLogsPage() {
           >
             <Filter className="mr-2 h-4 w-4" /> Reset
           </Button>
-        </div>
+        </AdminListFilters>
 
         <p className="text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">{resultLabel}</p>
       </div>
 
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        {logs.length > 0 && !isLoading && <div className="absolute bottom-8 left-12 top-8 w-px bg-slate-200" />}
+      <AdminTableContainer>
+        <table className="w-full text-left border-collapse min-w-[1000px]">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
+              <th className="px-8 py-5">Date & Time</th>
+              <th className="px-8 py-5">Actor</th>
+              <th className="px-8 py-5">Action</th>
+              <th className="px-8 py-5">Record</th>
+              <th className="px-8 py-5">Details</th>
+              <th className="px-8 py-5 text-right">View</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {logs.map((log) => (
+              <tr key={log.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
+                <td className="px-8 py-5 text-xs font-semibold text-slate-600">{new Date(log.createdAt).toLocaleString()}</td>
+                <td className="px-8 py-5">
+                  <div className="text-xs font-bold text-slate-800">{log.actorUser.name}</div>
+                  <div className="text-xs font-semibold text-slate-500">{log.actorUser.role} â€¢ {log.actorUser.email}</div>
+                </td>
+                <td className="px-8 py-5 text-xs font-bold text-slate-700">{log.action.replaceAll("_", " ")}</td>
+                <td className="px-8 py-5">
+                  <div className="text-xs font-bold text-slate-800">{toRecordLabel(log.targetType)}</div>
+                  <div className="text-xs font-semibold text-slate-500">{log.targetReferenceCode}</div>
+                </td>
+                <td className="px-8 py-5 text-xs font-semibold text-slate-600 max-w-[320px] truncate">{log.actionSentence || log.description || "-"}</td>
+                <td className="px-8 py-5 text-right">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSelectedLog(log)}
+                    className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+                  >
+                    <Eye className="mr-1.5 h-3.5 w-3.5" /> View
+                  </Button>
+                </td>
+              </tr>
+            ))}
 
-        <div className="space-y-6 p-6">
-          {logs.map((log) => {
-            const visual = getTimelineVisual(log.action)
-            const Icon = visual.icon
+            {isLoading && (
+              <tr>
+                <td colSpan={6} className="px-8 py-10 text-center text-sm font-semibold text-slate-500">
+                  Loading activity records...
+                </td>
+              </tr>
+            )}
 
-            return (
-              <div key={log.id} className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-4">
-                <div className="flex justify-center pt-1">
-                  <div className={visual.nodeClass}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/50">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{formatTimelineDate(log.createdAt)}</p>
-                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
-                      Log ID: {log.id.slice(0, 8)}
-                    </span>
-                  </div>
-
-                  <p className="text-sm font-semibold leading-6 text-slate-800">
-                    {renderNarrativeSentence(log)}
-                  </p>
-
-                  {log.description && <p className="mt-1 text-xs font-medium text-slate-500">{log.description}</p>}
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="text-[11px] font-semibold text-slate-500">
-                      {log.actorUser.role} · {log.actorUser.email}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setSelectedLog(log)}
-                      className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
-                    >
-                      View Changes
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-
-          {isLoading && (
-            <div className="py-12 text-center text-sm font-semibold text-slate-500">
-              Loading activity timeline...
-            </div>
-          )}
-
-          {!isLoading && logs.length === 0 && (
-            <div className="py-12 text-center text-sm font-semibold text-slate-500">
-              No activity found for current filters.
-            </div>
-          )}
-        </div>
-      </div>
+            {!isLoading && logs.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-8 py-10 text-center text-sm font-semibold text-slate-500">
+                  No activity found for current filters.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </AdminTableContainer>
 
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2">
@@ -409,21 +403,6 @@ function stringifyValue(value: unknown): string {
   return JSON.stringify(value)
 }
 
-function formatTimelineDate(value: string): string {
-  const date = new Date(value)
-  const datePart = date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  })
-  const timePart = date.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  })
-
-  return `${datePart} - ${timePart}`
-}
-
 function renderNarrativeSentence(log: AuditLogRow) {
   const recordLabel = toRecordLabel(log.targetType)
   const reference = `(${log.targetReferenceCode})`
@@ -527,38 +506,4 @@ function renderNarrativeSentence(log: AuditLogRow) {
   )
 }
 
-function getTimelineVisual(action: AuditAction): { icon: LucideIcon; nodeClass: string } {
-  if (action === "ITEM_CREATED" || action === "REPORT_SUBMITTED" || action === "CLAIM_SUBMITTED") {
-    return {
-      icon: Plus,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 shadow-sm",
-    }
-  }
-
-  if (action === "HANDOVER_COMPLETED" || action === "REPORT_LINKED" || action === "CLAIM_APPROVED") {
-    return {
-      icon: Check,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm",
-    }
-  }
-
-  if (action === "CLAIM_DENIED") {
-    return {
-      icon: TriangleAlert,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
-    }
-  }
-
-  if (action.includes("DELETE")) {
-    return {
-      icon: Trash2,
-      nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 shadow-sm",
-    }
-  }
-
-  return {
-    icon: RefreshCcw,
-    nodeClass: "flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600 shadow-sm",
-  }
-}
 

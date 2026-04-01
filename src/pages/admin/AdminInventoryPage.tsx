@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react"
 import { 
   Plus, 
   Filter, 
-  Download,
   Eye,
   Edit,
   Link2,
@@ -12,7 +11,7 @@ import {
   MapPin,
   Calendar
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/modals"
@@ -21,6 +20,7 @@ import { getRealtimeSocket } from "@/lib/realtime"
 import { EditInventoryItemModal, InventoryHandoverModal, InventoryItemDetailsModal, InventoryLinkReportModal } from "@/features/admin/modals"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 
 type InventoryRow = {
   id: string
@@ -244,10 +244,7 @@ export function InventoryPage() {
               <Plus className="w-4 h-4 mr-2" />
               Log New Item
             </Button>
-            <Button variant="outline" className="h-10 px-4 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
+            <AdminExportButton />
           </>
         )}
       />

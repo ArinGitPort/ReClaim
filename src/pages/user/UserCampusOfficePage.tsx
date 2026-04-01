@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock, ShieldAlert, FileText } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, ShieldAlert } from "lucide-react"
 import { CampusOfficeMap } from "@/components/ui/CampusOfficeMap"
 
 export function UserCampusOfficePage() {

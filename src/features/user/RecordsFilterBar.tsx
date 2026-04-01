@@ -1,7 +1,7 @@
 import { Search, SlidersHorizontal, X } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Option = {

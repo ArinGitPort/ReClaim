@@ -1,8 +1,9 @@
-import { AlertTriangle, Trash2, Clock, Download } from "lucide-react"
+import { AlertTriangle, Trash2, Clock } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 
 type ExpiredItem = {
   id: string
@@ -74,16 +75,13 @@ export function ExpiredInventoryPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <AdminListHeader
         title="Expired Inventory"
         description="Manage items that have exceeded their retention period."
         actions={(
           <>
-            <Button variant="outline" className="flex-1 sm:flex-initial h-10 px-4 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl shadow-sm" disabled={selectedIds.size === 0}>
-              <Download className="w-4 h-4 mr-2" />
-              Export Selected
-            </Button>
+            <AdminExportButton label="Export Selected" disabled={selectedIds.size === 0} />
             <Button
                onClick={handleBatchDispose}
                disabled={selectedIds.size === 0 || isDisposing}
@@ -95,26 +93,31 @@ export function ExpiredInventoryPage() {
         )}
       />
 
-      <AdminListFilters>
-        <AdminSearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search expired items..."
-        />
+      <div className="space-y-3">
+        <AdminListFilters>
+          <AdminSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search expired items..."
+          />
 
-        <div className="w-full md:w-auto flex gap-2">          
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 px-4 shadow-sm border-slate-200 text-slate-600 rounded-xl font-bold bg-white"
-            onClick={() => {
-              setSearchQuery("")
-            }}
-          >
-            Reset
-          </Button>
-        </div>
-      </AdminListFilters>
+          <div className="w-full md:w-auto flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 px-4 shadow-sm border-slate-200 text-slate-600 rounded-xl font-bold bg-white"
+              onClick={() => {
+                setSearchQuery("")
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+        </AdminListFilters>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">
+          Showing {items.length} expired item{items.length === 1 ? "" : "s"}
+        </p>
+      </div>
 
       <AdminTableContainer>
           <table className="w-full text-left border-collapse min-w-[1000px]">

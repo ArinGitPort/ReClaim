@@ -10,7 +10,7 @@ import {
   Filter,
   ArrowRightLeft
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
@@ -44,7 +44,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
 
   const normalizedDate = prefill?.dateFrom ? new Date(prefill.dateFrom).toLocaleDateString() : null
   const prefillHint = prefill
-    ? `Category: ${prefill.category} • Color: ${prefill.color}${normalizedDate ? ` • Date >= ${normalizedDate}` : ""}`
+    ? `Category: ${prefill.category} â€¢ Color: ${prefill.color}${normalizedDate ? ` â€¢ Date >= ${normalizedDate}` : ""}`
     : null
   const defaultSearchValue = [itemTitle, prefill?.color, prefill?.category].filter(Boolean).join(" ")
 

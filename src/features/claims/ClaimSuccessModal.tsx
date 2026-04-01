@@ -1,6 +1,6 @@
 import { Modal } from "@/components/ui/Modal"
 import { CheckCircle2, X, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 
 interface ClaimSuccessModalProps {
   isOpen: boolean

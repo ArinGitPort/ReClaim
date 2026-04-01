@@ -1,8 +1,11 @@
-import { Mail, Users, MoreVertical, Filter } from "lucide-react"
-import { useEffect, useState } from "react"
+import { ArrowUpDown, ChevronDown, ChevronUp, Mail, MoreVertical, Users } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/Select"
+import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 
 type UserDirUser = {
   id: string
@@ -10,32 +13,78 @@ type UserDirUser = {
   email: string
   studentId: string | null
   role: string
+  createdAt: string
   _count: { claims: number }
 }
+
+type UserSortField = "name" | "email" | "role" | "createdAt" | "claims"
+type UserSortOrder = "asc" | "desc"
 
 export function UserDirectoryPage() {
   const [users, setUsers] = useState<UserDirUser[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState("")
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [pageCount, setPageCount] = useState(1)
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [sortField, setSortField] = useState<UserSortField>("createdAt")
+  const [sortOrder, setSortOrder] = useState<UserSortOrder>("desc")
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await api.get('/user', { params: { search: searchQuery || undefined } })
+      const res = await api.get('/user', {
+        params: {
+          search: searchQuery || undefined,
+          role: roleFilter || undefined,
+          page,
+          limit: rowsPerPage,
+          sortBy: sortField,
+          sortOrder,
+        }
+      })
       setUsers(res.data.users || [])
+      setTotalUsers(res.data.pagination?.total ?? 0)
+      setPageCount(res.data.pagination?.pageCount ?? 1)
     } catch (err) {
       console.error("Failed to load users", err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchQuery, roleFilter, page, rowsPerPage, sortField, sortOrder])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchUsers()
     }, 400)
     return () => clearTimeout(timer)
-  }, [searchQuery])
+  }, [fetchUsers])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, roleFilter, rowsPerPage, sortField, sortOrder])
+
+  const toggleSort = (field: UserSortField) => {
+    if (sortField === field) {
+      setSortOrder((current) => (current === "asc" ? "desc" : "asc"))
+      return
+    }
+
+    setSortField(field)
+    setSortOrder("asc")
+  }
+
+  const renderSortIcon = (field: UserSortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+    }
+
+    return sortOrder === "asc"
+      ? <ChevronUp className="w-3.5 h-3.5 text-brand" />
+      : <ChevronDown className="w-3.5 h-3.5 text-brand" />
+  }
 
   return (
     <div className="space-y-8">
@@ -50,30 +99,72 @@ export function UserDirectoryPage() {
               <Users className="w-4 h-4 mr-2" />
               Add User
             </Button>
-            <Button variant="outline" className="h-10 px-4 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
+            <AdminExportButton disabled={!users.length} />
           </>
         )}
       />
 
-      <AdminListFilters>
-        <AdminSearchInput
-          placeholder="Search by name, email, or ID..."
-          value={searchQuery}
-          onChange={setSearchQuery}
-        />
-      </AdminListFilters>
+      <div className="space-y-3">
+        <AdminListFilters>
+          <AdminSearchInput
+            placeholder="Search by name, email, or ID..."
+            value={searchQuery}
+            onChange={setSearchQuery}
+          />
+          <div className="w-full md:w-56">
+            <Select
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+              className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
+            >
+              <option value="">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="STAFF">Staff</option>
+              <option value="STUDENT">Student</option>
+            </Select>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
+            disabled={!searchQuery.length && !roleFilter.length}
+            onClick={() => {
+              setSearchQuery("")
+              setRoleFilter("")
+            }}
+          >
+            Reset
+          </Button>
+        </AdminListFilters>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">
+          Showing {users.length} of {totalUsers} user{totalUsers === 1 ? "" : "s"}
+        </p>
+      </div>
 
       <AdminTableContainer>
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left border-collapse min-w-[1100px]">
             <thead className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
               <tr>
-                <th className="px-8 py-5 text-slate-700">User</th>
-                <th className="px-8 py-5 text-slate-700">Role</th>
-                <th className="px-8 py-5 text-slate-700">Details</th>
-                <th className="px-8 py-5 text-slate-700">Claim History</th>
+                <th className="px-8 py-5 text-slate-700">
+                  <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                    User {renderSortIcon("name")}
+                  </button>
+                </th>
+                <th className="px-8 py-5 text-slate-700">
+                  <button type="button" onClick={() => toggleSort("role")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                    Role {renderSortIcon("role")}
+                  </button>
+                </th>
+                <th className="px-8 py-5 text-slate-700">
+                  <button type="button" onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                    Details {renderSortIcon("createdAt")}
+                  </button>
+                </th>
+                <th className="px-8 py-5 text-slate-700">
+                  <button type="button" onClick={() => toggleSort("claims")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                    Claim History {renderSortIcon("claims")}
+                  </button>
+                </th>
                 <th className="px-8 py-5 text-right text-slate-700">Actions</th>
               </tr>
             </thead>
@@ -116,6 +207,7 @@ export function UserDirectoryPage() {
                     ) : (
                       <div className="text-sm text-slate-400 italic">No Student ID</div>
                     )}
+                    <div className="text-xs text-slate-500 mt-1">Joined: {new Date(u.createdAt).toLocaleDateString()}</div>
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-1.5 text-sm">
@@ -138,6 +230,20 @@ export function UserDirectoryPage() {
             </tbody>
           </table>
       </AdminTableContainer>
+
+      <PaginationControls
+        page={page}
+        pageCount={pageCount}
+        total={totalUsers}
+        visibleCount={users.length}
+        rowsPerPage={rowsPerPage}
+        onPageChange={setPage}
+        onRowsPerPageChange={(nextRows) => {
+          setRowsPerPage(nextRows)
+          setPage(1)
+        }}
+        itemLabel="users"
+      />
     </div>
   )
 }

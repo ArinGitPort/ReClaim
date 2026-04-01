@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Mail, Phone, Lock, Hash, User, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
@@ -258,7 +258,7 @@ export function RegisterForm() {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
@@ -282,7 +282,7 @@ export function RegisterForm() {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react"
 import { Package, Laptop, Wallet, FileText, CheckCircle2, Loader2, Upload, ShieldCheck, AlertCircle, Calendar, Clock } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Textarea } from "@/components/ui/Textarea"
@@ -323,7 +323,7 @@ export function ReportLostForm() {
                     <Upload className="w-5 h-5 text-slate-400 group-hover:text-brand" />
                   </div>
                   <h4 className="font-bold text-slate-700">Click or drag to upload</h4>
-                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files • 5MB Limit per file</p>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files â€¢ 5MB Limit per file</p>
                 </div>
               </div>
 

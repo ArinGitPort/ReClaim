@@ -10,6 +10,11 @@ export async function getUserPickups(req: Request, res: Response): Promise<void>
 export async function getAllUsers(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined
   const role = typeof req.query.role === "string" ? req.query.role : undefined
+  const page = Math.max(1, Number(req.query.page) || 1)
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25))
+  const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt"
+  const sortOrder = req.query.sortOrder === "asc" ? "asc" : "desc"
+  const skip = (page - 1) * limit
   
   const where: any = {}
   
@@ -25,25 +30,50 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
     where.role = role
   }
   
-  const users = await prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      studentId: true,
-      role: true,
-      createdAt: true,
-      _count: {
-        select: { claims: true }
-      }
-    },
-    orderBy: {
-      createdAt: "desc"
+  let orderBy: any = { createdAt: sortOrder }
+
+  if (sortBy === "name") {
+    orderBy = { name: sortOrder }
+  } else if (sortBy === "email") {
+    orderBy = { email: sortOrder }
+  } else if (sortBy === "role") {
+    orderBy = { role: sortOrder }
+  } else if (sortBy === "claims") {
+    orderBy = { claims: { _count: sortOrder } }
+  }
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        studentId: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: { claims: true }
+        }
+      },
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    prisma.user.count({ where })
+  ])
+
+  const pageCount = Math.max(1, Math.ceil(total / limit))
+
+  res.json({
+    users,
+    pagination: {
+      page,
+      limit,
+      total,
+      pageCount,
     }
   })
-
-  res.json({ users })
 }
 
 export async function getUserDetails(req: Request, res: Response): Promise<void> {

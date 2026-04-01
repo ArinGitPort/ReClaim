@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { Eye, ShieldCheck, X } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { api } from "@/lib/api"
 
 type HandoverLogRow = {
@@ -151,6 +152,7 @@ export function HandoverLogPage() {
       <AdminListHeader
         title="Handover Log"
         description="Permanent record of successful returns and student handovers."
+        actions={<AdminExportButton disabled={!logs.length} />}
       />
 
       <div className="space-y-3">
@@ -211,7 +213,7 @@ export function HandoverLogPage() {
                   <td className="px-8 py-5 text-xs font-semibold text-slate-600">{new Date(log.releasedAtUtc).toLocaleString()}</td>
                   <td className="px-8 py-5">
                     <div className="text-xs font-bold text-slate-800">{log.foundItem.code}</div>
-                    <div className="text-xs font-semibold text-slate-500">{log.foundItem.title} • {log.foundItem.category}</div>
+                    <div className="text-xs font-semibold text-slate-500">{log.foundItem.title} â€¢ {log.foundItem.category}</div>
                   </td>
                   <td className="px-8 py-5 text-xs font-semibold text-slate-600">{log.claim?.claimCode ?? "N/A"}</td>
                   <td className="px-8 py-5 text-xs font-bold text-slate-700 font-mono">{log.pickupTokenPresented}</td>

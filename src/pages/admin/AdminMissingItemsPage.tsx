@@ -14,7 +14,7 @@ import {
   HelpCircle,
   MessageSquare
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/modals"
 import { api } from "@/lib/api"

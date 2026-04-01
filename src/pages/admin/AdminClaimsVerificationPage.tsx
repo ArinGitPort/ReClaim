@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 

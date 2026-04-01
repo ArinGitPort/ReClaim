@@ -9,7 +9,7 @@ import {
   Camera,
   Archive
 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Label } from "@/components/ui/Label"

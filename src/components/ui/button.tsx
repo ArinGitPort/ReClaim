@@ -41,7 +41,6 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    // Fallback to standard button if Slot isn't available
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
