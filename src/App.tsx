@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 // Public pages
 import { LandingPage } from "@/pages/public/PublicLandingPage"
 import { RegisterPage } from "@/pages/public/PublicRegisterPage"
+import { ForgotPasswordPage } from "@/pages/public/PublicForgotPasswordPage"
 
 // User pages
 import { GalleryPage } from "@/pages/user/UserGalleryPage"
@@ -12,6 +13,7 @@ import { MyReportsPage } from "@/pages/user/UserMyReportsPage"
 import { ReadyToClaimPage } from "@/pages/user/UserReadyToClaimPage"
 import { NotificationsPage } from "@/pages/user/UserNotificationsPage"
 import { SettingsPage as UserSettingsPage } from "@/pages/user/UserSettingsPage"
+import { UserCampusOfficePage } from "@/pages/user/UserCampusOfficePage"
 
 // Layouts
 import { AppLayout } from "@/layouts/AppLayout"
@@ -83,6 +85,7 @@ function App() {
             {/* Public / Unauthenticated Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             
             {/* Protected / Authenticated Routes with Sidebar Navigation */}
             <Route element={<ProtectedUserRoutes />}>
@@ -94,7 +97,7 @@ function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               {/* Settings Route */}
               <Route path="/settings" element={<UserSettingsPage />} />
-              <Route path="/office" element={<div className="p-8">Campus Admin Office Map Template</div>} />
+              <Route path="/office" element={<UserCampusOfficePage />} />
             </Route>
 
             {/* Administrative Dashboard Routes */}

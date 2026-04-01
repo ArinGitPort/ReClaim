@@ -1,4 +1,4 @@
-import { ITEM_COLORS } from "@/features/admin/itemFormOptions"
+import { ITEM_COLORS } from "@/features/shared/constants"
 
 export type DynamicFieldConfig = {
   key: string

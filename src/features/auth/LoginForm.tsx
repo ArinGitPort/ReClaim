@@ -1,16 +1,17 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
-import { User, Lock } from "lucide-react"
+import { User, Lock, Eye, EyeOff } from "lucide-react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 
 export function LoginForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,24 +70,31 @@ export function LoginForm() {
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-11 h-12 bg-background-subtle focus:bg-background-app text-base transition-colors border-border-divider/50"
+              className="pl-11 pr-11 h-12 bg-background-subtle focus:bg-background-app text-base transition-colors border-border-divider/50"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm mt-4">
+<div className="flex items-center justify-between text-sm mt-4">
           <label className="flex items-center gap-2 cursor-pointer text-text-secondary hover:text-text-primary transition-colors font-medium">
             <input type="checkbox" className="rounded border-border-divider text-brand focus:ring-brand w-4 h-4 bg-background-subtle" />
             Remember me
           </label>
-          <a href="#" className="text-brand hover:text-brand/80 font-semibold transition-colors">
+          <Link to="/forgot-password" className="text-brand hover:text-brand-active font-semibold transition-colors">
             Forgot Password?
-          </a>
+          </Link>
         </div>
 
         {error && <p className="text-sm text-rose-600 font-semibold">{error}</p>}

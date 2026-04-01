@@ -21,7 +21,7 @@ import {
   ITEM_CATEGORIES,
   ITEM_COLORS,
   STORAGE_LOCATIONS,
-} from "@/features/admin/itemFormOptions"
+} from "@/features/shared/constants"
 import { requiresColorSelection } from "@/features/shared/itemCategoryRules"
 
 

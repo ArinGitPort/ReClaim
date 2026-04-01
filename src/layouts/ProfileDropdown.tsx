@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { User, FileText, Settings, MapPin, LogOut } from "lucide-react"
+import { User, FileText, Settings, MapPin, LogOut, HelpCircle } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 import { TurnInGuideModal } from "@/features/shared/TurnInGuideModal"
@@ -105,16 +105,28 @@ export function ProfileDropdown() {
               <Settings className="w-4 h-4" />
               Profile Settings
             </Link>
-<button
-              onClick={() => {
-                setIsOpen(false)
-                setIsGuideOpen(true)
-              }}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-background-subtle transition-colors w-full text-left"
+
+            <Link 
+              to="/office" 
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-background-subtle transition-colors"
             >
               <MapPin className="w-4 h-4" />
               Campus Admin Office
-            </button>
+            </Link>
+
+            <div className="px-2 py-1.5">
+              <button
+                onClick={() => {
+                  setIsOpen(false)
+                  setIsGuideOpen(true)
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-brand bg-brand/5 hover:bg-brand/10 transition-colors w-full text-left rounded-lg"
+              >
+                <HelpCircle className="w-4 h-4 text-brand" />
+                Turn In Guide
+              </button>
+            </div>
 
             <div className="h-px bg-border-divider my-1.5" />
 

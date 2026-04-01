@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { Eye, Search, ShieldCheck, X } from "lucide-react"
-import { Input } from "@/components/ui/Input"
+import { Eye, ShieldCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Select } from "@/components/ui/Select"
+import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { api } from "@/lib/api"
 
 type HandoverLogRow = {
@@ -148,28 +148,24 @@ export function HandoverLogPage() {
         </div>
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Handover Log</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Permanent record of successful returns and student handovers.</p>
-      </div>
+      <AdminListHeader
+        title="Handover Log"
+        description="Permanent record of successful returns and student handovers."
+      />
 
       <div className="space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              value={logsSearch}
-              onChange={(e) => setLogsSearch(e.target.value)}
-              placeholder="Search by source code, item, inventory code, or token"
-              className="pl-10 h-11 bg-white border-slate-200"
-            />
-          </div>
+        <AdminListFilters>
+          <AdminSearchInput
+            value={logsSearch}
+            onChange={setLogsSearch}
+            placeholder="Search by source code, item, inventory code, or token"
+          />
 
           <div className="w-full lg:w-56">
             <Select
               value={sourceFilter}
               onChange={(event) => setSourceFilter(event.target.value)}
-              className="h-11 bg-white border-slate-200"
+              className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-semibold"
             >
               <option value="">All Statuses</option>
               {sourceOptions.map((option) => (
@@ -181,7 +177,7 @@ export function HandoverLogPage() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 px-4 border-slate-200 text-slate-600"
+            className="h-12 border-slate-200 bg-white rounded-xl shadow-sm px-6 font-bold uppercase tracking-widest text-xs text-slate-600"
             disabled={!logsSearch.length && !sourceFilter.length}
             onClick={() => {
               setLogsSearch("")
@@ -191,41 +187,40 @@ export function HandoverLogPage() {
           >
             Reset
           </Button>
-        </div>
+        </AdminListFilters>
 
         <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 sm:text-right">{resultLabel}</p>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-225 text-left border-collapse">
+      <AdminTableContainer>
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                <th className="px-4 py-3">Released At</th>
-                <th className="px-4 py-3">Item</th>
-                <th className="px-4 py-3">Claim</th>
-                <th className="px-4 py-3">Token</th>
-                <th className="px-4 py-3">Released To</th>
-                <th className="px-4 py-3">Notes</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+              <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
+                <th className="px-8 py-5">Released At</th>
+                <th className="px-8 py-5">Item</th>
+                <th className="px-8 py-5">Claim</th>
+                <th className="px-8 py-5">Token</th>
+                <th className="px-8 py-5">Released To</th>
+                <th className="px-8 py-5">Notes</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/70">
-                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{new Date(log.releasedAtUtc).toLocaleString()}</td>
-                  <td className="px-4 py-3">
+                <tr key={log.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
+                  <td className="px-8 py-5 text-xs font-semibold text-slate-600">{new Date(log.releasedAtUtc).toLocaleString()}</td>
+                  <td className="px-8 py-5">
                     <div className="text-xs font-bold text-slate-800">{log.foundItem.code}</div>
                     <div className="text-xs font-semibold text-slate-500">{log.foundItem.title} • {log.foundItem.category}</div>
                   </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{log.claim?.claimCode ?? "N/A"}</td>
-                  <td className="px-4 py-3 text-xs font-bold text-slate-700 font-mono">{log.pickupTokenPresented}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-8 py-5 text-xs font-semibold text-slate-600">{log.claim?.claimCode ?? "N/A"}</td>
+                  <td className="px-8 py-5 text-xs font-bold text-slate-700 font-mono">{log.pickupTokenPresented}</td>
+                  <td className="px-8 py-5">
                     <div className="text-xs font-bold text-slate-800">{log.releasedToUser.name}</div>
                     <div className="text-xs font-semibold text-slate-500">{log.releasedToUser.studentId ?? "N/A"}</div>
                   </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{log.note?.trim() ? log.note : "-"}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-8 py-5 text-xs font-semibold text-slate-600">{log.note?.trim() ? log.note : "-"}</td>
+                  <td className="px-8 py-5 text-right">
                     <Button
                       type="button"
                       variant="outline"
@@ -239,18 +234,17 @@ export function HandoverLogPage() {
               ))}
               {isLoadingLogs && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">Loading handover logs...</td>
+                  <td colSpan={7} className="px-8 py-8 text-center text-sm font-semibold text-slate-500">Loading handover logs...</td>
                 </tr>
               )}
               {!isLoadingLogs && logs.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">No returned-item handover logs found for current filters.</td>
+                  <td colSpan={7} className="px-8 py-8 text-center text-sm font-semibold text-slate-500">No returned-item handover logs found for current filters.</td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
-      </div>
+      </AdminTableContainer>
 
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2">

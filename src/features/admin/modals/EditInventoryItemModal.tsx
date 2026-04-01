@@ -12,7 +12,7 @@ import {
   ITEM_CATEGORIES,
   ITEM_COLORS,
   STORAGE_LOCATIONS,
-} from "@/features/admin/itemFormOptions"
+} from "@/features/shared/constants"
 
 type EditableItem = {
   id: string

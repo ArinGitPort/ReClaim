@@ -33,6 +33,7 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
       email: true,
       studentId: true,
       role: true,
+      createdAt: true,
       _count: {
         select: { claims: true }
       }
@@ -41,6 +42,40 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
       createdAt: "desc"
     }
   })
-  
+
   res.json({ users })
+}
+
+export async function getUserDetails(req: Request, res: Response): Promise<void> {
+  const userId = req.params.id as string
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      studentId: true,
+      role: true,
+      createdAt: true,
+      claims: {
+        include: { foundItem: true },
+        orderBy: { createdAt: 'desc' }
+      },
+      reports: {
+        orderBy: { createdAt: 'desc' }
+      },
+      handovers: {
+        include: { foundItem: true },
+        orderBy: { createdAt: 'desc' }
+      }
+    }
+  })
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" })
+    return
+  }
+
+  res.json({ user })
 }

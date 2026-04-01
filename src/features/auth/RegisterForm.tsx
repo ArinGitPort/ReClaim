@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
-import { Mail, Phone, Lock, Hash, User, AlertCircle } from "lucide-react"
+import { Mail, Phone, Lock, Hash, User, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -18,6 +18,8 @@ export function RegisterForm() {
   const [mobile, setMobile] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   // Validation State
   const [error, setError] = useState<string | null>(null)
@@ -255,13 +257,20 @@ export function RegisterForm() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -272,13 +281,20 @@ export function RegisterForm() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
                 <Input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
+                  className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
           </div>

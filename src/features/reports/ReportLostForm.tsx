@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/Label"
 import { useAuth } from "@/contexts/AuthContext"
 import { ReportConfirmationModal } from "./ReportConfirmationModal"
 import { api } from "@/lib/api"
-import { CAMPUS_LOCATIONS, ITEM_CATEGORIES, ITEM_COLORS } from "@/features/admin/itemFormOptions"
+import { CAMPUS_LOCATIONS, ITEM_CATEGORIES, ITEM_COLORS } from "@/features/shared/constants"
 import {
   getClaimFieldGroup,
   requiresColorSelection,

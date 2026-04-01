@@ -5,10 +5,12 @@ import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { NotificationDropdown } from "./NotificationDropdown"
 import { ProfileDropdown } from "./ProfileDropdown"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function TopNavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { pathname } = useLocation()
+  const { user } = useAuth()
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -29,72 +31,79 @@ export function TopNavBar() {
           </div>
 
           {/* Center: Main Navigation (Desktop) */}
-          <nav className="hidden md:flex items-center gap-2 flex-1 justify-center">
-            <NavLink 
-              to="/gallery" 
-              className={({ isActive }) => 
-                cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
-                )
-              }
-            >
-              <Search className="w-4 h-4" />
-              Browse
-            </NavLink>
-            <NavLink 
-              to="/report-lost" 
-              className={({ isActive }) => 
-                cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
-                )
-              }
-            >
-              <PlusCircle className="w-4 h-4" />
-              Report Lost
-            </NavLink>
-            <NavLink 
-              to="/my-claims" 
-              className={({ isActive }) => 
-                cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
-                )
-              }
-            >
-              <BookmarkCheck className="w-4 h-4" />
-              My Claims
-            </NavLink>
-          </nav>
-
+          {user && (
+            <nav className="hidden md:flex items-center gap-2 flex-1 justify-center">
+              <NavLink
+                to="/gallery"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
+                  )
+                }
+              >
+                <Search className="w-4 h-4" />
+                Browse
+              </NavLink>
+              <NavLink
+                to="/report-lost"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
+                  )
+                }
+              >
+                <PlusCircle className="w-4 h-4" />
+                Report Lost
+              </NavLink>
+              <NavLink
+                to="/my-claims"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
+                  )
+                }
+              >
+                <BookmarkCheck className="w-4 h-4" />
+                My Claims
+              </NavLink>
+            </nav>
+          )}
           {/* Right Side: Actions */}
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <ThemeToggle />
 
-            <NotificationDropdown />
+            {user && (
+              <>
+                <NotificationDropdown />
 
-            <div className="h-6 w-px bg-border-divider hidden sm:block"></div>
+                <div className="h-6 w-px bg-border-divider hidden sm:block"></div>
 
-            <div className="hidden md:block pl-1">
-              <ProfileDropdown />
-            </div>
+                <div className="hidden md:block pl-1">
+                  <ProfileDropdown />
+                </div>
+              </>
+            )}
 
             {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 -mr-2 text-text-secondary hover:text-brand transition-colors"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {user && (
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 -mr-2 text-text-secondary hover:text-brand transition-colors"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {/* Mobile Dropdown Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background-app border-b border-border-divider shadow-md flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto"> 
+      {user && isMobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background-app border-b border-border-divider shadow-md flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 flex flex-col gap-1">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2 px-3 mt-2">Core Actions</h4>
 

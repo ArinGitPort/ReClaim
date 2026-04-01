@@ -1,6 +1,8 @@
-import { Mail, Search, Users, MoreVertical, Filter } from "lucide-react"
+import { Mail, Users, MoreVertical, Filter } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
+import { Button } from "@/components/ui/Button"
+import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 
 type UserDirUser = {
   id: string
@@ -36,47 +38,43 @@ export function UserDirectoryPage() {
   }, [searchQuery])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">User Directory</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Centralized student database and claim history tracking.</p>
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-           <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-sm shadow-sm">
-             <Filter className="w-4 h-4" /> Filters
-           </button>
-           <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl hover:bg-brand-active transition-colors font-semibold text-sm shadow-sm">
-             <Users className="w-4 h-4" /> Add User
-           </button>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <AdminListHeader
+        title="User Directory"
+        description="Centralized student database and claim history tracking."
+        actions={(
+          <>
+            <Button
+              className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Add User
+            </Button>
+            <Button variant="outline" className="h-10 px-4 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl">
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+            </Button>
+          </>
+        )}
+      />
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {/* Search Bar */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input 
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, or ID..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all font-medium placeholder:text-slate-400"
-            />
-          </div>
-        </div>
+      <AdminListFilters>
+        <AdminSearchInput
+          placeholder="Search by name, email, or ID..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
+      </AdminListFilters>
 
-        {/* Table */}
-        <div className="overflow-x-auto min-h-[300px]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white border-b border-slate-200">
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">User</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Details</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Claim History</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+      <AdminTableContainer>
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
+              <tr>
+                <th className="px-8 py-5 text-slate-700">User</th>
+                <th className="px-8 py-5 text-slate-700">Role</th>
+                <th className="px-8 py-5 text-slate-700">Details</th>
+                <th className="px-8 py-5 text-slate-700">Claim History</th>
+                <th className="px-8 py-5 text-right text-slate-700">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -89,8 +87,8 @@ export function UserDirectoryPage() {
                   <td colSpan={5} className="text-center py-10 text-slate-500">No users found.</td>
                 </tr>
               ) : users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="px-6 py-4">
+                <tr key={u.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
+                  <td className="px-8 py-5">
                      <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm uppercase">
                           {u.name.substring(0,2)}
@@ -103,7 +101,7 @@ export function UserDirectoryPage() {
                         </div>
                      </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-5">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
                       u.role === 'ADMIN' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                       u.role === 'STAFF' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
@@ -112,14 +110,14 @@ export function UserDirectoryPage() {
                       {u.role.charAt(0) + u.role.slice(1).toLowerCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-5">
                     {u.studentId ? (
                       <div className="text-sm font-semibold text-slate-700">ID: {u.studentId}</div>
                     ) : (
                       <div className="text-sm text-slate-400 italic">No Student ID</div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-5">
                     <div className="flex items-center gap-1.5 text-sm">
                       {u._count.claims > 0 ? (
                         <span className="px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-200 font-semibold text-xs">
@@ -130,7 +128,7 @@ export function UserDirectoryPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-8 py-5 text-right">
                     <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -139,8 +137,7 @@ export function UserDirectoryPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
+      </AdminTableContainer>
     </div>
   )
 }

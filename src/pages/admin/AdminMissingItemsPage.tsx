@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
-import { MatchLinkingModal } from "@/features/admin/MatchLinkingModal"
+import { MatchLinkingModal } from "@/features/admin/modals"
 import { api } from "@/lib/api"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
