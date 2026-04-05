@@ -80,16 +80,16 @@ export function ExpiredInventoryPage() {
         title="Expired Inventory"
         description="Manage items that have exceeded their retention period."
         actions={(
-          <>
-            <AdminExportButton label="Export Selected" disabled={selectedIds.size === 0} />
+          <div className="flex gap-2">
             <Button
                onClick={handleBatchDispose}
                disabled={selectedIds.size === 0 || isDisposing}
-               className="flex-1 sm:flex-initial h-10 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-sm border-none disabled:opacity-50">
+               className="flex-1 sm:flex-initial h-10 px-4 bg-status-error hover:bg-rose-700 text-white font-bold rounded-xl shadow-sm border-none disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100 disabled:shadow-none transition-colors">
               <Trash2 className="w-4 h-4 mr-2" />
               Dispose Selected ({selectedIds.size})
             </Button>
-          </>
+            <AdminExportButton disabled={items.length === 0} />
+          </div>
         )}
       />
 

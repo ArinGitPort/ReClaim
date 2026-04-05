@@ -71,7 +71,7 @@ export function LoginForm() {
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-secondary" />
             <Input
               type={showPassword ? "text" : "password"}
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-11 pr-11 h-12 bg-background-subtle focus:bg-background-app text-base transition-colors border-border-divider/50"

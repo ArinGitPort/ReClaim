@@ -1,4 +1,4 @@
-import { ArrowUpDown, ChevronDown, ChevronUp, Mail, MoreVertical, Users } from "lucide-react"
+import { ChevronsUpDown, ChevronDown, ChevronUp, Mail, MoreVertical, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -78,7 +78,7 @@ export function UserDirectoryPage() {
 
   const renderSortIcon = (field: UserSortField) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+      return <ChevronsUpDown className="w-3.5 h-3.5 text-slate-300" />
     }
 
     return sortOrder === "asc"
@@ -146,22 +146,22 @@ export function UserDirectoryPage() {
             <thead className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest font-bold text-[10px] text-slate-700">
               <tr>
                 <th className="px-8 py-5 text-slate-700">
-                  <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                  <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors font-bold uppercase tracking-widest text-[10px]">
                     User {renderSortIcon("name")}
                   </button>
                 </th>
                 <th className="px-8 py-5 text-slate-700">
-                  <button type="button" onClick={() => toggleSort("role")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                  <button type="button" onClick={() => toggleSort("role")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors font-bold uppercase tracking-widest text-[10px]">
                     Role {renderSortIcon("role")}
                   </button>
                 </th>
                 <th className="px-8 py-5 text-slate-700">
-                  <button type="button" onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                  <button type="button" onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors font-bold uppercase tracking-widest text-[10px]">
                     Details {renderSortIcon("createdAt")}
                   </button>
                 </th>
                 <th className="px-8 py-5 text-slate-700">
-                  <button type="button" onClick={() => toggleSort("claims")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors">
+                  <button type="button" onClick={() => toggleSort("claims")} className="inline-flex items-center gap-1.5 hover:text-brand transition-colors font-bold uppercase tracking-widest text-[10px]">
                     Claim History {renderSortIcon("claims")}
                   </button>
                 </th>
