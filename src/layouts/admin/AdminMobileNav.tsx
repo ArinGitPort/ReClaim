@@ -8,7 +8,10 @@ import {
   FileSearch, 
   HandMetal, 
   History,
-  LogOut
+  LogOut,
+  Camera,
+  Video,
+  Activity
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -42,8 +45,10 @@ export function AdminMobileNav() {
           <div className="p-4 flex flex-col gap-1">
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Action Queue</h4>
             <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" />
+            <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
             <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" />
             <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" />
+            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="Snapshot Gallery" />
             <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
             
             <div className="h-px w-full bg-white/10 my-3" />
@@ -55,6 +60,7 @@ export function AdminMobileNav() {
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>
             <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" />
+            <MobileNavItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" />
             <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="Settings" />
             
             <div className="h-px w-full bg-white/10 my-3" />
