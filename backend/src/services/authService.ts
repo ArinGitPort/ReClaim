@@ -10,7 +10,6 @@ export async function registerUser(input: {
   email: string;
   studentId?: string;
   password: string;
-  role: UserRole;
 }) {
   const normalizedEmail = input.email.trim().toLowerCase();
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
@@ -26,7 +25,7 @@ export async function registerUser(input: {
       email: normalizedEmail,
       studentId: input.studentId ?? null,
       passwordHash,
-      role: input.role,
+      role: UserRole.STUDENT,
     },
   });
 

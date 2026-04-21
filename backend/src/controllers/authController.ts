@@ -1,4 +1,3 @@
-import { UserRole } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js";

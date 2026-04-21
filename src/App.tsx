@@ -35,6 +35,9 @@ import { UserDirectoryPage } from "@/pages/admin/AdminUserDirectoryPage"
 import { ExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
+import { SnapshotGalleryPage } from "@/pages/admin/AdminSnapshotGalleryPage"
+import { CameraSettingsPage } from "@/pages/admin/AdminCameraSettingsPage"
+import { LiveMonitorPage } from "@/pages/admin/AdminLiveMonitorPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"
@@ -98,22 +101,28 @@ function App() {
               {/* Settings Route */}
               <Route path="/settings" element={<UserSettingsPage />} />
               <Route path="/office" element={<UserCampusOfficePage />} />
+              <Route path="*" element={<Navigate to="/gallery" replace />} />
             </Route>
 
             {/* Administrative Dashboard Routes */}
             <Route path="/admin" element={<ProtectedAdminRoutes />}>
               <Route index element={<DashboardPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="live-monitor" element={<LiveMonitorPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="reports" element={<MissingItemsPage />} />
+              <Route path="snapshots" element={<SnapshotGalleryPage />} />
               <Route path="claims" element={<ClaimsVerificationPage />} />
               <Route path="handover-log" element={<HandoverLogPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />
               <Route path="expired-inventory" element={<ExpiredInventoryPage />} />
               <Route path="logs" element={<AuditLogsPage />} />
+              <Route path="camera-settings" element={<CameraSettingsPage />} />
               <Route path="notifications" element={<AdminNotificationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Router>
         </NotificationProvider>
