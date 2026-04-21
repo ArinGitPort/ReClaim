@@ -1,4 +1,3 @@
-import { UserRole } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js";
@@ -11,7 +10,6 @@ const registerSchema = z.object({
   email: z.string().email(),
   studentId: z.string().optional(),
   password: z.string().min(8),
-  role: z.nativeEnum(UserRole).optional(),
 });
 
 const loginSchema = z.object({

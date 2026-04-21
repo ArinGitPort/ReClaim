@@ -1,6 +1,32 @@
+import { UserRole } from "@prisma/client";
 import type { Request, Response } from "express"
+import { z } from "zod";
 import { prisma } from "@/lib/prisma.js"
+import { createManagedUser, updateManagedUser } from "@/services/userService.js";
 import { listUserPickups } from "@/services/userPickupService.js"
+
+const idParamsSchema = z.object({
+  id: z.string().uuid(),
+});
+
+const createUserSchema = z.object({
+  name: z.string().trim().min(2),
+  email: z.string().trim().email(),
+  studentId: z.string().trim().optional(),
+  password: z.string().min(8),
+  role: z.nativeEnum(UserRole),
+});
+
+const updateUserSchema = z
+  .object({
+    name: z.string().trim().min(2).optional(),
+    email: z.string().trim().email().optional(),
+    studentId: z.string().trim().nullable().optional(),
+    role: z.nativeEnum(UserRole).optional(),
+  })
+  .refine((value) => Object.values(value).some((entry) => entry !== undefined), {
+    message: "At least one field is required",
+  });
 
 export async function getUserPickups(req: Request, res: Response): Promise<void> {
   const pickups = await listUserPickups(req.user!.id)
@@ -77,7 +103,7 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
 }
 
 export async function getUserDetails(req: Request, res: Response): Promise<void> {
-  const userId = req.params.id as string
+  const { id: userId } = idParamsSchema.parse(req.params)
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -108,4 +134,33 @@ export async function getUserDetails(req: Request, res: Response): Promise<void>
   }
 
   res.json({ user })
+}
+
+export async function postUser(req: Request, res: Response): Promise<void> {
+  const body = createUserSchema.parse(req.body);
+
+  const user = await createManagedUser({
+    name: body.name,
+    email: body.email,
+    studentId: body.studentId,
+    password: body.password,
+    role: body.role,
+  });
+
+  res.status(201).json({ user });
+}
+
+export async function patchUser(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = updateUserSchema.parse(req.body);
+
+  const user = await updateManagedUser({
+    userId: id,
+    name: body.name,
+    email: body.email,
+    studentId: Object.prototype.hasOwnProperty.call(body, "studentId") ? body.studentId : undefined,
+    role: body.role,
+  });
+
+  res.json({ user });
 }

@@ -10,6 +10,7 @@ import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListHeader, AdminSearchInput } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { 
+  AddUserModal,
   EditProfileModal, 
   PendingVerificationsModal, 
   MissingReportsModal, 
@@ -35,6 +36,7 @@ export function UserDirectoryPage() {
   // Master-Detail selection & Modal state
   const [selectedUser, setSelectedUser] = useState<UserDirUser | null>(null)
   const [activeModal, setActiveModal] = useState<ActiveModalState>(null)
+  const selectedUserId = selectedUser?.id
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -49,20 +51,25 @@ export function UserDirectoryPage() {
           sortOrder,
         }
       })
-      const fetchedUsers = res.data.users || []
+      const fetchedUsers: UserDirUser[] = res.data.users || []
       setUsers(fetchedUsers)
       setTotalUsers(res.data.pagination?.total ?? 0)
       setPageCount(res.data.pagination?.pageCount ?? 1)
 
-      if (!selectedUser && fetchedUsers.length > 0) {
+      if (fetchedUsers.length === 0) {
+        setSelectedUser(null)
+      } else if (!selectedUserId) {
         setSelectedUser(fetchedUsers[0])
+      } else {
+        const updatedSelection = fetchedUsers.find((user) => user.id === selectedUserId)
+        setSelectedUser(updatedSelection ?? fetchedUsers[0])
       }
     } catch (err) {
       console.error("Failed to load users", err)
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, roleFilter, page, rowsPerPage, sortField, sortOrder, selectedUser])
+  }, [searchQuery, roleFilter, page, rowsPerPage, sortField, sortOrder, selectedUserId])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,7 +94,7 @@ export function UserDirectoryPage() {
         description="Centralized student database, claim history tracking, and verification desk."
         actions={(
           <>
-            <Button className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none">
+            <Button onClick={() => setActiveModal("add")} className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none">
               <Users className="w-4 h-4 mr-2" />
               Add User
             </Button>
@@ -298,9 +305,22 @@ export function UserDirectoryPage() {
       </div>
 
       {/* --- REUSABLE COMPONENT MODALS --- */}
+      <AddUserModal
+        isOpen={activeModal === "add"}
+        onClose={() => setActiveModal(null)}
+        onSaved={() => {
+          setActiveModal(null)
+          void fetchUsers()
+        }}
+      />
+
       <EditProfileModal 
          isOpen={activeModal === "edit"} 
          onClose={() => setActiveModal(null)} 
+         onSaved={() => {
+           setActiveModal(null)
+           void fetchUsers()
+         }}
          user={selectedUser} 
       />
       
