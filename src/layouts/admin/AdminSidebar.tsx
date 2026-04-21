@@ -1,5 +1,6 @@
 import React, { useState } from "react"
-import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { 
   LayoutDashboard, 
   Package, 
@@ -20,6 +21,13 @@ import { cn } from "@/lib/utils"
 
 export function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    if (logout) logout()
+    navigate("/")
+  }
   
   return (
     <aside 
@@ -82,13 +90,22 @@ export function AdminSidebar() {
 
       {/* Footer Area */}
       <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0">
-        <AdminSidebarItem 
-          to="/" 
-          icon={<LogOut className="w-5 h-5" />} 
-          label="Exit to Portal" 
-          isCollapsed={isCollapsed} 
-          variant="secondary"
-        />
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "flex flex-row items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+            isCollapsed ? "justify-center" : "justify-start",
+            "text-white/60 hover:bg-rose-500/20 hover:text-rose-200 w-full text-left"
+          )}
+          title={isCollapsed ? "Log Out" : undefined}
+        >
+          <div className="flex-shrink-0 transition-transform group-hover:scale-110 text-white/70 group-hover:text-white">
+            <LogOut className="w-5 h-5" />
+          </div>
+          {!isCollapsed && (
+            <span className="text-sm flex-1 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight font-medium">Log Out</span>
+          )}
+        </button>
       </div>
     </aside>
   )

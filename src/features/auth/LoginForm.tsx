@@ -56,7 +56,7 @@ export function LoginForm() {
               type="email"
               placeholder="admin@campus.edu"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
               className="pl-11 h-12 bg-background-subtle focus:bg-background-app text-base transition-colors border-border-divider/50"
               required
             />
@@ -73,7 +73,7 @@ export function LoginForm() {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value.replace(/\s/g, ""))}
               className="pl-11 pr-11 h-12 bg-background-subtle focus:bg-background-app text-base transition-colors border-border-divider/50"
               required
             />

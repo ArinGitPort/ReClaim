@@ -1,5 +1,6 @@
 import React from "react"
-import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { 
   X, 
   Menu,
@@ -18,6 +19,14 @@ import { cn } from "@/lib/utils"
 export function AdminMobileNav() {
   const [isOpen, setIsOpen] = React.useState(false)
   const { pathname } = useLocation()
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    if (logout) logout()
+    navigate("/")
+    setIsOpen(false)
+  }
 
   React.useEffect(() => {
     setIsOpen(false)
@@ -64,7 +73,13 @@ export function AdminMobileNav() {
             <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="Settings" />
             
             <div className="h-px w-full bg-white/10 my-3" />
-            <MobileNavItem to="/" icon={<LogOut className="w-5 h-5" />} label="Exit to Portal" variant="secondary" />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-white/60 hover:bg-rose-500/20 hover:text-rose-200 w-full text-left font-medium"
+            >
+              <div className="transition-transform"><LogOut className="w-5 h-5" /></div>
+              <span className="text-base flex-1">Log Out</span>
+            </button>
           </div>
         </div>
       )}
