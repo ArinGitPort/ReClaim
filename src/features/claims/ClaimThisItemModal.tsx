@@ -1,6 +1,7 @@
 import { Modal } from "@/components/ui/Modal"
 import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { api } from "@/lib/api"
 import { getClaimFieldGroup } from "@/features/shared/itemCategoryRules"
 
@@ -10,13 +11,15 @@ interface ClaimThisItemModalProps {
   itemId: string
   itemTitle: string
   itemCategory: string
+  itemImageUrl?: string
 }
 
-export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory }: ClaimThisItemModalProps) {
+export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemImageUrl }: ClaimThisItemModalProps) {
   const [proofValues, setProofValues] = useState<Record<string, string>>({})
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isImageExpanded, setIsImageExpanded] = useState(false)
 
   const fieldGroup = getClaimFieldGroup(itemCategory)
 
@@ -63,8 +66,11 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
     }
   }
 
+  const fullImageUrl = itemImageUrl ? `${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${itemImageUrl}` : null
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center shadow-sm">
@@ -80,6 +86,12 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         </div>
 
         <form id="claim-this-item-form" onSubmit={(event) => void handleSubmitClaim(event)} className="p-8 space-y-8">
+          {fullImageUrl && (
+            <div className="w-full h-48 sm:h-64 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsImageExpanded(true)}>
+              <img src={fullImageUrl} alt={itemTitle} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            </div>
+          )}
+
           <div className="bg-brand/3 border border-brand/10 rounded-xl p-5 flex gap-4 text-slate-600">
             <ShieldCheck className="w-5 h-5 text-brand shrink-0 mt-0.5" />
             <p className="text-[13px] leading-relaxed font-medium">
@@ -169,5 +181,30 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         </div>
 
     </Modal>
+
+      {isImageExpanded && fullImageUrl && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 sm:p-8 animate-in fade-in duration-200"
+          onClick={() => setIsImageExpanded(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 p-2 sm:p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsImageExpanded(false)
+            }}
+          >
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
+          </button>
+          <img 
+            src={fullImageUrl} 
+            alt={itemTitle} 
+            className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body
+      )}
+    </>
   )
 }

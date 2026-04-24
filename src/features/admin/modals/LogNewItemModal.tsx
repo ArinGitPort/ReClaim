@@ -7,11 +7,13 @@ import {
   X, 
   CheckCircle2,
   Camera,
-  Archive
+  Archive,
+  ShieldAlert
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
+import { Switch } from "@/components/ui/Switch"
 import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
 import { api } from "@/lib/api"
@@ -37,12 +39,13 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [foundAtLocal, setFoundAtLocal] = useState(() => toLocalDatetimeInputValue(new Date()))
   const [storageLocation, setStorageLocation] = useState("")
   const [notes, setNotes] = useState("")
+  const [isHighValue, setIsHighValue] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const needsColor = requiresColorSelection(category)
 
   useEffect(() => {
-    if (!needsColor && color) {
+    if (!needsColor && color !== "" && color !== "Not Specified") {
       setColor("")
     }
   }, [needsColor, color])
@@ -55,6 +58,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
     setFoundAtLocal(toLocalDatetimeInputValue(new Date()))
     setStorageLocation("")
     setNotes("")
+    setIsHighValue(false)
     setPhotoFile(null)
     setError(null)
     setSavedCode(null)
@@ -89,13 +93,14 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
       const response = await api.post<{ item: { code: string } }>("/items", {
         title,
         category,
-        color: needsColor ? color : "Not Specified",
+        color: color || "Not Specified",
         foundLocation,
         foundAtUtc: foundDate.toISOString(),
         photoUrl,
         publicDescription: `${title} reported by admin inventory intake`,
         privateDiscoveryNote: notes || undefined,
         privateData: photoUrl ? { photoUrl } : undefined,
+        isHighValue,
         storageLocation,
       })
 
@@ -189,9 +194,9 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
               </div>
               {needsColor ? (
                 <div className="space-y-1.5">
-                  <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-                  <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required={needsColor}>
-                    <option value="">Select Color</option>
+                  <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color (Optional)</Label>
+                  <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm">
+                    <option value="">Not Specified</option>
                     {ITEM_COLORS.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
@@ -258,6 +263,28 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
                 ))}
               </Select>
             </div>
+          </div>
+        </div>
+
+        {/* Security / Visibility */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+             <ShieldAlert className="w-3.5 h-3.5 text-brand" />
+             <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Security & Visibility</h4>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div className="space-y-1">
+              <Label htmlFor="isHighValue" className="font-bold text-slate-700">Mark as High Value Item</Label>
+              <p className="text-xs text-slate-500 font-medium">
+                Hides the physical proof photo from the public gallery and applies a "SECURED" badge to prevent false claims.
+              </p>
+            </div>
+            <Switch
+              id="isHighValue"
+              checked={isHighValue}
+              onCheckedChange={setIsHighValue}
+            />
           </div>
         </div>
 

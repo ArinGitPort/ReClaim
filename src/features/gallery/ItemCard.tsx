@@ -87,6 +87,18 @@ export function ItemCard({ item }: ItemCardProps) {
               <Laptop style={{ width: '40px', height: '40px', marginBottom: '8px' }} />
               <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#60a5fa' }}>Secured</span>
             </div>
+          ) : item.imageUrl ? (
+            <img 
+              src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${item.imageUrl}`}
+              alt={item.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                transition: 'transform 0.4s ease',
+              }}
+            />
           ) : (
             <div style={{
               color: '#94a3b8',
@@ -208,6 +220,7 @@ export function ItemCard({ item }: ItemCardProps) {
         itemId={item.id}
         itemTitle={item.title}
         itemCategory={item.category}
+        itemImageUrl={item.imageUrl}
       />
     </>
   )

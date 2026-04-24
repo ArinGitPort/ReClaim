@@ -18,6 +18,7 @@ const createItemSchema = z.object({
   publicDescription: z.string().optional(),
   privateDiscoveryNote: z.string().optional(),
   privateData: z.record(z.string(), z.unknown()).optional(),
+  isHighValue: z.boolean().optional(),
   storageLocation: z.string().optional(),
   evidence: z
     .object({
@@ -39,6 +40,7 @@ const updateItemSchema = z.object({
   storageLocation: z.string().optional(),
   privateDiscoveryNote: z.string().optional(),
   status: z.nativeEnum(ItemStatus).optional(),
+  isHighValue: z.boolean().optional(),
 });
 
 const idParamsSchema = z.object({
@@ -68,8 +70,29 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
   const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 12;
 
   const result = await listPublicItems({ search, category, status, page, limit });
+  const items = result.items.map((item) => {
+    // If it's a high value item, do not expose imageUrl to public endpoints
+    let imageUrl = undefined;
+    if (!item.isHighValue && item.privateData && typeof item.privateData === 'object' && 'photoUrl' in item.privateData) {
+      imageUrl = (item.privateData as Record<string, string>).photoUrl;
+    }
+    return {
+      id: item.id,
+      code: item.code,
+      title: item.title,
+      category: item.category,
+      color: item.color,
+      foundLocation: item.foundLocation,
+      foundAtUtc: item.foundAtUtc,
+      publicDescription: item.publicDescription,
+      status: item.status,
+      isHighValue: item.isHighValue,
+      imageUrl,
+    };
+  });
+
   res.json({
-    items: result.items,
+    items,
     pagination: {
       page: result.page,
       limit: result.limit,
@@ -132,6 +155,7 @@ export async function postItem(req: Request, res: Response): Promise<void> {
     publicDescription: body.publicDescription,
     privateDiscoveryNote: body.privateDiscoveryNote,
     privateData,
+    isHighValue: body.isHighValue,
     storageLocation: body.storageLocation,
     evidence: body.evidence
       ? {
@@ -184,6 +208,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
       storageLocation: true,
       privateDiscoveryNote: true,
       status: true,
+      isHighValue: true,
       code: true,
     },
   });
@@ -202,6 +227,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
     storageLocation: body.storageLocation,
     privateDiscoveryNote: body.privateDiscoveryNote,
     status: body.status,
+    isHighValue: body.isHighValue,
   });
 
   await logAudit({
@@ -223,6 +249,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
         storageLocation: beforeItem.storageLocation,
         privateDiscoveryNote: beforeItem.privateDiscoveryNote,
         status: beforeItem.status,
+        isHighValue: beforeItem.isHighValue,
       },
       after: {
         title: item.title,
@@ -233,6 +260,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
         storageLocation: item.storageLocation,
         privateDiscoveryNote: item.privateDiscoveryNote,
         status: item.status,
+        isHighValue: item.isHighValue,
       },
     },
   });
@@ -305,6 +333,7 @@ function buildChangePayload(
     storageLocation: string | null;
     privateDiscoveryNote: string | null;
     status: ItemStatus;
+    isHighValue: boolean;
   },
   afterItem: {
     title: string;
@@ -315,6 +344,7 @@ function buildChangePayload(
     storageLocation: string | null;
     privateDiscoveryNote: string | null;
     status: ItemStatus;
+    isHighValue: boolean;
   }
 ) {
   const fields = [
@@ -326,6 +356,7 @@ function buildChangePayload(
     ["storageLocation", beforeItem.storageLocation ?? null, afterItem.storageLocation ?? null],
     ["privateDiscoveryNote", beforeItem.privateDiscoveryNote ?? null, afterItem.privateDiscoveryNote ?? null],
     ["status", beforeItem.status, afterItem.status],
+    ["isHighValue", beforeItem.isHighValue, afterItem.isHighValue],
   ] as const;
 
   return fields

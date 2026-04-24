@@ -42,6 +42,8 @@ export function GalleryGrid({
           category: string
           foundLocation: string
           foundAtUtc: string
+          isHighValue: boolean
+          imageUrl?: string
         }>
         pagination: {
           page: number
@@ -62,7 +64,8 @@ export function GalleryGrid({
         category: item.category,
         location: item.foundLocation,
         dateLost: item.foundAtUtc,
-        isHighValue: ["electronics", "wallets/ids"].includes(item.category.toLowerCase()),
+        isHighValue: item.isHighValue,
+        imageUrl: item.imageUrl
       }))
 
       setItems(nextItems)

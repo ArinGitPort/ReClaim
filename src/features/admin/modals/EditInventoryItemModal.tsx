@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { X, Save, Package, MapPin, Archive } from "lucide-react"
+import { X, Save, Package, MapPin, Archive, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
+import { Switch } from "@/components/ui/Switch"
 import { Textarea } from "@/components/ui/Textarea"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
@@ -25,6 +26,7 @@ type EditableItem = {
   storage: string
   status: string
   privateDiscoveryNote?: string
+  isHighValue?: boolean
 }
 
 const ITEM_STATUSES = ["AVAILABLE", "CLAIM_PENDING", "RETURNED", "ARCHIVED"] as const
@@ -46,6 +48,7 @@ export function EditInventoryItemModal({
   const [storageLocation, setStorageLocation] = useState(item.storage)
   const [status, setStatus] = useState(item.status)
   const [privateDiscoveryNote, setPrivateDiscoveryNote] = useState(item.privateDiscoveryNote ?? "")
+  const [isHighValue, setIsHighValue] = useState(item.isHighValue ?? false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,6 +72,7 @@ export function EditInventoryItemModal({
         storageLocation,
         status,
         privateDiscoveryNote: privateDiscoveryNote || undefined,
+        isHighValue,
       })
 
       onSaved?.()
@@ -122,8 +126,9 @@ export function EditInventoryItemModal({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-              <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200" required>
+              <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color (Optional)</Label>
+              <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200">
+                <option value="">Not Specified</option>
                 {ITEM_COLORS.map((option) => (
                   <option key={option} value={option}>{option}</option>
                 ))}
@@ -167,6 +172,27 @@ export function EditInventoryItemModal({
                 ))}
               </Select>
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+             <ShieldAlert className="w-3.5 h-3.5 text-brand" />
+             <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Security & Visibility</h4>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div className="space-y-1">
+              <Label htmlFor="isHighValue" className="font-bold text-slate-700">Mark as High Value Item</Label>
+              <p className="text-xs text-slate-500 font-medium">
+                Hides the physical proof photo from the public gallery and applies a "SECURED" badge to prevent false claims.
+              </p>
+            </div>
+            <Switch
+              id="isHighValue"
+              checked={isHighValue}
+              onCheckedChange={setIsHighValue}
+            />
           </div>
         </div>
 

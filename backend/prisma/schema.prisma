@@ -86,6 +86,7 @@ model FoundItem {
   publicDescription    String?
   privateDiscoveryNote String?
   privateData          Json?
+  isHighValue          Boolean         @default(false)
   status               ItemStatus      @default(AVAILABLE)
   storageLocation      String?
   claims               Claim[]

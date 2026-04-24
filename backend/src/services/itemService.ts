@@ -12,6 +12,7 @@ export async function createFoundItem(input: {
   publicDescription?: string;
   privateDiscoveryNote?: string;
   privateData?: Prisma.InputJsonValue;
+  isHighValue?: boolean;
   storageLocation?: string;
   evidence?: {
     sourceCameraId: string;
@@ -32,6 +33,7 @@ export async function createFoundItem(input: {
       publicDescription: input.publicDescription,
       privateDiscoveryNote: input.privateDiscoveryNote,
       privateData: input.privateData,
+      isHighValue: input.isHighValue ?? false,
       storageLocation: input.storageLocation,
       createdById: input.actorUserId,
       aiEvidenceLogs: input.evidence
@@ -87,6 +89,8 @@ export async function listPublicItems(filters: {
         foundAtUtc: true,
         publicDescription: true,
         status: true,
+        isHighValue: true,
+        privateData: true,
       },
     }),
     prisma.foundItem.count({ where }),
@@ -161,6 +165,7 @@ export async function updateFoundItem(input: {
   storageLocation?: string | null;
   privateDiscoveryNote?: string | null;
   status?: ItemStatus;
+  isHighValue?: boolean;
 }) {
   return prisma.foundItem.update({
     where: { id: input.itemId },
@@ -173,6 +178,7 @@ export async function updateFoundItem(input: {
       storageLocation: input.storageLocation,
       privateDiscoveryNote: input.privateDiscoveryNote,
       status: input.status,
+      isHighValue: input.isHighValue,
     },
   });
 }
