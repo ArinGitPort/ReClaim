@@ -233,7 +233,7 @@ export function InventoryLinkReportModal({
               <div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{report.reportCode}</div>
                 <h4 className="font-bold text-slate-900 mt-1">{report.title}</h4>
-                <p className="text-xs font-semibold text-slate-500 mt-1">{report.category} â€¢ {report.color}</p>
+                <p className="text-xs font-semibold text-slate-500 mt-1">{report.category} • {report.color}</p>
                 <p className="text-xs font-semibold text-slate-400 mt-1 flex items-center gap-1"><User className="w-3 h-3" /> {report.reporterName}</p>
               </div>
               <div className="text-xs font-bold text-slate-500">{new Date(report.createdAt).toLocaleDateString()}</div>

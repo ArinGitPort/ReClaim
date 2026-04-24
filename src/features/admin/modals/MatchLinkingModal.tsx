@@ -44,7 +44,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
 
   const normalizedDate = prefill?.dateFrom ? new Date(prefill.dateFrom).toLocaleDateString() : null
   const prefillHint = prefill
-    ? `Category: ${prefill.category} â€¢ Color: ${prefill.color}${normalizedDate ? ` â€¢ Date >= ${normalizedDate}` : ""}`
+    ? `Category: ${prefill.category} • Color: ${prefill.color}${normalizedDate ? ` • Date >= ${normalizedDate}` : ""}`
     : null
   const defaultSearchValue = [itemTitle, prefill?.color, prefill?.category].filter(Boolean).join(" ")
 

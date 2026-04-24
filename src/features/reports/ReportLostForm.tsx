@@ -72,7 +72,7 @@ export function ReportLostForm() {
       await api.post("/reports", {
         title: formData.itemName.trim(),
         category: formData.category,
-        color: needsColor ? formData.color : "Not Specified",
+        color: formData.color || "Not Specified",
         location: formData.location,
         reportedLostAtUtc: new Date(`${formData.date || new Date().toISOString().slice(0, 10)}T00:00:00.000Z`).toISOString(),
         timeWindow: formData.time,
@@ -177,9 +177,9 @@ export function ReportLostForm() {
 
               {needsColor ? (
                 <div className="space-y-2">
-                  <Label htmlFor="color">Primary Color</Label>
-                  <Select id="color" name="color" required={needsColor} value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
-                    <option value="">Select color</option>
+                  <Label htmlFor="color">Primary Color (Optional)</Label>
+                  <Select id="color" name="color" value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
+                    <option value="">Not Specified</option>
                     {ITEM_COLORS.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
@@ -323,7 +323,7 @@ export function ReportLostForm() {
                     <Upload className="w-5 h-5 text-slate-400 group-hover:text-brand" />
                   </div>
                   <h4 className="font-bold text-slate-700">Click or drag to upload</h4>
-                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files â€¢ 5MB Limit per file</p>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files • 5MB Limit per file</p>
                 </div>
               </div>
 

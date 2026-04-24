@@ -56,7 +56,7 @@ export function TopNavBar() {
                 }
               >
                 <PlusCircle className="w-4 h-4" />
-                Report Lost
+                Report Lost Item
               </NavLink>
               <NavLink
                 to="/my-claims"

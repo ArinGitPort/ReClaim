@@ -34,14 +34,6 @@ export function isBagsCategory(category: string): boolean {
 }
 
 export function requiresColorSelection(category: string): boolean {
-  if (!category.trim()) {
-    return true
-  }
-
-  if (isDocumentsCategory(category) || isWalletIdsCategory(category)) {
-    return false
-  }
-
   return true
 }
 
@@ -67,11 +59,11 @@ export function getClaimFieldGroup(category: string): DynamicFieldGroup {
           placeholder: "Describe the lock screen image or text",
         },
         {
-          key: "externalCaseOrColor",
-          label: "Case Style / Color",
+          key: "externalCase",
+          label: "Case Style",
           type: "select",
           required: true,
-          options: [...ITEM_COLORS],
+          options: ["Hard Case", "Soft Case", "Sleeve", "None", "Other"],
         },
         {
           key: "serialNumberOrMacAddress",
@@ -133,11 +125,11 @@ export function getClaimFieldGroup(category: string): DynamicFieldGroup {
           placeholder: "e.g., Jansport",
         },
         {
-          key: "externalColorOrPattern",
-          label: "External Color / Pattern",
+          key: "externalPattern",
+          label: "External Pattern / Material",
           type: "select",
           required: true,
-          options: [...ITEM_COLORS],
+          options: ["Solid", "Striped", "Patterned", "Leather", "Canvas", "Other"],
         },
         {
           key: "specificInternalContents",
@@ -156,11 +148,11 @@ export function getClaimFieldGroup(category: string): DynamicFieldGroup {
       heading: "Group D: Wallets & IDs",
       fields: [
         {
-          key: "walletMaterialOrColor",
-          label: "Wallet Material / Color",
+          key: "walletMaterial",
+          label: "Wallet Material",
           type: "select",
           required: true,
-          options: [...ITEM_COLORS, "Leather", "Canvas", "Transparent"],
+          options: ["Leather", "Canvas", "Nylon", "Metal", "Plastic", "Other"],
         },
         {
           key: "specificInternalContents",
@@ -185,11 +177,11 @@ export function getClaimFieldGroup(category: string): DynamicFieldGroup {
       heading: "Group E: Jewelry & Accessories",
       fields: [
         {
-          key: "materialOrColor",
-          label: "Material / Color",
+          key: "material",
+          label: "Material",
           type: "select",
           required: true,
-          options: ["Gold", "Silver", "Leather", "Rose Gold", "Black", "Multi-color"],
+          options: ["Gold", "Silver", "Leather", "Rose Gold", "Metal", "Other"],
         },
         {
           key: "engravingsOrInscriptions",

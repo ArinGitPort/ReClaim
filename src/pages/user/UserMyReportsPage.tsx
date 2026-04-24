@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
-import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
+import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
+import { SlidersHorizontal } from "lucide-react"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type ReportRealtimeEvent = {
@@ -214,19 +216,34 @@ export function MyReportsPage() {
           </Link>
         </div>
 
-        <RecordsFilterBar
+        <UniversalFilterBar
           searchValue={search}
           onSearchChange={(value) => {
             setSearch(value)
             setPage(1)
           }}
-          statusValue={statusFilter}
-          onStatusChange={(value) => {
-            setStatusFilter(value)
-            setPage(1)
-          }}
-          statusOptions={statusOptions}
           searchPlaceholder="Search by report code, item, category, color, or location"
+          dropdowns={[
+            {
+              id: "status",
+              icon: <SlidersHorizontal />,
+              label: "Status",
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value)
+                setPage(1)
+              },
+              options: [
+                { value: "", label: "All Statuses" },
+                ...statusOptions
+              ]
+            }
+          ]}
+          onClear={search || statusFilter ? () => {
+            setSearch("")
+            setStatusFilter("")
+            setPage(1)
+          } : undefined}
         />
 
         <RecordsStatusChips
