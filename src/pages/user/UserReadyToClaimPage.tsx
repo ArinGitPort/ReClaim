@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
+import { ShieldCheck, Ticket, MapPin, CalendarClock, Search } from "lucide-react"
 import { api } from "@/lib/api"
-import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
+import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 
 type PickupRow = {
@@ -78,19 +79,30 @@ export function ReadyToClaimPage() {
           <p className="text-slate-500 text-sm">This is the only page where pickup tokens are displayed for physical handover.</p>
         </div>
 
-        <RecordsFilterBar
+        <UniversalFilterBar
           searchValue={search}
           onSearchChange={(value) => {
             setSearch(value)
             setPage(1)
           }}
-          statusValue={sourceFilter}
-          onStatusChange={(value) => {
-            setSourceFilter(value)
-            setPage(1)
-          }}
-          statusOptions={statusOptions}
           searchPlaceholder="Search by source code, item, inventory code, or token"
+          dropdowns={[
+            {
+              id: "source",
+              label: "Source Type",
+              icon: <Search className="w-4 h-4" />,
+              value: sourceFilter,
+              onChange: (value) => {
+                setSourceFilter(value)
+                setPage(1)
+              },
+              options: [
+                { label: "All Types", value: "" },
+                { label: "Manual Claim", value: "CLAIM" },
+                { label: "Report Match", value: "REPORT_MATCH" },
+              ],
+            },
+          ]}
         />
 
         <RecordsStatusChips
