@@ -72,7 +72,23 @@ export async function listReports(filters: {
             email: true,
           },
         },
-        matchedItem: true,
+        matchedItem: {
+          include: {
+            claims: {
+              where: {
+                status: "APPROVED",
+                pickupToken: { not: null },
+              },
+              select: {
+                pickupToken: true,
+                pickupTokenExpires: true,
+                claimantUserId: true,
+              },
+              orderBy: { createdAt: "desc" as const },
+              take: 1,
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       ...(typeof skip === "number" && typeof limit === "number" ? { skip, take: limit } : {}),

@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useEffect, useMemo, useState } from "react"
-import { Package, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
+import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
@@ -20,6 +20,8 @@ interface ClaimView {
   rawStatus: string
   status: string
   reviewerNote?: string | null
+  pickupToken: string | null
+  pickupTokenExpires: string | null
 }
 
 export function MyClaimsPage() {
@@ -40,6 +42,8 @@ export function MyClaimsPage() {
         status: string
         createdAt: string
         reviewerNote?: string | null
+        pickupToken?: string | null
+        pickupTokenExpires?: string | null
         foundItem: {
           code: string
           title: string
@@ -49,7 +53,7 @@ export function MyClaimsPage() {
       }>
     }>("/claims", {
       params: {
-        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,DENIED",
+        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,APPROVED,DENIED",
       },
     })
 
@@ -65,6 +69,8 @@ export function MyClaimsPage() {
         rawStatus: claim.status,
         status: formatClaimStatus(claim.status),
         reviewerNote: claim.reviewerNote,
+        pickupToken: claim.pickupToken ?? null,
+        pickupTokenExpires: claim.pickupTokenExpires ?? null,
       }))
     )
   }
@@ -238,6 +244,31 @@ export function MyClaimsPage() {
                   </div>
                 )}
 
+                {claim.rawStatus === "APPROVED" && claim.pickupToken && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-emerald-800">Claim Approved — Pickup Token Issued</div>
+                        <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
+                        <Ticket className="w-5 h-5" />
+                        {claim.pickupToken}
+                      </div>
+                      {claim.pickupTokenExpires && (
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                          Expires {new Date(claim.pickupTokenExpires).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {isClosableClaimStatus(claim.rawStatus) && (
                   <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
                     <button
@@ -296,7 +327,14 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 function formatClaimStatus(rawStatus: string): string {
-  return rawStatus.replaceAll("_", " ")
+  const map: Record<string, string> = {
+    PENDING_VERIFICATION: "Pending Verification",
+    INQUIRY_REQUIRED: "Inquiry Required",
+    APPROVED: "Approved",
+    DENIED: "Denied",
+    CANCELLED: "Cancelled",
+  }
+  return map[rawStatus] ?? rawStatus.replaceAll("_", " ")
 }
 
 function claimStatusMessage(status: string): string {
@@ -306,6 +344,10 @@ function claimStatusMessage(status: string): string {
 
   if (status === "Denied") {
     return "Claim denied by admin review"
+  }
+
+  if (status === "Approved") {
+    return "Claim approved — present your token at the Admin Office"
   }
 
   return "Awaiting admin review"

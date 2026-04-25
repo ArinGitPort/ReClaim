@@ -98,7 +98,10 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
     }]
   })
 
-  return [...mappedClaimPickups, ...mappedReportPickups].sort(
+  const reportItemIds = new Set(mappedReportPickups.map((p) => p.itemId))
+  const dedupedClaimPickups = mappedClaimPickups.filter((p) => !reportItemIds.has(p.itemId))
+
+  return [...dedupedClaimPickups, ...mappedReportPickups].sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   )
 }
