@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ShieldAlert, Laptop, MapPin, Plus } from "lucide-react"
+import { ShieldAlert, Laptop, MapPin, Plus, Clock } from "lucide-react"
 import { ClaimThisItemModal } from "@/features/claims/ClaimThisItemModal"
 
 export interface FoundItem {
@@ -10,6 +10,7 @@ export interface FoundItem {
   dateLost: string
   isHighValue: boolean
   imageUrl?: string
+  status: string
 }
 
 interface ItemCardProps {
@@ -28,6 +29,7 @@ export function ItemCard({ item }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const isClaimPending = item.status === "CLAIM_PENDING"
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -47,7 +49,7 @@ export function ItemCard({ item }: ItemCardProps) {
       <div 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => { if (!isClaimPending) setIsModalOpen(true) }}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -61,7 +63,8 @@ export function ItemCard({ item }: ItemCardProps) {
           transition: 'all 0.3s ease',
           breakInside: 'avoid',
           cursor: 'pointer',
-          border: '1px solid #e2e8f0'
+          border: '1px solid #e2e8f0',
+          opacity: isClaimPending ? 0.85 : 1,
         }}
       >
         <div style={{
@@ -170,7 +173,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsModalOpen(true);
+              if (!isClaimPending) setIsModalOpen(true);
             }}
             style={{
               position: 'absolute',
@@ -185,8 +188,8 @@ export function ItemCard({ item }: ItemCardProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
-              opacity: (isMobile || isHovered) ? 1 : 0,
+              cursor: isClaimPending ? 'not-allowed' : 'pointer',
+              opacity: isClaimPending ? 0 : ((isMobile || isHovered) ? 1 : 0),
               transform: (isMobile || isHovered) ? 'scale(1)' : 'scale(0.8)',
               transition: 'all 0.2s ease',
               boxShadow: '0 2px 8px rgba(38, 61, 168, 0.4)'
@@ -195,6 +198,29 @@ export function ItemCard({ item }: ItemCardProps) {
           >
             <Plus style={{ width: '18px', height: '18px' }} />
           </button>
+
+          {isClaimPending && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              backgroundColor: 'rgba(245, 158, 11, 0.9)',
+              backdropFilter: 'blur(4px)',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}>
+              <Clock style={{ width: '10px', height: '10px' }} />
+              Claim Pending
+            </div>
+          )}
         </div>
 
         <div style={{

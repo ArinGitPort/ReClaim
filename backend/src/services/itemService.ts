@@ -58,8 +58,8 @@ export async function listPublicItems(filters: {
   page?: number;
   limit?: number;
 }) {
-  const where = {
-    status: filters.status ?? ItemStatus.AVAILABLE,
+  const where: Record<string, unknown> = {
+    status: filters.status ?? { in: [ItemStatus.AVAILABLE, ItemStatus.CLAIM_PENDING] },
     category: filters.category,
     OR: filters.search
       ? [

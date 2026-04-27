@@ -4,6 +4,7 @@ import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { getRealtimeSocket } from "@/lib/realtime"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
 
@@ -92,6 +93,22 @@ export function ClaimsVerificationPage() {
   useEffect(() => {
     setPage(1)
   }, [statusFilter, rowsPerPage])
+
+  useEffect(() => {
+    const socket = getRealtimeSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleClaimUpdated = () => {
+      void loadClaims()
+    }
+
+    socket.on("claim.status.updated", handleClaimUpdated)
+    return () => {
+      socket.off("claim.status.updated", handleClaimUpdated)
+    }
+  }, [loadClaims])
 
   const filteredClaims = useMemo(() => claims, [claims])
 

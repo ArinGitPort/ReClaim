@@ -147,3 +147,18 @@ export function emitItemUpdated(payload: {
 
   ioInstance.emit("item.updated", payload);
 }
+
+export function emitClaimStatusUpdated(payload: {
+  claimId: string;
+  claimCode: string;
+  status: string;
+  claimantUserId: string;
+  foundItemId: string;
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance.to("reports:admins").emit("claim.status.updated", payload);
+  ioInstance.to(`reports:user:${payload.claimantUserId}`).emit("claim.status.updated", payload);
+}

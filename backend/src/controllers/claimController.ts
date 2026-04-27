@@ -6,7 +6,7 @@ import { closeClaimByStudent, decideClaim, listClaims, listClaimsPaginated, subm
 import { logAudit } from "@/services/auditService.js";
 import { HttpError } from "@/utils/errors.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
-import { emitNotificationCreated } from "@/realtime/socket.js";
+import { emitNotificationCreated, emitClaimStatusUpdated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
@@ -205,6 +205,14 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
     status: claim.status === "DENIED" ? "AVAILABLE" : "CLAIM_PENDING",
   });
 
+  emitClaimStatusUpdated({
+    claimId: claim.id,
+    claimCode: claim.claimCode,
+    status: claim.status,
+    claimantUserId: claim.claimantUserId,
+    foundItemId: claim.foundItemId,
+  });
+
   res.json({ claim });
 }
 
@@ -267,6 +275,14 @@ export async function patchClaimProof(req: Request, res: Response): Promise<void
       userId: notification.userId,
       notification,
     });
+  });
+
+  emitClaimStatusUpdated({
+    claimId: claim.id,
+    claimCode: claim.claimCode,
+    status: claim.status,
+    claimantUserId: claim.claimantUserId,
+    foundItemId: claim.foundItemId,
   });
 
   res.json({ claim });
@@ -334,6 +350,14 @@ export async function patchClaimClose(req: Request, res: Response): Promise<void
   emitItemUpdated({
     itemId: claim.foundItemId,
     status: "AVAILABLE",
+  });
+
+  emitClaimStatusUpdated({
+    claimId: claim.id,
+    claimCode: claim.claimCode,
+    status: claim.status,
+    claimantUserId: claim.claimantUserId,
+    foundItemId: claim.foundItemId,
   });
 
   res.json({ claim });

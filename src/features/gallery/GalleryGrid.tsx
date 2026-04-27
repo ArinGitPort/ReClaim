@@ -44,6 +44,7 @@ export function GalleryGrid({
           foundAtUtc: string
           isHighValue: boolean
           imageUrl?: string
+          status: string
         }>
         pagination: {
           page: number
@@ -65,7 +66,8 @@ export function GalleryGrid({
         location: item.foundLocation,
         dateLost: item.foundAtUtc,
         isHighValue: item.isHighValue,
-        imageUrl: item.imageUrl
+        imageUrl: item.imageUrl,
+        status: item.status,
       }))
 
       setItems(nextItems)
