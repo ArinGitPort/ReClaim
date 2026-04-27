@@ -1,5 +1,3 @@
-import { ITEM_COLORS } from "@/features/shared/constants"
-
 export type DynamicFieldConfig = {
   key: string
   label: string
@@ -33,7 +31,7 @@ export function isBagsCategory(category: string): boolean {
   return normalized.includes("bag") || normalized.includes("backpack")
 }
 
-export function requiresColorSelection(category: string): boolean {
+export function requiresColorSelection(_category: string): boolean {
   return true
 }
 

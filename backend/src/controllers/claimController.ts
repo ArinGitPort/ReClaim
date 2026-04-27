@@ -6,7 +6,7 @@ import { closeClaimByStudent, decideClaim, listClaims, listClaimsPaginated, subm
 import { logAudit } from "@/services/auditService.js";
 import { HttpError } from "@/utils/errors.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
-import { emitNotificationCreated, emitClaimStatusUpdated } from "@/realtime/socket.js";
+import { emitNotificationCreated, emitClaimStatusUpdated, emitClaimMessageCreated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
@@ -361,4 +361,79 @@ export async function patchClaimClose(req: Request, res: Response): Promise<void
   });
 
   res.json({ claim });
+}
+
+const postClaimMessageSchema = z.object({
+  message: z.string().min(1),
+});
+
+export async function getClaimMessages(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+
+  const claim = await prisma.claim.findUnique({
+    where: { id },
+  });
+
+  if (!claim) {
+    throw new HttpError(404, "Claim not found");
+  }
+
+  if (req.user!.role === "STUDENT" && claim.claimantUserId !== req.user!.id) {
+    throw new HttpError(403, "You can only view your own claim messages");
+  }
+
+  const messages = await prisma.claimMessage.findMany({
+    where: { claimId: id },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      sender: true,
+      message: true,
+      createdAt: true,
+    }
+  });
+
+  res.json({ messages });
+}
+
+export async function postClaimMessage(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = postClaimMessageSchema.parse(req.body);
+
+  const claim = await prisma.claim.findUnique({
+    where: { id },
+  });
+
+  if (!claim) {
+    throw new HttpError(404, "Claim not found");
+  }
+
+  if (req.user!.role === "STUDENT" && claim.claimantUserId !== req.user!.id) {
+    throw new HttpError(403, "You can only message on your own claim");
+  }
+
+  if (["APPROVED", "DENIED", "CANCELLED"].includes(claim.status)) {
+    throw new HttpError(400, "Cannot send messages on a finalized claim");
+  }
+
+  const message = await prisma.claimMessage.create({
+    data: {
+      claimId: id,
+      sender: req.user!.role === "STUDENT" ? "STUDENT" : "ADMIN",
+      message: body.message,
+    },
+    select: {
+      id: true,
+      sender: true,
+      message: true,
+      createdAt: true,
+    }
+  });
+
+  emitClaimMessageCreated({
+    claimId: id,
+    claimantUserId: claim.claimantUserId,
+  });
+
+  res.status(201).json({ message });
 }

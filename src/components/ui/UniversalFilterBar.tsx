@@ -1,6 +1,5 @@
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react"
 import { useState } from "react"
-import { cn } from "@/lib/utils"
 
 export type FilterOption = {
   label: string

@@ -115,12 +115,24 @@ model Claim {
   pickupToken        String?
   pickupTokenExpires DateTime?   @db.Timestamptz(6)
   handoverLogs       HandoverLog[]
+  messages           ClaimMessage[]
   createdAt          DateTime    @default(now()) @db.Timestamptz(6)
   updatedAt          DateTime    @updatedAt @db.Timestamptz(6)
 
   @@index([foundItemId])
   @@index([claimantUserId])
   @@index([status])
+}
+
+model ClaimMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  claimId   String   @db.Uuid
+  claim     Claim    @relation(fields: [claimId], references: [id])
+  sender    UserRole
+  message   String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([claimId])
 }
 
 model LostReport {

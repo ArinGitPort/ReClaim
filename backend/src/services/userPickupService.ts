@@ -6,7 +6,6 @@ type PickupItem = {
   sourceId: string
   sourceCode: string
   itemId: string
-  inventoryCode: string
   itemTitle: string
   pickupToken: string
   pickupTokenExpires: Date | null
@@ -69,7 +68,6 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
     sourceId: claim.id,
     sourceCode: claim.claimCode,
     itemId: claim.foundItem.id,
-    inventoryCode: claim.foundItem.code,
     itemTitle: claim.foundItem.title,
     pickupToken: claim.pickupToken ?? "",
     pickupTokenExpires: claim.pickupTokenExpires,
@@ -89,7 +87,6 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
       sourceId: report.id,
       sourceCode: report.reportCode,
       itemId: matchedItem.id,
-      inventoryCode: matchedItem.code,
       itemTitle: matchedItem.title,
       pickupToken: matchedClaim.pickupToken,
       pickupTokenExpires: matchedClaim.pickupTokenExpires,

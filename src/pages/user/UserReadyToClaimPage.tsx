@@ -9,7 +9,6 @@ type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
   sourceCode: string
   itemTitle: string
-  inventoryCode: string
   pickupToken: string
   pickupTokenExpires?: string | null
   officeLocation: string
@@ -44,7 +43,7 @@ export function ReadyToClaimPage() {
         return true
       }
 
-      const haystack = [pickup.sourceCode, pickup.itemTitle, pickup.inventoryCode, pickup.pickupToken]
+      const haystack = [pickup.sourceCode, pickup.itemTitle, pickup.pickupToken]
         .join(" ")
         .toLowerCase()
 
@@ -124,9 +123,6 @@ export function ReadyToClaimPage() {
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
                       {pickup.sourceCode}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {pickup.inventoryCode}
                     </span>
                   </div>
                   <h3 className="font-bold text-slate-900 text-lg leading-tight">{pickup.itemTitle}</h3>

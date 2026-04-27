@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle } from "lucide-react"
+import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle, MessageSquare } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { ClaimMessagesModal } from "@/components/ui/ClaimMessagesModal"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
 
@@ -43,6 +44,7 @@ export function ClaimsVerificationPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [note, setNote] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [chatTicketId, setChatTicketId] = useState<string | null>(null)
 
   const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -310,7 +312,17 @@ export function ClaimsVerificationPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
+                    <button
+                      type="button"
+                      onClick={() => setChatTicketId(selectedClaim.id)}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-brand hover:text-brand/80 px-3 py-1.5 rounded-lg bg-brand/5 border border-brand/10 transition-colors shadow-sm"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Open Chat History
+                    </button>
+                  </div>
                   <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {proofEntries(selectedClaim.submittedProof).map((entry) => (
@@ -364,6 +376,17 @@ export function ClaimsVerificationPage() {
           )}
         </div>
       </div>
+
+      {chatTicketId && (
+        <ClaimMessagesModal
+          claimId={chatTicketId}
+          isOpen={true}
+          onClose={() => setChatTicketId(null)}
+          isReadOnly={["APPROVED", "DENIED", "CANCELLED"].includes(
+            filteredClaims.find((c) => c.id === chatTicketId)?.status ?? ""
+          )}
+        />
+      )}
     </div>
   )
 }

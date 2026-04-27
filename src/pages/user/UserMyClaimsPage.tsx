@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket, SendHorizonal } from "lucide-react"
+import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
@@ -9,13 +9,13 @@ import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { SlidersHorizontal } from "lucide-react"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { ClaimMessagesModal, ClaimMessages } from "@/components/ui/ClaimMessagesModal"
 
 interface ClaimView {
   ticketId: string
   id: string
   item: string
   category: string
-  inventoryId: string
   location: string
   submittedDate: string
   rawStatus: string
@@ -32,8 +32,7 @@ export function MyClaimsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
-  const [inquiryResponses, setInquiryResponses] = useState<Record<string, string>>({})
-  const [submittingInquiryId, setSubmittingInquiryId] = useState<string | null>(null)
+  const [chatTicketId, setChatTicketId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
 
@@ -66,7 +65,6 @@ export function MyClaimsPage() {
         id: claim.claimCode,
         item: claim.foundItem.title,
         category: claim.foundItem.category,
-        inventoryId: claim.foundItem.code,
         location: claim.foundItem.foundLocation,
         submittedDate: new Date(claim.createdAt).toLocaleDateString(),
         rawStatus: claim.status,
@@ -110,7 +108,7 @@ export function MyClaimsPage() {
         return true
       }
 
-      const haystack = [claim.id, claim.item, claim.category, claim.inventoryId, claim.location]
+      const haystack = [claim.id, claim.item, claim.category, claim.location]
         .join(" ")
         .toLowerCase()
 
@@ -140,31 +138,6 @@ export function MyClaimsPage() {
       await loadClaims()
     } finally {
       setClosingTicketId(null)
-    }
-  }
-
-  async function handleSubmitInquiryResponse(claim: ClaimView): Promise<void> {
-    const response = (inquiryResponses[claim.ticketId] ?? "").trim()
-    if (!response) {
-      return
-    }
-
-    setSubmittingInquiryId(claim.ticketId)
-    try {
-      await api.patch(`/claims/${claim.ticketId}/proof`, {
-        proof: {
-          inquiryResponse: response,
-          respondedAt: new Date().toISOString(),
-        },
-      })
-      setInquiryResponses((prev) => {
-        const next = { ...prev }
-        delete next[claim.ticketId]
-        return next
-      })
-      await loadClaims()
-    } finally {
-      setSubmittingInquiryId(null)
     }
   }
 
@@ -252,9 +225,6 @@ export function MyClaimsPage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                       {claim.category}
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {claim.inventoryId}
-                    </span>
                   </div>
                   <h3 className="font-bold text-slate-900 text-lg leading-tight">{claim.item}</h3>
                   <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
@@ -272,14 +242,22 @@ export function MyClaimsPage() {
                 {/* Status */}
                 <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
                   <StatusBadge status={claim.status} />
-                  <ClaimStatusMessage status={claim.status} />
-                </div>
+                  <ClaimStatusMessage status={claim.status} />                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setChatTicketId(claim.ticketId)
+                  }}
+                  className="mt-1 flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand/80 transition-colors bg-brand/5 px-2.5 py-1.5 rounded-lg border border-brand/10"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Messages
+                </button>                </div>
               </div>
 
               <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <DetailField label="Submitted Date" value={claim.submittedDate} />
                 <DetailField label="Category" value={claim.category} />
-                <DetailField label="Inventory Code" value={claim.inventoryId} />
 
                 {claim.status === "Inquiry Required" && claim.reviewerNote && (
                   <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 space-y-3">
@@ -287,27 +265,19 @@ export function MyClaimsPage() {
                       <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
                       <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
                     </div>
-                    <div className="border-t border-amber-200 pt-3 space-y-2">
-                      <label className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">Your Response</label>
-                      <textarea
-                        rows={3}
-                        placeholder="Provide additional proof or details requested by the admin..."
-                        value={inquiryResponses[claim.ticketId] ?? ""}
-                        onChange={(e) => setInquiryResponses((prev) => ({ ...prev, [claim.ticketId]: e.target.value }))}
-                        disabled={submittingInquiryId === claim.ticketId}
-                        className="w-full p-3 text-sm bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition-all text-slate-900 resize-none placeholder:text-amber-400 font-medium disabled:opacity-50"
-                      />
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          disabled={submittingInquiryId === claim.ticketId || !(inquiryResponses[claim.ticketId] ?? "").trim()}
-                          onClick={() => void handleSubmitInquiryResponse(claim)}
-                          className="h-9 px-5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          <SendHorizonal className="w-3.5 h-3.5" />
-                          {submittingInquiryId === claim.ticketId ? "Submitting..." : "Submit Response"}
-                        </button>
-                      </div>
+                    <div className="border-t border-amber-200 pt-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                      <p className="text-xs font-semibold text-amber-800/80">Please provide the requested details using the Messages feature.</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setChatTicketId(claim.ticketId)
+                        }}
+                        className="h-10 px-5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-sm"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Open Messages to Respond
+                      </button>
                     </div>
                   </div>
                 )}
@@ -373,6 +343,17 @@ export function MyClaimsPage() {
           itemLabel="claims"
         />
       </div>
+      
+      {chatTicketId && (
+        <ClaimMessagesModal
+          claimId={chatTicketId}
+          isOpen={true}
+          onClose={() => setChatTicketId(null)}
+          isReadOnly={["APPROVED", "DENIED", "CANCELLED", "Approved", "Denied", "Cancelled"].includes(
+            filteredClaims.find((c) => c.ticketId === chatTicketId)?.rawStatus ?? ""
+          )}
+        />
+      )}
     </div>
   )
 }
