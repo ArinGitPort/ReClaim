@@ -336,9 +336,7 @@ export function MyClaimsPage() {
           claimId={chatTicketId}
           isOpen={true}
           onClose={() => setChatTicketId(null)}
-          isReadOnly={["APPROVED", "DENIED", "CANCELLED", "Approved", "Denied", "Cancelled"].includes(
-            filteredClaims.find((c) => c.ticketId === chatTicketId)?.rawStatus ?? ""
-          )}
+          isReadOnly={filteredClaims.find((c) => c.ticketId === chatTicketId)?.rawStatus !== "INQUIRY_REQUIRED"}
         />
       )}
     </div>

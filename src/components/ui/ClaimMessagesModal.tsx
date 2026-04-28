@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import { api } from "@/lib/api"
+import { getRealtimeSocket } from "@/lib/realtime"
 import { Modal } from "./Modal"
 import { Button } from "./button"
 import { SendHorizonal, User, ShieldAlert, Loader2, X } from "lucide-react"
@@ -32,6 +33,27 @@ export function ClaimMessages({ claimId, onMessageSent, isReadOnly = false }: Cl
           setMessages(res.data.messages)
         })
         .finally(() => setLoading(false))
+    }
+  }, [claimId])
+
+  useEffect(() => {
+    const socket = getRealtimeSocket()
+    if (!socket || !claimId) return
+
+    const handleMessage = (data: { claimId: string; messageId: string }) => {
+      if (data.claimId === claimId) {
+        // Fetch the latest messages instead of trying to reconstruct the message object ourselves
+        api.get<{ messages: Message[] }>(`/claims/${claimId}/messages`)
+          .then((res) => {
+            setMessages(res.data.messages)
+          })
+          .catch(() => {})
+      }
+    }
+
+    socket.on("claim.message.created", handleMessage)
+    return () => {
+      socket.off("claim.message.created", handleMessage)
     }
   }, [claimId])
 
@@ -108,8 +130,8 @@ export function ClaimMessages({ claimId, onMessageSent, isReadOnly = false }: Cl
       <div className="p-4 border-t border-slate-100 bg-white shrink-0">
         {isReadOnly ? (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-1">
-            <p className="text-sm font-bold text-slate-500">Messaging is closed</p>
-            <p className="text-xs font-semibold text-slate-400">This claim has been finalized and cannot receive new messages.</p>
+            <p className="text-sm font-bold text-slate-500">Messaging is restricted</p>
+            <p className="text-xs font-semibold text-slate-400">You can only send messages when an inquiry is actively requested.</p>
           </div>
         ) : (
           <>

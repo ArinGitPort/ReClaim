@@ -74,6 +74,14 @@ export async function postClaim(req: Request, res: Response): Promise<void> {
     });
   });
 
+  emitClaimStatusUpdated({
+    claimId: claim.id,
+    claimCode: claim.claimCode,
+    status: claim.status,
+    claimantUserId: claim.claimantUserId,
+    foundItemId: claim.foundItemId,
+  });
+
   emitItemUpdated({
     itemId: claim.foundItemId,
     status: "CLAIM_PENDING",
@@ -414,6 +422,10 @@ export async function postClaimMessage(req: Request, res: Response): Promise<voi
 
   if (["APPROVED", "DENIED", "CANCELLED"].includes(claim.status)) {
     throw new HttpError(400, "Cannot send messages on a finalized claim");
+  }
+
+  if (req.user!.role === "STUDENT" && claim.status === "PENDING_VERIFICATION") {
+    throw new HttpError(403, "You can only send messages when an inquiry is actively requested");
   }
 
   const message = await prisma.claimMessage.create({
