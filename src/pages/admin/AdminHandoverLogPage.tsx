@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Eye, ShieldCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { api } from "@/lib/api"
@@ -38,6 +39,28 @@ export function HandoverLogPage() {
   const [rowsPerPage, setRowsPerPage] = useState(25)
   const [pageCount, setPageCount] = useState(1)
   const [total, setTotal] = useState(0)
+  const [isRestoring, setIsRestoring] = useState(false)
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
+  const [restoreLogId, setRestoreLogId] = useState<string | null>(null)
+
+  async function handleRestore(id: string): Promise<void> {
+    setIsRestoring(true)
+    try {
+      await api.post(`/handover/${id}/restore`)
+      setSelectedLog(null)
+      void loadHandoverLogs({
+        search: logsSearch.trim() || undefined,
+        source: sourceFilter || undefined,
+        page,
+        limit: rowsPerPage,
+      })
+    } catch (err) {
+      console.error(err)
+      alert("Failed to restore handover.")
+    } finally {
+      setIsRestoring(false)
+    }
+  }
 
   const sourceOptions = useMemo(
     () => [
@@ -143,6 +166,20 @@ export function HandoverLogPage() {
               <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Verification Notes</div>
                 <p className="mt-2 text-sm font-semibold text-slate-700">{selectedLog.note?.trim() ? selectedLog.note : "No verification notes recorded."}</p>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRestoreLogId(selectedLog.id)
+                    setShowRestoreConfirm(true)
+                  }}
+                  disabled={isRestoring}
+                  className="h-10 px-6 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                >
+                  {isRestoring ? "Restoring..." : "Restore Handover"}
+                </Button>
               </div>
             </div>
           </div>
@@ -284,6 +321,22 @@ export function HandoverLogPage() {
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showRestoreConfirm}
+        onClose={() => setShowRestoreConfirm(false)}
+        onConfirm={() => {
+          setShowRestoreConfirm(false)
+          if (restoreLogId) {
+            void handleRestore(restoreLogId)
+          }
+        }}
+        title="Restore Handover"
+        message="Are you sure you want to restore this handover? The item will be returned to CLAIM_PENDING status."
+        confirmText="Yes, Restore"
+        cancelText="Cancel"
+        isDestructive={true}
+      />
     </div>
   )
 }

@@ -245,3 +245,58 @@ export async function confirmHandoverByToken(input: {
     };
   });
 }
+
+export async function cancelHandoverByToken(input: { pickupToken: string }) {
+  const claim = await prisma.claim.findFirst({
+    where: {
+      pickupToken: input.pickupToken,
+      status: ClaimStatus.APPROVED,
+    },
+  });
+
+  if (!claim) {
+    throw new HttpError(404, "Pickup token not found or not eligible for cancellation");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updatedClaim = await tx.claim.update({
+      where: { id: claim.id },
+      data: {
+        status: ClaimStatus.CANCELLED,
+        pickupToken: null,
+        pickupTokenExpires: null,
+        reviewerNote: "Handover cancelled by admin",
+      },
+    });
+
+    await tx.foundItem.update({
+      where: { id: claim.foundItemId },
+      data: { status: ItemStatus.AVAILABLE },
+    });
+
+    return updatedClaim;
+  });
+}
+
+export async function restoreHandover(input: { handoverId: string }) {
+  const handover = await prisma.handoverLog.findUnique({
+    where: { id: input.handoverId },
+  });
+
+  if (!handover) {
+    throw new HttpError(404, "Handover log not found");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    await tx.handoverLog.delete({
+      where: { id: handover.id },
+    });
+
+    await tx.foundItem.update({
+      where: { id: handover.foundItemId },
+      data: { status: ItemStatus.CLAIM_PENDING },
+    });
+
+    return { success: true };
+  });
+}

@@ -4,12 +4,12 @@ import {
   MapPin, 
   Upload, 
   Plus, 
-  X, 
-  CheckCircle2,
+  X,
   Camera,
   Archive,
   ShieldAlert
 } from "lucide-react"
+import { StatusContent } from "@/components/ui/StatusContent"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
@@ -119,27 +119,32 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
 
   if (step === 2) {
     return (
-      <div className="p-8 text-center space-y-6 animate-in zoom-in-95 duration-300">
-        <div className="w-20 h-20 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto shadow-inner">
-          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
-        </div>
-        <div>
-          <h3 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">Item Logged Successfully</h3>
-          <p className="text-slate-500 font-medium">{savedCode ?? "Item"} has been added to the secure inventory.</p>
-        </div>
-        <div className="pt-4 flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1 h-12"
-            onClick={() => {
-              resetForm()
-              setStep(1)
-            }}
-          >
-            Log Another
-          </Button>
-          <Button className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold rounded-xl" onClick={onClose}>Close</Button>
-        </div>
+      <div className="animate-in zoom-in-95 duration-300 h-full flex items-center justify-center">
+        <StatusContent
+          title="Item Logged Successfully"
+          message={`${savedCode ?? "Item"} has been added to the secure inventory.`}
+          icon="success"
+          actions={
+            <div className="flex gap-3 mt-4">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs"
+                onClick={() => {
+                  resetForm()
+                  setStep(1)
+                }}
+              >
+                Log Another
+              </Button>
+              <Button 
+                className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs rounded-xl" 
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </div>
+          }
+        />
       </div>
     )
   }

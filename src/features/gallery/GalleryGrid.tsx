@@ -4,6 +4,7 @@ import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function GalleryGrid({
   page,
@@ -17,6 +18,8 @@ export function GalleryGrid({
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [columns, setColumns] = useState(getColumns())
+  const { user } = useAuth()
+  const [activeClaimItemIds, setActiveClaimItemIds] = useState<Set<string>>(new Set())
 
   function getColumns() {
     if (typeof window === 'undefined') return 1
@@ -82,6 +85,29 @@ export function GalleryGrid({
   }, [onDataChange, page, pageSize])
 
   useEffect(() => {
+    if (!user) {
+      setActiveClaimItemIds(new Set())
+      return
+    }
+
+    const fetchClaims = async () => {
+      try {
+        const res = await api.get<{ claims: Array<{ foundItemId: string, status: string }> }>("/claims")
+        const activeIds = new Set(
+          res.data.claims
+            .filter(c => c.status !== 'CANCELLED' && c.status !== 'DENIED')
+            .map(c => c.foundItemId)
+        )
+        setActiveClaimItemIds(activeIds)
+      } catch (err) {
+        console.error("Failed to fetch user claims", err)
+      }
+    }
+
+    void fetchClaims()
+  }, [user])
+
+  useEffect(() => {
     void loadItems()
   }, [loadItems])
 
@@ -125,7 +151,7 @@ export function GalleryGrid({
       margin: '0 auto'
     }}>      
       {items.map(item => (
-        <ItemCard key={item.id} item={item} />
+        <ItemCard key={item.id} item={item} hasActiveClaim={activeClaimItemIds.has(item.id)} />
       ))}
     </div>
   )

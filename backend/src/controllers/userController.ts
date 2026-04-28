@@ -34,7 +34,7 @@ export async function getUserPickups(req: Request, res: Response): Promise<void>
 }
 
 export async function postUserPickupReroll(req: Request, res: Response): Promise<void> {
-  const itemId = req.params.itemId
+  const itemId = req.params.itemId as string;
   const newToken = await rerollPickupToken(req.user!.id, itemId)
   res.json({ pickupToken: newToken })
 }

@@ -5,7 +5,6 @@ import {
   Filter, 
   Eye,
   Edit,
-  Link2,
   ShieldCheck,
   Package,
   MapPin,
@@ -17,7 +16,7 @@ import { cn } from "@/lib/utils"
 import { LogNewItemModal } from "@/features/admin/modals"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
-import { EditInventoryItemModal, InventoryHandoverModal, InventoryItemDetailsModal, InventoryLinkReportModal } from "@/features/admin/modals"
+import { EditInventoryItemModal, InventoryHandoverModal, InventoryItemDetailsModal } from "@/features/admin/modals"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
@@ -51,7 +50,6 @@ export function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState("")
   const [showFastEntry, setShowFastEntry] = useState(false)
   const [editItem, setEditItem] = useState<InventoryRow | null>(null)
-  const [linkItem, setLinkItem] = useState<InventoryRow | null>(null)
   const [detailsItem, setDetailsItem] = useState<InventoryRow | null>(null)
   const [handoverItem, setHandoverItem] = useState<InventoryRow | null>(null)
 
@@ -190,20 +188,6 @@ export function InventoryPage() {
         </div>
       )}
 
-      {linkItem && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setLinkItem(null)} />
-          <div className="relative w-full max-w-3xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
-            <InventoryLinkReportModal
-              item={{ id: linkItem.id, code: linkItem.code, title: linkItem.title, category: linkItem.category, color: linkItem.color }}
-              onClose={() => setLinkItem(null)}
-              onLinked={() => {
-                void loadItems()
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {detailsItem && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-10 px-4">
@@ -359,13 +343,7 @@ export function InventoryPage() {
                         buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
                         onClick={() => setEditItem(item)}
                       />
-                      <ActionIconButton
-                          label={item.status === "AVAILABLE" || item.status === "CLAIM_PENDING" ? "Link to active report" : "Only available items can be linked"}
-                          icon={<Link2 className="w-4 h-4" />}
-                          buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
-                          onClick={() => setLinkItem(item)}
-                          disabled={item.status !== "AVAILABLE" && item.status !== "CLAIM_PENDING"}
-                      />
+
                       <ActionIconButton
                         label="View item details"
                         icon={<Eye className="w-4 h-4" />}

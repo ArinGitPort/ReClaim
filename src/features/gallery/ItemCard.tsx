@@ -15,6 +15,7 @@ export interface FoundItem {
 
 interface ItemCardProps {
   item: FoundItem
+  hasActiveClaim?: boolean
 }
 
 const getRelativeTime = (dateString: string) => {
@@ -25,11 +26,12 @@ const getRelativeTime = (dateString: string) => {
   return `${Math.round(diffHours / 24)}d ago`;
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const isClaimPending = item.status === "CLAIM_PENDING"
+  const isClaimable = !isClaimPending && !hasActiveClaim
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -49,7 +51,7 @@ export function ItemCard({ item }: ItemCardProps) {
       <div 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => { if (!isClaimPending) setIsModalOpen(true) }}
+        onClick={() => { if (isClaimable) setIsModalOpen(true) }}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -62,9 +64,9 @@ export function ItemCard({ item }: ItemCardProps) {
           boxShadow: isHovered ? '0 12px 24px -8px rgba(0,0,0,0.15)' : '0 4px 12px -4px rgba(0,0,0,0.08)',
           transition: 'all 0.3s ease',
           breakInside: 'avoid',
-          cursor: 'pointer',
+          cursor: isClaimable ? 'pointer' : 'default',
           border: '1px solid #e2e8f0',
-          opacity: isClaimPending ? 0.85 : 1,
+          opacity: (isClaimPending || hasActiveClaim) ? 0.85 : 1,
         }}
       >
         <div style={{
@@ -173,7 +175,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (!isClaimPending) setIsModalOpen(true);
+              if (isClaimable) setIsModalOpen(true);
             }}
             style={{
               position: 'absolute',
@@ -188,18 +190,18 @@ export function ItemCard({ item }: ItemCardProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: isClaimPending ? 'not-allowed' : 'pointer',
-              opacity: isClaimPending ? 0 : ((isMobile || isHovered) ? 1 : 0),
+              cursor: isClaimable ? 'pointer' : 'not-allowed',
+              opacity: (isClaimPending || hasActiveClaim) ? 0 : ((isMobile || isHovered) ? 1 : 0),
               transform: (isMobile || isHovered) ? 'scale(1)' : 'scale(0.8)',
               transition: 'all 0.2s ease',
               boxShadow: '0 2px 8px rgba(38, 61, 168, 0.4)'
             }}
-            title="Claim this item"
+            title={hasActiveClaim ? "Claim already submitted" : "Claim this item"}
           >
             <Plus style={{ width: '18px', height: '18px' }} />
           </button>
 
-          {isClaimPending && (
+          {isClaimPending && !hasActiveClaim && (
             <div style={{
               position: 'absolute',
               top: '12px',
@@ -219,6 +221,29 @@ export function ItemCard({ item }: ItemCardProps) {
             }}>
               <Clock style={{ width: '10px', height: '10px' }} />
               Claim Pending
+            </div>
+          )}
+
+          {hasActiveClaim && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              backgroundColor: 'rgba(38, 61, 168, 0.9)',
+              backdropFilter: 'blur(4px)',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}>
+              <ShieldAlert style={{ width: '10px', height: '10px' }} />
+              Claim Submitted
             </div>
           )}
         </div>

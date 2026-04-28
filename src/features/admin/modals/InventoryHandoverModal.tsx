@@ -2,6 +2,7 @@ import { useState } from "react"
 import { CheckCircle2, Search, ShieldCheck, User, Package, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { api } from "@/lib/api"
 
 type InventoryItemLite = {
@@ -46,6 +47,8 @@ export function InventoryHandoverModal({
   const [note, setNote] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handlePreview(): Promise<void> {
@@ -99,6 +102,23 @@ export function InventoryHandoverModal({
       setError("Failed to confirm handover. Please verify token and try again.")
     } finally {
       setIsConfirming(false)
+    }
+  }
+
+  async function handleCancelHandover(): Promise<void> {
+    const token = tokenInput.trim()
+    if (!token || !preview) return
+
+    setIsCancelling(true)
+    setError(null)
+    try {
+      await api.post("/handover/cancel", { pickupToken: token })
+      onCompleted?.()
+      onClose()
+    } catch {
+      setError("Failed to cancel handover.")
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -191,16 +211,42 @@ export function InventoryHandoverModal({
       </div>
 
       <div className="px-6 py-5 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
-        <Button variant="outline" onClick={onClose} className="h-11 px-6">Cancel</Button>
-        <Button
-          onClick={() => void handleConfirm()}
-          disabled={!preview || isConfirming}
-          className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white"
-        >
-          <CheckCircle2 className="w-4 h-4 mr-2" />
-          {isConfirming ? "Confirming..." : "Confirm Handover"}
-        </Button>
+        <Button variant="outline" onClick={onClose} className="h-11 px-6">Close</Button>
+        <div className="flex gap-3">
+          {preview && (
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelConfirm(true)}
+              disabled={isConfirming || isCancelling}
+              className="h-11 px-6 border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            >
+              {isCancelling ? "Cancelling..." : "Cancel Handover"}
+            </Button>
+          )}
+          <Button
+            onClick={() => void handleConfirm()}
+            disabled={!preview || isConfirming || isCancelling}
+            className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {isConfirming ? "Confirming..." : "Confirm Handover"}
+          </Button>
+        </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={() => {
+          setShowCancelConfirm(false)
+          void handleCancelHandover()
+        }}
+        title="Cancel Handover"
+        message="Are you sure you want to cancel this handover? The item will be made available again, and the claim will be cancelled."
+        confirmText="Yes, Cancel Handover"
+        cancelText="Keep Handover"
+        isDestructive={true}
+      />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { AuditAction } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken, listHandoverLogs } from "@/services/handoverService.js";
+import { cancelHandoverByToken, confirmHandoverByToken, createHandoverLog, getHandoverPreviewByToken, listHandoverLogs, restoreHandover } from "@/services/handoverService.js";
 import { logAudit } from "@/services/auditService.js";
 import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
@@ -156,4 +156,24 @@ export async function postHandoverConfirm(req: Request, res: Response): Promise<
     handover: result.handover,
     resolvedReport: result.resolvedReport,
   });
+}
+
+export async function postHandoverCancel(req: Request, res: Response): Promise<void> {
+  const { pickupToken } = handoverPreviewSchema.parse(req.body);
+  const claim = await cancelHandoverByToken({ pickupToken });
+
+  emitItemUpdated({
+    itemId: claim.foundItemId,
+    status: "AVAILABLE",
+  });
+
+  res.json({ claim });
+}
+
+export async function postHandoverRestore(req: Request, res: Response): Promise<void> {
+  const id = req.params.id as string;
+  
+  const result = await restoreHandover({ handoverId: id });
+
+  res.json(result);
 }

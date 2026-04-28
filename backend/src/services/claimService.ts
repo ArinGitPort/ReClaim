@@ -27,11 +27,6 @@ export async function submitClaim(input: {
     include: { foundItem: true },
   });
 
-  await prisma.foundItem.update({
-    where: { id: input.foundItemId },
-    data: { status: ItemStatus.CLAIM_PENDING },
-  });
-
   return claim;
 }
 
@@ -167,7 +162,7 @@ export async function decideClaim(input: {
   await prisma.foundItem.update({
     where: { id: claim.foundItemId },
     data: {
-      status: input.status === ClaimStatus.DENIED ? ItemStatus.AVAILABLE : ItemStatus.CLAIM_PENDING,
+      status: input.status === ClaimStatus.APPROVED ? ItemStatus.CLAIM_PENDING : ItemStatus.AVAILABLE,
     },
   });
 

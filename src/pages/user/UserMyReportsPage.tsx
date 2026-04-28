@@ -99,6 +99,17 @@ export function MyReportsPage() {
             pickupToken: matchedClaim?.pickupToken ?? null,
             pickupTokenExpires: matchedClaim?.pickupTokenExpires ?? null,
           }
+        }).sort((a, b) => {
+          const order: Record<string, number> = {
+            MATCHED: 1,
+            ACTIVE_SEARCH: 2,
+            UNDER_REVIEW: 3,
+            RESOLVED: 4,
+          }
+          const rankA = order[a.rawStatus] || 99
+          const rankB = order[b.rawStatus] || 99
+          if (rankA !== rankB) return rankA - rankB
+          return new Date(b.dateFiled).getTime() - new Date(a.dateFiled).getTime()
         })
       )
     } catch {

@@ -23,6 +23,7 @@ interface ClaimView {
   reviewerNote?: string | null
   pickupToken: string | null
   pickupTokenExpires: string | null
+  itemStatus: string
 }
 
 export function MyClaimsPage() {
@@ -51,6 +52,7 @@ export function MyClaimsPage() {
           title: string
           category: string
           foundLocation: string
+          status: string
         }
       }>
     }>("/claims", {
@@ -72,7 +74,20 @@ export function MyClaimsPage() {
         reviewerNote: claim.reviewerNote,
         pickupToken: claim.pickupToken ?? null,
         pickupTokenExpires: claim.pickupTokenExpires ?? null,
-      }))
+        itemStatus: claim.foundItem.status,
+      })).sort((a, b) => {
+        const order: Record<string, number> = {
+          INQUIRY_REQUIRED: 1,
+          PENDING_VERIFICATION: 2,
+          APPROVED: 3,
+          DENIED: 4,
+          CANCELLED: 5,
+        };
+        const rankA = order[a.rawStatus] || 99;
+        const rankB = order[b.rawStatus] || 99;
+        if (rankA !== rankB) return rankA - rankB;
+        return new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime();
+      })
     )
   }, [])
 
@@ -271,26 +286,40 @@ export function MyClaimsPage() {
 
                 {claim.rawStatus === "APPROVED" && claim.pickupToken && (
                   <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
-                        <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-emerald-800">Claim Approved — Pickup Token Issued</div>
-                        <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
-                        <Ticket className="w-5 h-5" />
-                        {claim.pickupToken}
-                      </div>
-                      {claim.pickupTokenExpires && (
-                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                          Expires {new Date(claim.pickupTokenExpires).toLocaleString()}
+                    {claim.itemStatus === "RETURNED" ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-5 h-5 text-emerald-600" />
                         </div>
-                      )}
-                    </div>
+                        <div>
+                          <div className="text-sm font-bold text-emerald-800">Handover Completed</div>
+                          <div className="text-xs font-semibold text-emerald-600 mt-0.5">You have successfully picked up this item.</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-emerald-800">Claim Approved — Pickup Token Issued</div>
+                            <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
+                            <Ticket className="w-5 h-5" />
+                            {claim.pickupToken}
+                          </div>
+                          {claim.pickupTokenExpires && (
+                            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                              Expires {new Date(claim.pickupTokenExpires).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
