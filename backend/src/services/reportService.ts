@@ -148,7 +148,13 @@ export async function updateReportStatus(input: {
         throw new HttpError(404, "Matched found item not found");
       }
 
-        if (matchedItem.status !== ItemStatus.AVAILABLE && matchedItem.status !== ItemStatus.CLAIM_PENDING) {
+      if (matchedItem.status !== ItemStatus.AVAILABLE && matchedItem.status !== ItemStatus.CLAIM_PENDING) {
+        throw new HttpError(409, "Found item is no longer available for matching");
+      }
+
+      const now = new Date();
+      const updatedReport = await tx.lostReport.update({
+        where: { id: input.reportId },
         data: {
           status: ReportStatus.MATCHED,
           matchedItemId,
