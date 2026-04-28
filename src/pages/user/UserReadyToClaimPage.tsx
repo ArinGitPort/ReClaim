@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react"
-import { ShieldCheck, Ticket, MapPin, CalendarClock, Search } from "lucide-react"
+import { ShieldCheck, Ticket, MapPin, CalendarClock, Search, RefreshCcw } from "lucide-react"
 import { api } from "@/lib/api"
 import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { Button } from "@/components/ui/button"
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
   sourceCode: string
+  itemId: string
   itemTitle: string
   pickupToken: string
   pickupTokenExpires?: string | null
@@ -22,14 +24,23 @@ export function ReadyToClaimPage() {
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
 
-  useEffect(() => {
-    async function loadPickups(): Promise<void> {
-      const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
-      setPickups(response.data.pickups)
-    }
+  async function loadPickups(): Promise<void> {
+    const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
+    setPickups(response.data.pickups)
+  }
 
+  useEffect(() => {
     void loadPickups()
   }, [])
+
+  const handleReroll = async (itemId: string) => {
+    try {
+      await api.post(`/user/pickups/${itemId}/reroll`)
+      void loadPickups()
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Failed to regenerate token")
+    }
+  }
 
   const filteredPickups = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -139,16 +150,34 @@ export function ReadyToClaimPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-5 rounded-xl border border-emerald-200 border-t-slate-100 bg-emerald-50 px-4 py-3">
-                <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Pickup Token</div>
-                <div className="text-xl font-black text-emerald-800 tracking-wide flex items-center gap-2">
-                  <Ticket className="w-5 h-5" /> {pickup.pickupToken}
-                </div>
-                <p className="mt-2 text-xs font-semibold text-emerald-700">
-                  Present this token and your ID at the Admin Office.
-                  {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
-                </p>
-              </div>
+              {(() => {
+                const isExpired = pickup.pickupTokenExpires && new Date(pickup.pickupTokenExpires).getTime() < Date.now();
+                return (
+                  <div className={`mt-5 pt-5 rounded-xl border px-4 py-3 ${isExpired ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
+                    <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isExpired ? "text-red-700" : "text-emerald-700"}`}>Pickup Token</div>
+                    <div className={`text-xl font-black tracking-wide flex items-center gap-2 ${isExpired ? "text-red-800" : "text-emerald-800"}`}>
+                      <Ticket className="w-5 h-5" /> {isExpired ? "EXPIRED" : pickup.pickupToken}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                      <p className={`text-xs font-semibold ${isExpired ? "text-red-700" : "text-emerald-700"}`}>
+                        {isExpired ? "Your token has expired. Please regenerate a new one." : "Present this token and your ID at the Admin Office."}
+                        {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
+                      </p>
+                      {isExpired && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700"
+                          onClick={() => handleReroll(pickup.itemId)}
+                        >
+                          <RefreshCcw className="w-4 h-4 mr-2" />
+                          Regenerate
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
 

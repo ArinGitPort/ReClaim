@@ -360,11 +360,11 @@ export function InventoryPage() {
                         onClick={() => setEditItem(item)}
                       />
                       <ActionIconButton
-                        label={item.status === "AVAILABLE" ? "Link to active report" : "Only available items can be linked"}
-                        icon={<Link2 className="w-4 h-4" />}
-                        buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
-                        onClick={() => setLinkItem(item)}
-                        disabled={item.status !== "AVAILABLE"}
+                          label={item.status === "AVAILABLE" || item.status === "CLAIM_PENDING" ? "Link to active report" : "Only available items can be linked"}
+                          icon={<Link2 className="w-4 h-4" />}
+                          buttonClassName="bg-sky-100 border-sky-200 text-sky-800 hover:bg-sky-200 hover:text-sky-900"
+                          onClick={() => setLinkItem(item)}
+                          disabled={item.status !== "AVAILABLE" && item.status !== "CLAIM_PENDING"}
                       />
                       <ActionIconButton
                         label="View item details"

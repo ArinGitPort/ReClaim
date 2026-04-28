@@ -1,5 +1,7 @@
 import { ClaimStatus, ReportStatus } from "@prisma/client"
 import { prisma } from "@/lib/prisma.js"
+import { createPickupToken } from "@/utils/codes.js"
+import { HttpError } from "@/utils/errors.js"
 
 type PickupItem = {
   source: "CLAIM" | "REPORT_MATCH"
@@ -101,4 +103,37 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
   return [...dedupedClaimPickups, ...mappedReportPickups].sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   )
+}
+
+export async function rerollPickupToken(userId: string, itemId: string): Promise<string> {
+  const claim = await prisma.claim.findFirst({
+    where: {
+      claimantUserId: userId,
+      foundItemId: itemId,
+      status: ClaimStatus.APPROVED,
+      pickupToken: { not: null },
+    },
+  })
+
+  if (!claim) {
+    throw new HttpError(404, "Active approved claim with token not found or doesn't belong to you")
+  }
+
+  const isExpired = claim.pickupTokenExpires && claim.pickupTokenExpires.getTime() < Date.now()
+  if (!isExpired) {
+    throw new HttpError(400, "Token has not expired yet")
+  }
+
+  const newToken = createPickupToken()
+  const newExpires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
+
+  await prisma.claim.update({
+    where: { id: claim.id },
+    data: {
+      pickupToken: newToken,
+      pickupTokenExpires: newExpires,
+    },
+  })
+
+  return newToken
 }
