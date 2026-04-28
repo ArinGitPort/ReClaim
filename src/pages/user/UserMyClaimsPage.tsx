@@ -108,7 +108,7 @@ export function MyClaimsPage() {
         return true
       }
 
-      const haystack = [claim.id, claim.item, claim.category, claim.location]
+      const haystack = [claim.item, claim.category, claim.location]
         .join(" ")
         .toLowerCase()
 
@@ -170,7 +170,7 @@ export function MyClaimsPage() {
             setSearch(value)
             setPage(1)
           }}
-          searchPlaceholder="Search by claim code, item, inventory code, category, or location"
+          searchPlaceholder="Search by item, category, or location"
           dropdowns={[
             {
               id: "status",
@@ -219,9 +219,6 @@ export function MyClaimsPage() {
                 {/* Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {claim.id}
-                    </span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                       {claim.category}
                     </span>
@@ -259,25 +256,15 @@ export function MyClaimsPage() {
                 <DetailField label="Submitted Date" value={claim.submittedDate} />
                 <DetailField label="Category" value={claim.category} />
 
-                {claim.status === "Inquiry Required" && claim.reviewerNote && (
-                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 space-y-3">
-                    <div>
-                      <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1">Admin Inquiry</div>
-                      <p className="text-sm font-semibold text-amber-800">{claim.reviewerNote}</p>
+                {claim.status === "Inquiry Required" && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-0 py-0 space-y-3 overflow-hidden flex flex-col items-stretch">
+                    <div className="p-4 bg-amber-100 border-b border-amber-200">
+                      <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1 flex items-center justify-between">Admin Dialogue / History <span className="font-semibold capitalize text-amber-900 bg-amber-200/50 px-2 py-0.5 rounded text-[10px] border border-amber-300">Action Required</span></div>
+                      <p className="text-sm font-semibold text-amber-900">Please provide the requested details using the Messages feature.</p>
+                      
                     </div>
-                    <div className="border-t border-amber-200 pt-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                      <p className="text-xs font-semibold text-amber-800/80">Please provide the requested details using the Messages feature.</p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setChatTicketId(claim.ticketId)
-                        }}
-                        className="h-10 px-5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-sm"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        Open Messages to Respond
-                      </button>
+                    <div className="flex-1 bg-white border-t border-amber-200 mt-2 min-h-[300px] h-[350px]">
+                      <ClaimMessages claimId={claim.ticketId} onMessageSent={loadClaims} />
                     </div>
                   </div>
                 )}

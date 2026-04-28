@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
-import { ClaimMessagesModal } from "@/components/ui/ClaimMessagesModal"
+import { ClaimMessages } from "@/components/ui/ClaimMessagesModal"
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
 
@@ -44,7 +44,6 @@ export function ClaimsVerificationPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [note, setNote] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [chatTicketId, setChatTicketId] = useState<string | null>(null)
 
   const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -138,8 +137,8 @@ export function ClaimsVerificationPage() {
       return
     }
 
-    if ((status === "DENIED" || status === "INQUIRY_REQUIRED") && !note.trim()) {
-      setError("A reviewer note is required for deny or inquiry.")
+    if (status === "DENIED" && !note.trim()) {
+      setError("A reviewer note is required for denial.")
       return
     }
 
@@ -312,34 +311,44 @@ export function ClaimsVerificationPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted Proof Details</h3>
-                    <button
-                      type="button"
-                      onClick={() => setChatTicketId(selectedClaim.id)}
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-brand hover:text-brand/80 px-3 py-1.5 rounded-lg bg-brand/5 border border-brand/10 transition-colors shadow-sm"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      Open Chat History
-                    </button>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Submitted Proof Details</h3>
+                    <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {proofEntries(selectedClaim.submittedProof).map((entry) => (
+                          <ProofField key={entry.label} label={entry.label} value={entry.value} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-brand/10 bg-brand/5 p-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {proofEntries(selectedClaim.submittedProof).map((entry) => (
-                        <ProofField key={entry.label} label={entry.label} value={entry.value} />
-                      ))}
+
+                  <div className="pt-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-3">
+                      <MessageSquare className="w-3.5 h-3.5" /> Dialogue & Chat History
+                    </h3>
+                    <div className="h-[400px] border border-slate-200 rounded-xl overflow-hidden bg-slate-50 relative">
+                      {isPendingState(selectedClaim.status) ? (
+                        <div className="absolute inset-x-0 top-0 h-10 bg-amber-50 border-b border-amber-100 flex items-center px-4 z-10">
+                          <span className="text-xs font-bold text-amber-700 flex items-center gap-2">
+                            <Clock3 className="w-3.5 h-3.5" /> Ask questions or request more proof from the student here.
+                          </span>
+                        </div>
+                      ) : null}
+                      <div className={cn("h-full", isPendingState(selectedClaim.status) ? "pt-10" : "")}>
+                        <ClaimMessages claimId={selectedClaim.id} isReadOnly={!isPendingState(selectedClaim.status)} />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note</label>
+                <div className="space-y-2 pt-6 border-t border-slate-100">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Reviewer Note (Required for Denial)</label>
                   <textarea
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
-                    placeholder="Required for deny or inquiry"
-                    rows={4}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm bg-white"
+                    placeholder="Provide a reason if you are denying this claim..."
+                    rows={3}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-200 transition-all placeholder:text-slate-400"
                   />
                 </div>
 
@@ -376,17 +385,6 @@ export function ClaimsVerificationPage() {
           )}
         </div>
       </div>
-
-      {chatTicketId && (
-        <ClaimMessagesModal
-          claimId={chatTicketId}
-          isOpen={true}
-          onClose={() => setChatTicketId(null)}
-          isReadOnly={["APPROVED", "DENIED", "CANCELLED"].includes(
-            filteredClaims.find((c) => c.id === chatTicketId)?.status ?? ""
-          )}
-        />
-      )}
     </div>
   )
 }
