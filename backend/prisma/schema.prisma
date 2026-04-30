@@ -220,3 +220,19 @@ model Notification {
   @@index([userId, readAt])
   @@index([createdAt])
 }
+
+model Camera {
+  id              String    @id @default(uuid()) @db.Uuid
+  code            String    @unique
+  name            String
+  location        String
+  sourceUrl       String
+  isOnline        Boolean   @default(false)
+  aiEnabled       Boolean   @default(false)
+  lastPingAtUtc   DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@index([isOnline])
+  @@index([aiEnabled])
+}

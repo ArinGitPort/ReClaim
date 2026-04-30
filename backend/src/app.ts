@@ -15,6 +15,8 @@ import { notificationRoutes } from "@/routes/notificationRoutes.js";
 import { reportRoutes } from "@/routes/reportRoutes.js";
 import { userRoutes } from "@/routes/userRoutes.js";
 import { dashboardRoutes } from "@/routes/dashboardRoutes.js";
+import { snapshotRoutes } from "@/routes/snapshotRoutes.js";
+import { cameraRoutes } from "@/routes/cameraRoutes.js";
 
 export const app = express();
 
@@ -64,6 +66,8 @@ app.get("/api", (_req, res) => {
       evidence: "/api/evidence",
       audit: "/api/audit",
       dashboard: "/api/dashboard",
+      snapshots: "/api/snapshots",
+      cameras: "/api/cameras",
     },
   });
 });
@@ -78,6 +82,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/handover", handoverRoutes);
 app.use("/api/evidence", evidenceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/snapshots", snapshotRoutes);
+app.use("/api/cameras", cameraRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

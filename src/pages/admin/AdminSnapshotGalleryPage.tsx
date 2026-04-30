@@ -4,24 +4,19 @@ import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput } from "@/features/admin/components/admin-list-layout"
+import { api } from "@/lib/api"
 
-// Mock snapshot data
 type AISnapshot = {
   id: string
-  imageUrl: string
-  timestampStr: string
-  location: string
-  predictedCategory: string
-  confidenceScore: number
+  sourceCameraId: string
+  snapshotPath: string
+  detectedAtUtc: string
+  detectionMeta: {
+    category?: string
+    confidence?: number
+    location?: string
+  }
 }
-
-const MOCK_SNAPSHOTS: AISnapshot[] = [
-  { id: "snp_1", imageUrl: "", timestampStr: "Today, 08:15 AM", location: "Main Library Gate", predictedCategory: "Backpack", confidenceScore: 94 },
-  { id: "snp_2", imageUrl: "", timestampStr: "Today, 09:30 AM", location: "Student Union Hall", predictedCategory: "Water Bottle", confidenceScore: 82 },
-  { id: "snp_3", imageUrl: "", timestampStr: "Today, 11:45 AM", location: "Engineering Bldg Corridor", predictedCategory: "Laptop/Tablet", confidenceScore: 98 },
-  { id: "snp_4", imageUrl: "", timestampStr: "Yesterday, 04:20 PM", location: "Main Library Gate", predictedCategory: "Smartphone", confidenceScore: 76 },
-  { id: "snp_5", imageUrl: "", timestampStr: "Yesterday, 05:10 PM", location: "Cafeteria Entrance", predictedCategory: "Jacket", confidenceScore: 88 },
-]
 
 export function SnapshotGalleryPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -29,23 +24,69 @@ export function SnapshotGalleryPage() {
   const [confidenceFilter, setConfidenceFilter] = useState("")
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [snapshots, setSnapshots] = useState<AISnapshot[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadSnapshots = async () => {
+    try {
+      const response = await api.get<{ snapshots: AISnapshot[] }>("/snapshots")
+      setSnapshots(response.data.snapshots)
+    } catch (err) {
+      alert("Failed to load snapshots")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadSnapshots()
+  }, [])
+
+  const handleDismiss = async (id: string) => {
+    try {
+      await api.delete(`/snapshots/${id}`)
+      setSnapshots(prev => prev.filter(s => s.id !== id))
+    } catch {
+      alert("Failed to dismiss snapshot")
+    }
+  }
+
+  const handleLogFound = async (snapshot: AISnapshot) => {
+    try {
+      await api.post(`/snapshots/${snapshot.id}/log-found`, {
+        title: snapshot.detectionMeta.category || "AI Detected Item",
+        category: snapshot.detectionMeta.category || "Other",
+        color: "Unknown",
+        foundLocation: snapshot.detectionMeta.location || snapshot.sourceCameraId,
+      })
+      alert("Item successfully logged into inventory")
+      setSnapshots(prev => prev.filter(s => s.id !== snapshot.id))
+    } catch {
+      alert("Failed to log item")
+    }
+  }
   
   // Filtering logic
   const filteredSnapshots = useMemo(() => {
-    return MOCK_SNAPSHOTS.filter(s => {
-      if (searchQuery && !s.predictedCategory.toLowerCase().includes(searchQuery.toLowerCase())) return false
-      if (locationFilter && s.location !== locationFilter) return false
+    return snapshots.filter(s => {
+      const meta = s.detectionMeta || {}
+      const cat = meta.category || ""
+      const loc = meta.location || s.sourceCameraId || ""
+      const conf = (meta.confidence || 0) * 100
+
+      if (searchQuery && !cat.toLowerCase().includes(searchQuery.toLowerCase())) return false
+      if (locationFilter && loc !== locationFilter) return false
       
       if (confidenceFilter) {
-        if (confidenceFilter === "high" && s.confidenceScore < 90) return false
-        if (confidenceFilter === "medium" && s.confidenceScore < 75) return false
+        if (confidenceFilter === "high" && conf < 90) return false
+        if (confidenceFilter === "medium" && conf < 75) return false
       }
       return true
     })
-  }, [searchQuery, locationFilter, confidenceFilter])
+  }, [snapshots, searchQuery, locationFilter, confidenceFilter])
 
   // Get unique locations config
-  const uniqueLocations = Array.from(new Set(MOCK_SNAPSHOTS.map(s => s.location)))
+  const uniqueLocations = Array.from(new Set(snapshots.map(s => (s.detectionMeta || {}).location || s.sourceCameraId)))
 
   // Pagination logic
   useEffect(() => {
@@ -63,7 +104,7 @@ export function SnapshotGalleryPage() {
         actions={(
           <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
             <AlertCircle className="w-3.5 h-3.5" />
-            Unreviewed Items: {MOCK_SNAPSHOTS.length}
+            Unreviewed Items: {snapshots.length}
           </div>
         )}
       />
@@ -130,40 +171,46 @@ export function SnapshotGalleryPage() {
             {paginatedSnapshots.map(snapshot => (
               <div key={snapshot.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col">
                 {/* Image Placeholder */}
-                <div className="w-full h-48 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative">
-                  <Camera className="w-10 h-10 mb-2 opacity-50" />
-                  <span className="text-xs font-medium uppercase tracking-widest">Snapshot preview hidden</span>
+                <div className="w-full h-48 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden">
+                  {snapshot.snapshotPath ? (
+                    <img src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${snapshot.snapshotPath}`} alt="Snapshot" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <Camera className="w-10 h-10 mb-2 opacity-50" />
+                      <span className="text-xs font-medium uppercase tracking-widest">Snapshot preview hidden</span>
+                    </>
+                  )}
                   
                   {/* Confidence Badge */}
                   <div className={`absolute top-3 right-3 px-2 py-1 rounded shadow-sm text-[10px] font-extrabold uppercase tracking-widest border ${
-                    snapshot.confidenceScore >= 90 ? 'bg-green-50 text-green-700 border-green-200' :
-                    snapshot.confidenceScore >= 75 ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                    ((snapshot.detectionMeta || {}).confidence || 0) * 100 >= 90 ? 'bg-green-50 text-green-700 border-green-200' :
+                    ((snapshot.detectionMeta || {}).confidence || 0) * 100 >= 75 ? 'bg-blue-50 text-blue-700 border-blue-200' : 
                     'bg-amber-50 text-amber-700 border-amber-200'
                   }`}>
-                    {snapshot.confidenceScore}% Match
+                    {Math.round(((snapshot.detectionMeta || {}).confidence || 0) * 100)}% Match
                   </div>
                 </div>
                 
                 <div className="p-5 flex-1 flex flex-col space-y-4">
                   <div>
-                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-brand transition-colors">
-                      {snapshot.predictedCategory}
+                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-brand transition-colors capitalize">
+                      {(snapshot.detectionMeta || {}).category || "Unknown Object"}
                     </h4>
                     <div className="flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-slate-500">
                       <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      {snapshot.timestampStr}
+                      {new Date(snapshot.detectedAtUtc).toLocaleString()}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-slate-500">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      {snapshot.location}
+                      {(snapshot.detectionMeta || {}).location || snapshot.sourceCameraId}
                     </div>
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 mt-auto">
-                    <Button className="h-9 px-0 w-full bg-slate-100 hover:bg-rose-50 text-rose-600 font-bold border-none shadow-none uppercase tracking-widest text-[10px]">
+                    <Button onClick={() => handleDismiss(snapshot.id)} className="h-9 px-0 w-full bg-slate-100 hover:bg-rose-50 text-rose-600 font-bold border-none shadow-none uppercase tracking-widest text-[10px]">
                       <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Dismiss
                     </Button>
-                    <Button className="h-9 px-0 w-full bg-brand hover:bg-brand-active text-white font-bold border-none shadow-sm uppercase tracking-widest text-[10px]">
+                    <Button onClick={() => handleLogFound(snapshot)} className="h-9 px-0 w-full bg-brand hover:bg-brand-active text-white font-bold border-none shadow-sm uppercase tracking-widest text-[10px]">
                       <Check className="w-3.5 h-3.5 mr-1.5" /> Log Found
                     </Button>
                   </div>
