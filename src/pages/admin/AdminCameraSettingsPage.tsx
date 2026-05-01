@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Video, Plus, Settings, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/Switch"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AddCameraModal } from "@/features/admin/components/AddCameraModal"
 import { api } from "@/lib/api"
@@ -21,6 +22,8 @@ export function CameraSettingsPage() {
   const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [cameraToDelete, setCameraToDelete] = useState<CampusCamera | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
@@ -59,6 +62,20 @@ export function CameraSettingsPage() {
     const response = await api.post<{ camera: CampusCamera }>("/cameras", data)
     setCameras(prev => [...prev, response.data.camera])
     setIsAddModalOpen(false)
+  }
+
+  const confirmDeleteCamera = async () => {
+    if (!cameraToDelete) return
+    setIsDeleting(true)
+    try {
+      await api.delete(`/cameras/${cameraToDelete.id}`)
+      setCameras(prev => prev.filter(c => c.id !== cameraToDelete.id))
+      setCameraToDelete(null)
+    } catch {
+      alert("Failed to delete camera")
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const formatLastPing = (utcStr: string | null) => {
@@ -161,9 +178,10 @@ export function CameraSettingsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+                      onClick={() => setCameraToDelete(camera)}
+                      className="h-8 border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 text-[10px] font-bold uppercase tracking-widest text-rose-600"
                     >
-                      <Settings className="mr-1.5 h-3.5 w-3.5" /> Settings
+                      Delete
                     </Button>
                   </td>
                 </tr>
@@ -177,6 +195,18 @@ export function CameraSettingsPage() {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onSubmit={handleAddCamera} 
+      />
+
+      <ConfirmModal
+        isOpen={!!cameraToDelete}
+        onClose={() => !isDeleting && setCameraToDelete(null)}
+        onConfirm={confirmDeleteCamera}
+        title="Delete Camera"
+        message={`Are you sure you want to delete ${cameraToDelete?.name}? This action cannot be undone and will stop AI detection for this location.`}
+        confirmText="Delete Camera"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isDeleting}
       />
     </div>
   )

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput } from "@/features/admin/components/admin-list-layout"
+import { SnapshotDetailsModal } from "@/features/admin/modals/SnapshotDetailsModal"
 import { api } from "@/lib/api"
 
 type AISnapshot = {
@@ -26,6 +27,7 @@ export function SnapshotGalleryPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [snapshots, setSnapshots] = useState<AISnapshot[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedSnapshot, setSelectedSnapshot] = useState<AISnapshot | null>(null)
 
   const loadSnapshots = async () => {
     try {
@@ -167,22 +169,26 @@ export function SnapshotGalleryPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {paginatedSnapshots.map(snapshot => (
-              <div key={snapshot.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+              <div 
+                key={snapshot.id} 
+                onClick={() => setSelectedSnapshot(snapshot)}
+                className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md hover:border-brand/40 transition-all cursor-pointer group flex flex-col"
+              >
                 {/* Image Placeholder */}
-                <div className="w-full h-48 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden">
+                <div className="w-full h-32 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden group-hover:opacity-90 transition-opacity">
                   {snapshot.snapshotPath ? (
                     <img src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${snapshot.snapshotPath}`} alt="Snapshot" className="w-full h-full object-cover" />
                   ) : (
                     <>
-                      <Camera className="w-10 h-10 mb-2 opacity-50" />
-                      <span className="text-xs font-medium uppercase tracking-widest">Snapshot preview hidden</span>
+                      <Camera className="w-6 h-6 mb-1 opacity-50" />
+                      <span className="text-[10px] font-medium uppercase tracking-widest">No Preview</span>
                     </>
                   )}
                   
                   {/* Confidence Badge */}
-                  <div className={`absolute top-3 right-3 px-2 py-1 rounded shadow-sm text-[10px] font-extrabold uppercase tracking-widest border ${
+                  <div className={`absolute top-2 right-2 px-1.5 py-0.5 rounded shadow-sm text-[8px] font-extrabold uppercase tracking-widest border ${
                     ((snapshot.detectionMeta || {}).confidence || 0) * 100 >= 90 ? 'bg-green-50 text-green-700 border-green-200' :
                     ((snapshot.detectionMeta || {}).confidence || 0) * 100 >= 75 ? 'bg-blue-50 text-blue-700 border-blue-200' : 
                     'bg-amber-50 text-amber-700 border-amber-200'
@@ -191,28 +197,17 @@ export function SnapshotGalleryPage() {
                   </div>
                 </div>
                 
-                <div className="p-5 flex-1 flex flex-col space-y-4">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-brand transition-colors capitalize">
-                      {(snapshot.detectionMeta || {}).category || "Unknown Object"}
-                    </h4>
-                    <div className="flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-slate-500">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      {new Date(snapshot.detectedAtUtc).toLocaleString()}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-slate-500">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      {(snapshot.detectionMeta || {}).location || snapshot.sourceCameraId}
-                    </div>
+                <div className="p-3 flex-1 flex flex-col">
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-brand transition-colors capitalize truncate">
+                    {(snapshot.detectionMeta || {}).category || "Unknown"}
+                  </h4>
+                  <div className="flex items-center gap-1.5 mt-1 text-[10px] font-semibold text-slate-500">
+                    <Clock className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                    <span className="truncate">{new Date(snapshot.detectedAtUtc).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
-
-                  <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 mt-auto">
-                    <Button onClick={() => handleDismiss(snapshot.id)} className="h-9 px-0 w-full bg-slate-100 hover:bg-rose-50 text-rose-600 font-bold border-none shadow-none uppercase tracking-widest text-[10px]">
-                      <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Dismiss
-                    </Button>
-                    <Button onClick={() => handleLogFound(snapshot)} className="h-9 px-0 w-full bg-brand hover:bg-brand-active text-white font-bold border-none shadow-sm uppercase tracking-widest text-[10px]">
-                      <Check className="w-3.5 h-3.5 mr-1.5" /> Log Found
-                    </Button>
+                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-semibold text-slate-500">
+                    <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                    <span className="truncate">{(snapshot.detectionMeta || {}).location || snapshot.sourceCameraId}</span>
                   </div>
                 </div>
               </div>
@@ -232,6 +227,20 @@ export function SnapshotGalleryPage() {
           />
         </div>
       )}
+
+      <SnapshotDetailsModal
+        isOpen={!!selectedSnapshot}
+        onClose={() => setSelectedSnapshot(null)}
+        snapshot={selectedSnapshot}
+        onDismiss={async (id) => {
+          await handleDismiss(id)
+          setSelectedSnapshot(null)
+        }}
+        onLogFound={async (snap) => {
+          await handleLogFound(snap)
+          setSelectedSnapshot(null)
+        }}
+      />
     </div>
   )
 }

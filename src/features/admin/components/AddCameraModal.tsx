@@ -66,13 +66,19 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
       
       if (targetDevice) {
         navigator.mediaDevices.getUserMedia({ 
-          video: { deviceId: { exact: targetDevice.deviceId } } 
+          video: { deviceId: targetDevice.deviceId ? { exact: targetDevice.deviceId } : undefined } 
         })
         .then(stream => {
           streamRef.current = stream
           if (videoRef.current) {
             videoRef.current.srcObject = stream
             videoRef.current.play().catch(console.warn)
+          }
+          // If labels are missing, permission was just granted. Fetch devices again to get actual names.
+          if (!devices[0]?.label) {
+            navigator.mediaDevices.enumerateDevices().then(devs => {
+              setDevices(devs.filter(d => d.kind === "videoinput"))
+            }).catch(console.warn)
           }
         })
         .catch(err => console.warn("Failed to start preview", err))
@@ -81,8 +87,11 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
       stopStream()
     }
 
-    return () => stopStream()
-  }, [isOpen, sourceType, webcamIndex, devices])
+    // Stop stream on cleanup
+    return () => {
+      stopStream()
+    }
+  }, [isOpen, sourceType, webcamIndex]) // Removed 'devices' from dependencies to prevent infinite loops
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -199,7 +208,8 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
                 <>
                   <video 
                     ref={videoRef} 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover bg-black" 
+                    autoPlay
                     muted 
                     playsInline 
                   />
