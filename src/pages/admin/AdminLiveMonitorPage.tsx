@@ -1,21 +1,12 @@
-import { useState, useEffect } from "react"
-import { Activity, Radio, Expand, BellDot, LayoutGrid, MonitorPlay } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Activity, Radio, Expand, MapPin, LayoutGrid, MonitorPlay, ScanSearch, Clock } from "lucide-react"
 import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
 import { Select } from "@/components/ui/Select"
 import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
 
 import { api } from "@/lib/api"
 import { AI_STREAM_BASE_URL } from "@/lib/constants"
-
-// Simulated mock data for recent detections
-const MOCK_RECENT_DETECTIONS = [
-  { id: 1, time: "10:42 AM", location: "Cafeteria Entry", category: "Electronics", conf: "92%" },
-  { id: 2, time: "10:38 AM", location: "Main Entrance", category: "Bag/Backpack", conf: "88%" },
-  { id: 3, time: "10:15 AM", location: "Gymnasium", category: "Water Bottle", conf: "95%" },
-  { id: 4, time: "09:50 AM", location: "Main Library", category: "Keys", conf: "78%" },
-  { id: 5, time: "09:12 AM", location: "Cafeteria Entry", category: "Wallet", conf: "99%" },
-  { id: 6, time: "08:45 AM", location: "Main Library", category: "Electronics", conf: "84%" }
-]
 
 type CampusCamera = {
   id: string
@@ -28,13 +19,26 @@ type CampusCamera = {
   lastPingAtUtc: string | null
 }
 
+type AISnapshot = {
+  id: string
+  sourceCameraId: string
+  snapshotPath: string
+  detectedAtUtc: string
+  detectionMeta: {
+    category?: string
+    confidence?: number
+    location?: string
+  }
+}
+
 export function LiveMonitorPage() {
   const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [filter, setFilter] = useState("all")
   const [viewMode, setViewMode] = useState<"grid" | "focus">("grid")
   const [activeCamId, setActiveCamId] = useState<string | null>(null)
+  const [recentSnapshots, setRecentSnapshots] = useState<AISnapshot[]>([])
   
-  // Real-time clock for the mock monitor
+  // Real-time clock
   const [time, setTime] = useState(new Date().toLocaleTimeString())
   
   useEffect(() => {
@@ -56,16 +60,28 @@ export function LiveMonitorPage() {
     }
     
     void fetchCameras()
-    const interval = setInterval(fetchCameras, 10000) // Poll every 10s for updates
+    const interval = setInterval(fetchCameras, 10000)
     return () => clearInterval(interval)
   }, [activeCamId])
 
+  const fetchRecentSnapshots = useCallback(async () => {
+    try {
+      const res = await api.get<{ snapshots: AISnapshot[] }>("/snapshots")
+      setRecentSnapshots(res.data.snapshots.slice(0, 20))
+    } catch {
+      // silent
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchRecentSnapshots()
+    const interval = setInterval(fetchRecentSnapshots, 15000)
+    return () => clearInterval(interval)
+  }, [fetchRecentSnapshots])
+
   const activeCam = cameras.find(c => c.id === activeCamId) || cameras[0]
 
-  // Extract unique locations for the filter dropdown
   const uniqueLocations = Array.from(new Set(cameras.map(c => c.location).filter(Boolean)))
-
-  // Filter cameras based on the selected dropdown value
   const filteredCameras = filter === "all" ? cameras : cameras.filter(c => c.location === filter)
 
   return (
@@ -135,7 +151,6 @@ export function LiveMonitorPage() {
             ) : filteredCameras.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 font-bold">No cameras in this location.</div>
             ) : viewMode === "grid" ? (
-              // FULL GRID VIEW
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 h-full content-start">
                 {filteredCameras.map((cam, idx) => (
                   <CameraFeed 
@@ -148,7 +163,6 @@ export function LiveMonitorPage() {
                 ))}
               </div>
             ) : (
-              // FOCUS VIEW (1 Large, Thumbnails below)
               <div className="flex flex-col h-full gap-3 relative">
                  <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
                     {activeCam && <CameraFeed cam={activeCam} idx={0} time={time} isFocus />}
@@ -169,36 +183,67 @@ export function LiveMonitorPage() {
           </div>
         </div>
 
-        {/* Side Panel: Alert Feed */}
+        {/* Side Panel: Recent Detections (live from API) */}
         <div className="w-full lg:w-80 flex flex-col bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm flex-shrink-0 max-h-[300px] lg:max-h-full">
           <div className="px-4 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <Activity className="w-4 h-4 text-brand" />
               Recent Detections
             </h3>
-            <span className="bg-brand/10 text-brand px-2 py-0.5 rounded text-[10px] font-bold">LIVE</span>
+            <span className="bg-brand/10 text-brand px-2 py-0.5 rounded text-[10px] font-bold">
+              {recentSnapshots.length > 0 ? "LIVE" : "—"}
+            </span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {MOCK_RECENT_DETECTIONS.map(alert => (
-              <div key={alert.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-brand/30 transition-colors cursor-pointer group">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{alert.time}</span>
-                  <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{alert.conf}</span>
-                </div>
-                <div className="font-bold text-slate-700 text-sm group-hover:text-brand transition-colors">
-                  {alert.category} Detected
-                </div>
-                <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                   <BellDot className="w-3 h-3 text-slate-400" />
-                   {alert.location}
-                </div>
+            {recentSnapshots.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center py-10">
+                <ScanSearch className="w-10 h-10 text-slate-300 mb-3" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No recent detections</p>
+                <p className="text-[11px] text-slate-400 mt-1">AI snapshots will appear here in real-time.</p>
               </div>
-            ))}
+            ) : (
+              recentSnapshots.map(snapshot => {
+                const meta = snapshot.detectionMeta || {}
+                const confidence = Math.round((meta.confidence || 0) * 100)
+                const confColor = confidence >= 90
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : confidence >= 75
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+
+                return (
+                  <Link
+                    key={snapshot.id}
+                    to="/admin/snapshots"
+                    className="block bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-brand/30 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        <Clock className="w-3 h-3" />
+                        {new Date(snapshot.detectedAtUtc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold border ${confColor}`}>
+                        {confidence}%
+                      </span>
+                    </div>
+                    <div className="font-bold text-slate-700 text-sm group-hover:text-brand transition-colors capitalize">
+                      {meta.category || "Unknown"} Detected
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                       <MapPin className="w-3 h-3 text-slate-400" />
+                       {meta.location || snapshot.sourceCameraId}
+                    </div>
+                  </Link>
+                )
+              })
+            )}
           </div>
           <div className="p-3 bg-white border-t border-slate-200">
-             <Button className="w-full h-9 bg-brand hover:bg-brand-active text-white font-bold text-xs uppercase tracking-widest shadow-sm">
-               View All Logs
-             </Button>
+            <Link to="/admin/snapshots">
+              <Button className="w-full h-9 bg-brand hover:bg-brand-active text-white font-bold text-xs uppercase tracking-widest shadow-sm">
+                View All Snapshots
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -208,10 +253,9 @@ export function LiveMonitorPage() {
 
 function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: CampusCamera, idx: number, time: string, isFocus?: boolean, onClick?: () => void }) {
   const [imageError, setImageError] = useState(false)
-  const isStreaming = cam.isOnline // Now streams even without AI
+  const isStreaming = cam.isOnline
   const isAiActive = cam.isOnline && cam.aiEnabled
   
-  // Re-attempt loading image when camera status changes
   useEffect(() => {
     setImageError(!isStreaming)
   }, [isStreaming])
@@ -255,7 +299,6 @@ function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: CampusCamera, i
           </div>
         </div>
         
-        {/* Only show time on main grid or focus viewport to avoid clutter on thumbnails */}
         {(!onClick || isFocus) && (
           <div className="hidden sm:block bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-mono text-white/90">
             {time}

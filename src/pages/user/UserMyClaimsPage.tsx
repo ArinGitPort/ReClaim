@@ -1,7 +1,7 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket, MessageSquare, RefreshCw, Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getImageUrl } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { Modal } from "@/components/ui/Modal"
@@ -74,7 +74,7 @@ export function MyClaimsPage() {
         id: claim.claimCode,
         itemId: claim.foundItem.id,
         item: claim.foundItem.title,
-        imageUrl: claim.foundItem.imageUrl,
+        imageUrl: getImageUrl(claim.foundItem.imageUrl),
         category: claim.foundItem.category,
         location: claim.foundItem.foundLocation,
         submittedDate: new Date(claim.createdAt).toLocaleDateString(),
@@ -177,7 +177,7 @@ export function MyClaimsPage() {
   async function handleRerollToken(itemId: string): Promise<void> {
     setRerollingItemId(itemId)
     try {
-      await api.post(`/users/pickups/${itemId}/reroll`)
+      await api.post(`/user/pickups/${itemId}/reroll`)
       await loadClaims()
     } finally {
       setRerollingItemId(null)
@@ -266,7 +266,7 @@ export function MyClaimsPage() {
                     onClick={() => setPreviewImageUrl(claim.imageUrl!)}
                     className="w-14 h-14 bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden shrink-0 hover:ring-2 hover:ring-brand/50 transition-all focus:outline-none"
                   >
-                    <img src={claim.imageUrl} alt={claim.item} className="w-full h-full object-cover" />
+                    <img src={claim.imageUrl!} alt={claim.item} className="w-full h-full object-cover" />
                   </button>
                 ) : (
                   <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">

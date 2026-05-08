@@ -12,7 +12,8 @@ import {
   LogOut,
   Camera,
   Video,
-  Activity
+  Activity,
+  ArchiveRestore
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -65,10 +66,11 @@ export function AdminMobileNav() {
             <MobileNavItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" />
             <MobileNavItem to="/admin/user-directory" icon={<FileSearch className="w-5 h-5" />} label="User Directory" />
             <MobileNavItem to="/admin/expired-inventory" icon={<Package className="w-5 h-5" />} label="Expired Inventory" />
+            <MobileNavItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" />
 
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>
-            <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" />
+            <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" />
             <MobileNavItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" />
             <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="Settings" />
             

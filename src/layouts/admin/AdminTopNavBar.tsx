@@ -10,15 +10,20 @@ export function AdminTopNavBar() {
 
   // Derive title from pathname
   const getPageTitle = () => {
+    if (pathname.includes('/dismissed-snapshots')) return 'Dismissed Snapshots'
+    if (pathname.includes('/camera-settings')) return 'Camera Settings'
+    if (pathname.includes('/live-monitor')) return 'Live Monitor'
+    if (pathname.includes('/expired-inventory')) return 'Expired Inventory'
+    if (pathname.includes('/user-directory')) return 'User Directory'
+    if (pathname.includes('/handover-log')) return 'Handover Log'
     if (pathname.includes('/dashboard')) return 'System Dashboard'
     if (pathname.includes('/inventory')) return 'Inventory Management'
+    if (pathname.includes('/snapshots')) return 'AI Snapshot Gallery'
     if (pathname.includes('/reports')) return 'Missing Items'
     if (pathname.includes('/claims')) return 'Claims Verification'
-    if (pathname.includes('/handover-log')) return 'Handover Log'
-    if (pathname.includes('/user-directory')) return 'User Directory'
-    if (pathname.includes('/expired-inventory')) return 'Expired Inventory'
-    if (pathname.includes('/logs')) return 'Audit Archive'
+    if (pathname.includes('/logs')) return 'Audit Trail'
     if (pathname.includes('/settings')) return 'System Settings'
+    if (pathname.includes('/notifications')) return 'Notifications'
     return 'Admin Portal'
   }
 

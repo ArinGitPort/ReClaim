@@ -22,6 +22,8 @@ type AuditAction =
   | "REPORT_LINKED"
   | "HANDOVER_COMPLETED"
   | "AUTH_LOGIN"
+  | "SNAPSHOT_DISMISSED"
+  | "SNAPSHOT_RESTORED"
 
 type AuditLogRow = {
   id: string
@@ -61,6 +63,8 @@ const actionOptions: Array<{ label: string; value: AuditAction | "" }> = [
   { label: "Report Linked", value: "REPORT_LINKED" },
   { label: "Handover Completed", value: "HANDOVER_COMPLETED" },
   { label: "Auth Login", value: "AUTH_LOGIN" },
+  { label: "Snapshot Dismissed", value: "SNAPSHOT_DISMISSED" },
+  { label: "Snapshot Restored", value: "SNAPSHOT_RESTORED" },
 ]
 
 export function AuditLogsPage() {
@@ -451,6 +455,7 @@ function toRecordLabel(targetType: string): string {
   if (targetType === "lost_report") return "Lost Report"
   if (targetType === "handover") return "Handover"
   if (targetType === "user") return "User"
+  if (targetType === "snapshot") return "AI Snapshot"
   return targetType
 }
 
@@ -560,6 +565,24 @@ function renderNarrativeSentence(log: AuditLogRow) {
       <>
         <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
         logged in to the system.
+      </>
+    )
+  }
+
+  if (log.action === "SNAPSHOT_DISMISSED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        dismissed {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
+      </>
+    )
+  }
+
+  if (log.action === "SNAPSHOT_RESTORED") {
+    return (
+      <>
+        <span className="font-extrabold text-slate-900">{log.actorUser.name}</span>{" "}
+        restored {recordLabel} <span className="font-extrabold text-slate-900">{reference}</span>.
       </>
     )
   }

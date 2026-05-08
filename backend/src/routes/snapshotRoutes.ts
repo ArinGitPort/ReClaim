@@ -3,7 +3,7 @@ import { asyncHandler } from "@/utils/asyncHandler.js";
 import { requireAuth, requireRole } from "@/middlewares/auth.js";
 import { itemPhotoUpload } from "@/middlewares/itemPhotoUpload.js";
 import { requireServiceToken } from "@/middlewares/serviceAuth.js";
-import { dismissSnapshot, getSnapshots, logSnapshotAsFound, uploadSnapshot } from "@/controllers/snapshotController.js";
+import { dismissSnapshot, getDismissedSnapshots, getSnapshots, logSnapshotAsFound, restoreSnapshot, uploadSnapshot } from "@/controllers/snapshotController.js";
 
 export const snapshotRoutes = Router();
 
@@ -21,11 +21,25 @@ snapshotRoutes.get(
   asyncHandler(getSnapshots)
 );
 
+snapshotRoutes.get(
+  "/dismissed",
+  requireAuth,
+  requireRole(["ADMIN", "STAFF"]),
+  asyncHandler(getDismissedSnapshots)
+);
+
 snapshotRoutes.post(
   "/:id/log-found",
   requireAuth,
   requireRole(["ADMIN", "STAFF"]),
   asyncHandler(logSnapshotAsFound)
+);
+
+snapshotRoutes.post(
+  "/:id/restore",
+  requireAuth,
+  requireRole(["ADMIN", "STAFF"]),
+  asyncHandler(restoreSnapshot)
 );
 
 snapshotRoutes.delete(

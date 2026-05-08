@@ -36,6 +36,7 @@ import { ExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 import { SnapshotGalleryPage } from "@/pages/admin/AdminSnapshotGalleryPage"
+import { DismissedSnapshotsPage } from "@/pages/admin/AdminDismissedSnapshotsPage"
 import { CameraSettingsPage } from "@/pages/admin/AdminCameraSettingsPage"
 import { LiveMonitorPage } from "@/pages/admin/AdminLiveMonitorPage"
 
@@ -131,6 +132,7 @@ function App() {
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="reports" element={<MissingItemsPage />} />
               <Route path="snapshots" element={<SnapshotGalleryPage />} />
+              <Route path="dismissed-snapshots" element={<DismissedSnapshotsPage />} />
               <Route path="claims" element={<ClaimsVerificationPage />} />
               <Route path="handover-log" element={<HandoverLogPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />

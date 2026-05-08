@@ -9,6 +9,7 @@ import {
   History,
   Users,
   Archive,
+  ArchiveRestore,
   Settings as SettingsIcon,
   LogOut,
   Menu,
@@ -77,13 +78,14 @@ export function AdminSidebar() {
         <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/expired-inventory" icon={<Archive className="w-5 h-5" />} label="Expired Inventory" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
           {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Administration</h4>}
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
         </div>
 
-        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="Settings" isCollapsed={isCollapsed} />
       </div>

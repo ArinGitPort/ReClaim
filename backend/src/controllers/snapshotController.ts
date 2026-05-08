@@ -40,7 +40,7 @@ export async function uploadSnapshot(req: Request, res: Response): Promise<void>
 
 export async function getSnapshots(req: Request, res: Response): Promise<void> {
   const snapshots = await prisma.aIEvidenceLog.findMany({
-    where: { foundItemId: null },
+    where: { foundItemId: null, dismissedAt: null },
     orderBy: { detectedAtUtc: 'desc' },
   });
 
@@ -53,12 +53,28 @@ export async function dismissSnapshot(req: Request, res: Response): Promise<void
     throw new HttpError(400, "Snapshot ID is required");
   }
 
+  const actorUserId = req.user?.id;
+  if (!actorUserId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
   const snapshot = await prisma.aIEvidenceLog.findUnique({ where: { id } });
   if (!snapshot) {
     throw new HttpError(404, "Snapshot not found");
   }
 
-  await prisma.aIEvidenceLog.delete({ where: { id } });
+  await prisma.aIEvidenceLog.update({
+    where: { id },
+    data: { dismissedAt: new Date() },
+  });
+
+  await logAudit({
+    actorUserId,
+    action: AuditAction.SNAPSHOT_DISMISSED,
+    targetType: "snapshot",
+    targetId: snapshot.id,
+    description: "Admin dismissed an AI snapshot as a false alarm",
+  });
 
   res.json({ success: true });
 }
@@ -132,4 +148,49 @@ export async function logSnapshotAsFound(req: Request, res: Response): Promise<v
   });
 
   res.json({ item });
+}
+
+export async function getDismissedSnapshots(req: Request, res: Response): Promise<void> {
+  const snapshots = await prisma.aIEvidenceLog.findMany({
+    where: { dismissedAt: { not: null } },
+    orderBy: { dismissedAt: 'desc' },
+  });
+
+  res.json({ snapshots });
+}
+
+export async function restoreSnapshot(req: Request, res: Response): Promise<void> {
+  const { id } = req.params as { id: string };
+  if (!id) {
+    throw new HttpError(400, "Snapshot ID is required");
+  }
+
+  const actorUserId = req.user?.id;
+  if (!actorUserId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  const snapshot = await prisma.aIEvidenceLog.findUnique({ where: { id } });
+  if (!snapshot) {
+    throw new HttpError(404, "Snapshot not found");
+  }
+
+  if (!snapshot.dismissedAt) {
+    throw new HttpError(400, "Snapshot is not dismissed");
+  }
+
+  await prisma.aIEvidenceLog.update({
+    where: { id },
+    data: { dismissedAt: null },
+  });
+
+  await logAudit({
+    actorUserId,
+    action: AuditAction.SNAPSHOT_RESTORED,
+    targetType: "snapshot",
+    targetId: snapshot.id,
+    description: "Admin restored a dismissed AI snapshot to the review queue",
+  });
+
+  res.json({ success: true });
 }
