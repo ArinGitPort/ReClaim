@@ -159,7 +159,7 @@ export function RegisterForm() {
                   type="email"
                   placeholder="juan.delacruz@students.nu.edu.ph"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
                   className="pl-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
                   required
                 />
@@ -260,7 +260,7 @@ export function RegisterForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value.replace(/\s/g, ""))}
                   className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
                   required
                 />
@@ -284,7 +284,7 @@ export function RegisterForm() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => setConfirmPassword(e.target.value.replace(/\s/g, ""))}
                   className="pl-11 pr-11 h-12 bg-background-app focus:bg-background-app text-base transition-colors border-border-divider/50 shadow-sm"
                   required
                 />

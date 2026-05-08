@@ -1,7 +1,8 @@
-import { useState } from "react"
-import { GalleryFilters } from "@/features/gallery/GalleryFilters"
+import { useState, useEffect } from "react"
+import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { Tag, MapPin, Calendar } from "lucide-react"
 
 export function GalleryPage() {
   const [itemCount, setItemCount] = useState(0)
@@ -9,7 +10,18 @@ export function GalleryPage() {
   const [page, setPage] = useState(1)
   const [pageCount, setPageCount] = useState(1)
 
+  // Filter States
+  const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("")
+  const [date, setDate] = useState("")
+  const [location, setLocation] = useState("")
+
   const pageSize = 12
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [search, category, date, location])
 
   return (
     <div className="w-full min-h-full pb-24">
@@ -23,12 +35,70 @@ export function GalleryPage() {
         </span>
       </div>
 
-      <GalleryFilters />
+      <UniversalFilterBar
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search for lost items..."
+        dropdowns={[
+          {
+            id: "category",
+            label: "Category",
+            icon: <Tag />,
+            value: category,
+            onChange: setCategory,
+            options: [
+              { label: "All Categories", value: "" },
+              { label: "Electronics", value: "Electronics" },
+              { label: "Wallets & IDs", value: "Wallets & IDs" },
+              { label: "Clothing", value: "Clothing" },
+              { label: "Bags & Backpacks", value: "Bags & Backpacks" },
+              { label: "Keys", value: "Keys" },
+              { label: "Other", value: "Everyday Items" }
+            ],
+          },
+          {
+            id: "date",
+            label: "Time Frame",
+            icon: <Calendar />,
+            value: date,
+            onChange: setDate,
+            options: [
+              { label: "Any Time", value: "" },
+              { label: "Today", value: "today" },
+              { label: "Last 7 Days", value: "7days" },
+              { label: "Last 30 Days", value: "30days" }
+            ],
+          },
+          {
+            id: "location",
+            label: "Location",
+            icon: <MapPin />,
+            value: location,
+            onChange: setLocation,
+            options: [
+              { label: "Everywhere", value: "" },
+              { label: "Main Library", value: "library" },
+              { label: "Student Union", value: "union" },
+              { label: "Gymnasium", value: "gym" }
+            ],
+          }
+        ]}
+        onClear={search || category || date || location ? () => {
+          setSearch("")
+          setCategory("")
+          setDate("")
+          setLocation("")
+        } : undefined}
+      />
 
       <div className="w-full relative">
         <GalleryGrid
           page={page}
           pageSize={pageSize}
+          search={search}
+          category={category}
+          date={date}
+          location={location}
           onDataChange={({ visibleCount, totalCount: total, pageCount: totalPages }) => {
             setItemCount(visibleCount)
             setTotalCount(total)

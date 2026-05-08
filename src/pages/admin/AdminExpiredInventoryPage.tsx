@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { ConfirmActionModal } from "@/components/ui/ConfirmActionModal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
+import { useDebounce } from "@/lib/hooks/useDebounce"
+import { Skeleton } from "@/components/ui/Skeleton"
 
 type ExpiredItem = {
   id: string
@@ -22,13 +24,12 @@ export function ExpiredInventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDisposing, setIsDisposing] = useState(false)
-  const [showDisposeConfirm, setShowDisposeConfirm] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
+  const debouncedSearch = useDebounce(searchQuery, 400)
 
   const fetchItems = async () => {
     try {
       setLoading(true)
-      const res = await api.get('/items/admin', { params: { expired: true, search: searchQuery || undefined } })
+      const res = await api.get('/items/admin', { params: { expired: true, search: debouncedSearch || undefined } })
       setItems(res.data.items || [])
     } catch (err) {
       console.error("Failed to load expired items", err)
@@ -38,11 +39,8 @@ export function ExpiredInventoryPage() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchItems()
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+    fetchItems()
+  }, [debouncedSearch])
 
   const toggleSelect = (id: string) => {
     const newSec = new Set(selectedIds)
@@ -143,9 +141,18 @@ export function ExpiredInventoryPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr>
-                  <td colSpan={4} className="text-center py-10 text-slate-500">Loading expired items...</td>
-                </tr>
+                Array.from({ length: 6 }).map((_, index) => (
+                  <tr key={`expired-skeleton-${index}`}>
+                    <td colSpan={4} className="px-8 py-4">
+                      <div className="grid grid-cols-4 gap-4 items-center">
+                        <Skeleton className="h-4 w-8" />
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="text-center py-10 text-slate-500">No expired items found.</td>

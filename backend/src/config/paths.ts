@@ -9,3 +9,4 @@ const backendRoot = path.resolve(currentDir, "..", "..");
 
 export const uploadsRoot = path.resolve(backendRoot, "..", "uploads");
 export const itemUploadsRoot = path.resolve(uploadsRoot, "items");
+export const reportUploadsRoot = path.resolve(uploadsRoot, "reports");

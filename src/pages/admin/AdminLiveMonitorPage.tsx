@@ -1,41 +1,88 @@
-import { useState, useEffect } from "react"
-import { Activity, Radio, Expand, BellDot, LayoutGrid, MonitorPlay } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Activity, Radio, Expand, MapPin, LayoutGrid, MonitorPlay, ScanSearch, Clock } from "lucide-react"
 import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
 import { Select } from "@/components/ui/Select"
 import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
 
-// Simulated mock data for recent detections
-const MOCK_RECENT_DETECTIONS = [
-  { id: 1, time: "10:42 AM", location: "Cafeteria Entry", category: "Electronics", conf: "92%" },
-  { id: 2, time: "10:38 AM", location: "Main Entrance", category: "Bag/Backpack", conf: "88%" },
-  { id: 3, time: "10:15 AM", location: "Gymnasium", category: "Water Bottle", conf: "95%" },
-  { id: 4, time: "09:50 AM", location: "Main Library", category: "Keys", conf: "78%" },
-  { id: 5, time: "09:12 AM", location: "Cafeteria Entry", category: "Wallet", conf: "99%" },
-  { id: 6, time: "08:45 AM", location: "Main Library", category: "Electronics", conf: "84%" }
-]
+import { api } from "@/lib/api"
+import { AI_STREAM_BASE_URL } from "@/lib/constants"
 
-const CAMERAS = [
-  { id: "CAM-01", location: "Main Entrance", status: "LIVE" },
-  { id: "CAM-02", location: "Main Library", status: "LIVE" },
-  { id: "CAM-03", location: "Cafeteria Entry", status: "LIVE" },
-  { id: "CAM-04", location: "Gym Doors", status: "LIVE" },
-  { id: "CAM-05", location: "Tech Lab", status: "IDLE" },
-  { id: "CAM-06", location: "Staff Room Area", status: "LIVE" },
-]
+type CampusCamera = {
+  id: string
+  code: string
+  name: string
+  location: string
+  sourceUrl: string
+  isOnline: boolean
+  aiEnabled: boolean
+  lastPingAtUtc: string | null
+}
+
+type AISnapshot = {
+  id: string
+  sourceCameraId: string
+  snapshotPath: string
+  detectedAtUtc: string
+  detectionMeta: {
+    category?: string
+    confidence?: number
+    location?: string
+  }
+}
 
 export function LiveMonitorPage() {
+  const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [filter, setFilter] = useState("all")
   const [viewMode, setViewMode] = useState<"grid" | "focus">("grid")
-  const [activeCamId, setActiveCamId] = useState(CAMERAS[0].id)
+  const [activeCamId, setActiveCamId] = useState<string | null>(null)
+  const [recentSnapshots, setRecentSnapshots] = useState<AISnapshot[]>([])
   
-  // Real-time clock for the mock monitor
+  // Real-time clock
   const [time, setTime] = useState(new Date().toLocaleTimeString())
+  
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  const activeCam = CAMERAS.find(c => c.id === activeCamId) || CAMERAS[0]
+  useEffect(() => {
+    const fetchCameras = async () => {
+      try {
+        const res = await api.get<{ cameras: CampusCamera[] }>("/cameras")
+        setCameras(res.data.cameras)
+        if (res.data.cameras.length > 0 && !activeCamId) {
+          setActiveCamId(res.data.cameras[0].id)
+        }
+      } catch (err) {
+        console.error("Failed to fetch cameras:", err)
+      }
+    }
+    
+    void fetchCameras()
+    const interval = setInterval(fetchCameras, 10000)
+    return () => clearInterval(interval)
+  }, [activeCamId])
+
+  const fetchRecentSnapshots = useCallback(async () => {
+    try {
+      const res = await api.get<{ snapshots: AISnapshot[] }>("/snapshots")
+      setRecentSnapshots(res.data.snapshots.slice(0, 20))
+    } catch {
+      // silent
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchRecentSnapshots()
+    const interval = setInterval(fetchRecentSnapshots, 15000)
+    return () => clearInterval(interval)
+  }, [fetchRecentSnapshots])
+
+  const activeCam = cameras.find(c => c.id === activeCamId) || cameras[0]
+
+  const uniqueLocations = Array.from(new Set(cameras.map(c => c.location).filter(Boolean)))
+  const filteredCameras = filter === "all" ? cameras : cameras.filter(c => c.location === filter)
 
   return (
     <div className="space-y-6 flex flex-col h-[calc(100vh-6rem)]">
@@ -46,12 +93,16 @@ export function LiveMonitorPage() {
           <div className="flex items-center gap-3">
             <Select 
               value={filter} 
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) => {
+                setFilter(e.target.value)
+                setViewMode("grid")
+              }}
               className="h-9 w-40 text-xs font-semibold"
             >
-              <option value="all">All Buildings</option>
-              <option value="library">Main Library</option>
-              <option value="cafeteria">Cafeteria</option>
+              <option value="all">All Locations</option>
+              {uniqueLocations.map(loc => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
             </Select>
 
             <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
@@ -95,10 +146,13 @@ export function LiveMonitorPage() {
 
           {/* Video Grid Container */}
           <div className="flex-1 overflow-y-auto p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-            {viewMode === "grid" ? (
-              // FULL GRID VIEW
+            {cameras.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400 font-bold">No cameras found. Add one in Camera Settings.</div>
+            ) : filteredCameras.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400 font-bold">No cameras in this location.</div>
+            ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 h-full content-start">
-                {CAMERAS.map((cam, idx) => (
+                {filteredCameras.map((cam, idx) => (
                   <CameraFeed 
                     key={cam.id} 
                     cam={cam} 
@@ -109,13 +163,12 @@ export function LiveMonitorPage() {
                 ))}
               </div>
             ) : (
-              // FOCUS VIEW (1 Large, Thumbnails below)
               <div className="flex flex-col h-full gap-3 relative">
                  <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
-                    <CameraFeed cam={activeCam} idx={0} time={time} isFocus />
+                    {activeCam && <CameraFeed cam={activeCam} idx={0} time={time} isFocus />}
                  </div>
                  <div className="flex gap-2.5 overflow-x-auto pb-1 flex-shrink-0 h-24 sm:h-32">
-                    {CAMERAS.map((cam, idx) => (
+                    {filteredCameras.map((cam, idx) => (
                       <div 
                         key={cam.id} 
                         onClick={() => setActiveCamId(cam.id)}
@@ -130,36 +183,67 @@ export function LiveMonitorPage() {
           </div>
         </div>
 
-        {/* Side Panel: Alert Feed */}
+        {/* Side Panel: Recent Detections (live from API) */}
         <div className="w-full lg:w-80 flex flex-col bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm flex-shrink-0 max-h-[300px] lg:max-h-full">
           <div className="px-4 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <Activity className="w-4 h-4 text-brand" />
               Recent Detections
             </h3>
-            <span className="bg-brand/10 text-brand px-2 py-0.5 rounded text-[10px] font-bold">LIVE</span>
+            <span className="bg-brand/10 text-brand px-2 py-0.5 rounded text-[10px] font-bold">
+              {recentSnapshots.length > 0 ? "LIVE" : "—"}
+            </span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {MOCK_RECENT_DETECTIONS.map(alert => (
-              <div key={alert.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-brand/30 transition-colors cursor-pointer group">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{alert.time}</span>
-                  <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{alert.conf}</span>
-                </div>
-                <div className="font-bold text-slate-700 text-sm group-hover:text-brand transition-colors">
-                  {alert.category} Detected
-                </div>
-                <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                   <BellDot className="w-3 h-3 text-slate-400" />
-                   {alert.location}
-                </div>
+            {recentSnapshots.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center py-10">
+                <ScanSearch className="w-10 h-10 text-slate-300 mb-3" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No recent detections</p>
+                <p className="text-[11px] text-slate-400 mt-1">AI snapshots will appear here in real-time.</p>
               </div>
-            ))}
+            ) : (
+              recentSnapshots.map(snapshot => {
+                const meta = snapshot.detectionMeta || {}
+                const confidence = Math.round((meta.confidence || 0) * 100)
+                const confColor = confidence >= 90
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : confidence >= 75
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+
+                return (
+                  <Link
+                    key={snapshot.id}
+                    to="/admin/snapshots"
+                    className="block bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-brand/30 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        <Clock className="w-3 h-3" />
+                        {new Date(snapshot.detectedAtUtc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold border ${confColor}`}>
+                        {confidence}%
+                      </span>
+                    </div>
+                    <div className="font-bold text-slate-700 text-sm group-hover:text-brand transition-colors capitalize">
+                      {meta.category || "Unknown"} Detected
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                       <MapPin className="w-3 h-3 text-slate-400" />
+                       {meta.location || snapshot.sourceCameraId}
+                    </div>
+                  </Link>
+                )
+              })
+            )}
           </div>
           <div className="p-3 bg-white border-t border-slate-200">
-             <Button className="w-full h-9 bg-brand hover:bg-brand-active text-white font-bold text-xs uppercase tracking-widest shadow-sm">
-               View All Logs
-             </Button>
+            <Link to="/admin/snapshots">
+              <Button className="w-full h-9 bg-brand hover:bg-brand-active text-white font-bold text-xs uppercase tracking-widest shadow-sm">
+                View All Snapshots
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -167,24 +251,34 @@ export function LiveMonitorPage() {
   )
 }
 
-function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: any, idx: number, time: string, isFocus?: boolean, onClick?: () => void }) {
+function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: CampusCamera, idx: number, time: string, isFocus?: boolean, onClick?: () => void }) {
+  const [imageError, setImageError] = useState(false)
+  const isStreaming = cam.isOnline
+  const isAiActive = cam.isOnline && cam.aiEnabled
+  
+  useEffect(() => {
+    setImageError(!isStreaming)
+  }, [isStreaming])
+
   return (
     <div 
       className={`group w-full h-full bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center relative ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
-      {/* Simulated Raw Video Stream Background */}
-      <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-800 font-mono text-sm">
-        <Radio className="w-8 h-8 mb-2 opacity-50" />
-        <span className={isFocus ? 'text-lg' : 'text-xs'}>STREAM_CONN_OK</span>
-      </div>
-      
-      {/* Simulated AI Overlays */}
-      {cam.status === "LIVE" && idx % 2 === 0 && (
-        <div className="absolute top-[20%] left-[30%] w-[35%] h-[45%] border-2 border-brand/80 bg-brand/5 pointer-events-none transition-all">
-          <div className="absolute -top-5 left-[-2px] bg-brand/90 text-white text-[9px] font-bold px-1.5 py-0.5 whitespace-nowrap uppercase tracking-wider">
-            {idx === 0 ? "BACKPACK 92%" : "ELECTRONICS 88%"}
-          </div>
+      {/* Live MJPEG Stream */}
+      {!imageError && isStreaming ? (
+        <img 
+          src={`${AI_STREAM_BASE_URL}/${cam.id}`} 
+          alt={`Live feed from ${cam.name}`}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-800 font-mono text-sm">
+          <Radio className={`w-8 h-8 mb-2 opacity-20`} />
+          <span className={isFocus ? 'text-lg text-slate-700' : 'text-xs text-slate-700'}>
+            {!cam.isOnline ? 'OFFLINE' : 'STREAM_UNAVAILABLE'}
+          </span>
         </div>
       )}
 
@@ -192,16 +286,19 @@ function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: any, idx: numbe
       <div className="absolute top-0 left-0 w-full p-2 flex justify-between items-start pointer-events-none">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-widest shadow-sm">
-            {cam.status === "LIVE" ? (
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-[pulse_2s_ease-in-out_infinite]" />
+            {isStreaming ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_ease-in-out_infinite]" />
             ) : (
               <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
             )}
-            {cam.id} {!onClick && `- ${cam.location}`}
+            {cam.code} {!onClick && `- ${cam.location}`}
+          </div>
+          {/* AI Status Badge */}
+          <div className={`self-start px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ${isAiActive ? 'bg-brand text-white' : 'bg-slate-800/80 text-slate-400'}`}>
+            {isAiActive ? 'AI_ACTIVE' : 'RAW_FEED'}
           </div>
         </div>
         
-        {/* Only show time on main grid or focus viewport to avoid clutter on thumbnails */}
         {(!onClick || isFocus) && (
           <div className="hidden sm:block bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-mono text-white/90">
             {time}

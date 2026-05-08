@@ -1,12 +1,13 @@
 import { ClaimStatus, ReportStatus } from "@prisma/client"
 import { prisma } from "@/lib/prisma.js"
+import { createPickupToken } from "@/utils/codes.js"
+import { HttpError } from "@/utils/errors.js"
 
 type PickupItem = {
   source: "CLAIM" | "REPORT_MATCH"
   sourceId: string
   sourceCode: string
   itemId: string
-  inventoryCode: string
   itemTitle: string
   pickupToken: string
   pickupTokenExpires: Date | null
@@ -69,7 +70,6 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
     sourceId: claim.id,
     sourceCode: claim.claimCode,
     itemId: claim.foundItem.id,
-    inventoryCode: claim.foundItem.code,
     itemTitle: claim.foundItem.title,
     pickupToken: claim.pickupToken ?? "",
     pickupTokenExpires: claim.pickupTokenExpires,
@@ -89,7 +89,6 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
       sourceId: report.id,
       sourceCode: report.reportCode,
       itemId: matchedItem.id,
-      inventoryCode: matchedItem.code,
       itemTitle: matchedItem.title,
       pickupToken: matchedClaim.pickupToken,
       pickupTokenExpires: matchedClaim.pickupTokenExpires,
@@ -98,7 +97,43 @@ export async function listUserPickups(userId: string): Promise<PickupItem[]> {
     }]
   })
 
-  return [...mappedClaimPickups, ...mappedReportPickups].sort(
+  const reportItemIds = new Set(mappedReportPickups.map((p) => p.itemId))
+  const dedupedClaimPickups = mappedClaimPickups.filter((p) => !reportItemIds.has(p.itemId))
+
+  return [...dedupedClaimPickups, ...mappedReportPickups].sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   )
+}
+
+export async function rerollPickupToken(userId: string, itemId: string): Promise<string> {
+  const claim = await prisma.claim.findFirst({
+    where: {
+      claimantUserId: userId,
+      foundItemId: itemId,
+      status: ClaimStatus.APPROVED,
+      pickupToken: { not: null },
+    },
+  })
+
+  if (!claim) {
+    throw new HttpError(404, "Active approved claim with token not found or doesn't belong to you")
+  }
+
+  const isExpired = claim.pickupTokenExpires && claim.pickupTokenExpires.getTime() < Date.now()
+  if (!isExpired) {
+    throw new HttpError(400, "Token has not expired yet")
+  }
+
+  const newToken = createPickupToken()
+  const newExpires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
+
+  await prisma.claim.update({
+    where: { id: claim.id },
+    data: {
+      pickupToken: newToken,
+      pickupTokenExpires: newExpires,
+    },
+  })
+
+  return newToken
 }

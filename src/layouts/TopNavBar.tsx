@@ -1,5 +1,5 @@
 import { Search, PlusCircle, BookmarkCheck, Menu, X, Hand, FileText, Settings, MapPin, LogOut } from "lucide-react"
-import { Link, NavLink, useLocation } from "react-router-dom"
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -10,7 +10,8 @@ import { useAuth } from "@/contexts/AuthContext"
 export function TopNavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { pathname } = useLocation()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -55,7 +56,7 @@ export function TopNavBar() {
                 }
               >
                 <PlusCircle className="w-4 h-4" />
-                Report Lost
+                Report Lost Item
               </NavLink>
               <NavLink
                 to="/my-claims"
@@ -121,8 +122,18 @@ export function TopNavBar() {
             <MobileNavItem to="/settings" icon={<Settings className="w-5 h-5" />} label="Profile Settings" />
             <MobileNavItem to="/office" icon={<MapPin className="w-5 h-5" />} label="Campus Admin Office" />
             
-            {/* The Logout Button should really just call logout in mobile view as well ideally, but keeping standard Link layout logic for now */}
-            <MobileNavItem to="/" icon={<LogOut className="w-5 h-5" />} label="Log Out" variant="danger" />
+            {/* The Logout Button now actually calls logout */}
+            <button
+              onClick={() => {
+                if (logout) logout()
+                navigate("/")
+                setIsMobileMenuOpen(false)
+              }}
+              className="flex flex-row items-center gap-3 px-3 py-3 rounded-md transition-colors text-status-error hover:bg-status-error/10 w-full text-left"
+            >
+              <div className="transition-transform"><LogOut className="w-5 h-5" /></div>
+              <span className="text-sm flex-1 font-medium">Log Out</span>
+            </button>
           </div>
         </div>
       )}

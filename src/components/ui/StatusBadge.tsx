@@ -16,7 +16,10 @@ export function StatusBadge({ status, className }: BadgeProps) {
         return "bg-emerald-50 text-emerald-700 border-emerald-100"
       case "CLAIM_PENDING":
       case "Ready for Pickup":
+      case "Match Found":
         return "bg-emerald-100 text-emerald-800 border-emerald-200"
+      case "Active Search":
+        return "bg-brand/10 text-brand border-brand/20"
       case "RETURNED":
       case "Closed":
         return "bg-slate-50 text-slate-500 border-slate-100"

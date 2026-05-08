@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowRightLeft, CheckCircle2, Search, User, X } from "lucide-react"
+import { ArrowRightLeft, CheckCircle2, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { Input } from "@/components/ui/Input"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 type InventoryItemLite = {
   id: string
@@ -101,13 +103,11 @@ export function InventoryLinkReportModal({
     }
   }, [strictMatch, item.category, item.color])
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadReports(search)
-    }, 250)
+  const debouncedSearch = useDebounce(search, 250)
 
-    return () => window.clearTimeout(timeoutId)
-  }, [search, loadReports])
+  useEffect(() => {
+    void loadReports(debouncedSearch)
+  }, [debouncedSearch, loadReports])
 
   const selected = useMemo(
     () => reports.find((report) => report.id === selectedReportId),
@@ -156,20 +156,15 @@ export function InventoryLinkReportModal({
 
   return (
     <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
-      <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center shadow-sm">
-            <ArrowRightLeft className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Link Report</h2>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Target Item: {item.code}</div>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Link Report"
+        subtitle={`Target Item: ${item.code}`}
+        icon={<ArrowRightLeft className="w-6 h-6 text-white" />}
+        onClose={onClose}
+        containerClassName="px-8 py-6 bg-white"
+        iconWrapperClassName="w-12 h-12"
+        titleClassName="text-slate-900 text-xl"
+      />
 
       <div className="p-6 border-b border-slate-100 bg-white">
         <div className="relative group">
@@ -233,7 +228,7 @@ export function InventoryLinkReportModal({
               <div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{report.reportCode}</div>
                 <h4 className="font-bold text-slate-900 mt-1">{report.title}</h4>
-                <p className="text-xs font-semibold text-slate-500 mt-1">{report.category} - {report.color}</p>
+                <p className="text-xs font-semibold text-slate-500 mt-1">{report.category} • {report.color}</p>
                 <p className="text-xs font-semibold text-slate-400 mt-1 flex items-center gap-1"><User className="w-3 h-3" /> {report.reporterName}</p>
               </div>
               <div className="text-xs font-bold text-slate-500">{new Date(report.createdAt).toLocaleDateString()}</div>

@@ -88,9 +88,12 @@ export function createRealtimeServer(app: Express): RealtimeServer {
     const user = socket.data.user as SocketUser;
 
     socket.join(`reports:user:${user.id}`);
+    socket.join(`user:${user.id}`); // For general user notifications & claims
+    
     if (user.role === "ADMIN" || user.role === "STAFF") {
       socket.join("reports:admins");
     }
+    socket.join(`role:${user.role.toLowerCase()}`); // Joins role:admin or role:staff or role:student
   });
 
   ioInstance = io;
@@ -146,4 +149,33 @@ export function emitItemUpdated(payload: {
   }
 
   ioInstance.emit("item.updated", payload);
+}
+
+export function emitClaimStatusUpdated(payload: {
+  claimId: string;
+  claimCode: string;
+  status: string;
+  claimantUserId: string;
+  foundItemId: string;
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance.to("reports:admins").emit("claim.status.updated", payload);
+  ioInstance.to(`reports:user:${payload.claimantUserId}`).emit("claim.status.updated", payload);
+}
+export function emitClaimMessageCreated(payload: {
+  claimId: string;
+  claimantUserId: string;
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  // Notifying the claimant
+  ioInstance.to(`user:${payload.claimantUserId}`).emit("claim.message.created", payload);
+  
+  // Notifying the admins
+  ioInstance.to("role:admin").to("role:staff").emit("claim.message.created", payload);
 }

@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react"
-import { ShieldCheck, Ticket, MapPin, CalendarClock } from "lucide-react"
+import { ShieldCheck, Ticket, MapPin, CalendarClock, Search, RefreshCcw } from "lucide-react"
 import { api } from "@/lib/api"
-import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
+import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { Button } from "@/components/ui/button"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
   sourceCode: string
+  itemId: string
   itemTitle: string
-  inventoryCode: string
   pickupToken: string
   pickupTokenExpires?: string | null
   officeLocation: string
@@ -20,16 +23,25 @@ export function ReadyToClaimPage() {
   const [search, setSearch] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
+
+  async function loadPickups(): Promise<void> {
+    const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
+    setPickups(response.data.pickups)
+  }
 
   useEffect(() => {
-    async function loadPickups(): Promise<void> {
-      const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")
-      setPickups(response.data.pickups)
-    }
-
     void loadPickups()
   }, [])
+
+  const handleReroll = async (itemId: string) => {
+    try {
+      await api.post(`/user/pickups/${itemId}/reroll`)
+      void loadPickups()
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Failed to regenerate token")
+    }
+  }
 
   const filteredPickups = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -43,7 +55,7 @@ export function ReadyToClaimPage() {
         return true
       }
 
-      const haystack = [pickup.sourceCode, pickup.itemTitle, pickup.inventoryCode, pickup.pickupToken]
+      const haystack = [pickup.sourceCode, pickup.itemTitle, pickup.pickupToken]
         .join(" ")
         .toLowerCase()
 
@@ -78,19 +90,30 @@ export function ReadyToClaimPage() {
           <p className="text-slate-500 text-sm">This is the only page where pickup tokens are displayed for physical handover.</p>
         </div>
 
-        <RecordsFilterBar
+        <UniversalFilterBar
           searchValue={search}
           onSearchChange={(value) => {
             setSearch(value)
             setPage(1)
           }}
-          statusValue={sourceFilter}
-          onStatusChange={(value) => {
-            setSourceFilter(value)
-            setPage(1)
-          }}
-          statusOptions={statusOptions}
           searchPlaceholder="Search by source code, item, inventory code, or token"
+          dropdowns={[
+            {
+              id: "source",
+              label: "Source Type",
+              icon: <Search className="w-4 h-4" />,
+              value: sourceFilter,
+              onChange: (value) => {
+                setSourceFilter(value)
+                setPage(1)
+              },
+              options: [
+                { label: "All Types", value: "" },
+                { label: "Manual Claim", value: "CLAIM" },
+                { label: "Report Match", value: "REPORT_MATCH" },
+              ],
+            },
+          ]}
         />
 
         <RecordsStatusChips
@@ -113,9 +136,6 @@ export function ReadyToClaimPage() {
                     <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
                       {pickup.sourceCode}
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                      {pickup.inventoryCode}
-                    </span>
                   </div>
                   <h3 className="font-bold text-slate-900 text-lg leading-tight">{pickup.itemTitle}</h3>
                   <div className="flex flex-wrap gap-4 mt-2 text-[11px] font-bold text-slate-400">
@@ -131,16 +151,34 @@ export function ReadyToClaimPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-5 rounded-xl border border-emerald-200 border-t-slate-100 bg-emerald-50 px-4 py-3">
-                <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Pickup Token</div>
-                <div className="text-xl font-black text-emerald-800 tracking-wide flex items-center gap-2">
-                  <Ticket className="w-5 h-5" /> {pickup.pickupToken}
-                </div>
-                <p className="mt-2 text-xs font-semibold text-emerald-700">
-                  Present this token and your ID at the Admin Office.
-                  {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
-                </p>
-              </div>
+              {(() => {
+                const isExpired = pickup.pickupTokenExpires && new Date(pickup.pickupTokenExpires).getTime() < Date.now();
+                return (
+                  <div className={`mt-5 pt-5 rounded-xl border px-4 py-3 ${isExpired ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
+                    <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isExpired ? "text-red-700" : "text-emerald-700"}`}>Pickup Token</div>
+                    <div className={`text-xl font-black tracking-wide flex items-center gap-2 ${isExpired ? "text-red-800" : "text-emerald-800"}`}>
+                      <Ticket className="w-5 h-5" /> {isExpired ? "EXPIRED" : pickup.pickupToken}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                      <p className={`text-xs font-semibold ${isExpired ? "text-red-700" : "text-emerald-700"}`}>
+                        {isExpired ? "Your token has expired. Please regenerate a new one." : "Present this token and your ID at the Admin Office."}
+                        {pickup.pickupTokenExpires ? ` Expires: ${new Date(pickup.pickupTokenExpires).toLocaleString()}` : ""}
+                      </p>
+                      {isExpired && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700"
+                          onClick={() => handleReroll(pickup.itemId)}
+                        >
+                          <RefreshCcw className="w-4 h-4 mr-2" />
+                          Regenerate
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
 

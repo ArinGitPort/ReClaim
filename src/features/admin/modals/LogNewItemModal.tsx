@@ -4,16 +4,18 @@ import {
   MapPin, 
   Upload, 
   Plus, 
-  X, 
-  CheckCircle2,
   Camera,
-  Archive
+  Archive,
+  ShieldAlert
 } from "lucide-react"
+import { StatusContent } from "@/components/ui/StatusContent"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
+import { Switch } from "@/components/ui/Switch"
 import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
 import {
@@ -23,6 +25,7 @@ import {
   STORAGE_LOCATIONS,
 } from "@/features/shared/constants"
 import { requiresColorSelection } from "@/features/shared/itemCategoryRules"
+import { MAX_UPLOAD_SIZE_BYTES } from "@/lib/constants"
 
 
 export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
@@ -37,12 +40,13 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [foundAtLocal, setFoundAtLocal] = useState(() => toLocalDatetimeInputValue(new Date()))
   const [storageLocation, setStorageLocation] = useState("")
   const [notes, setNotes] = useState("")
+  const [isHighValue, setIsHighValue] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const needsColor = requiresColorSelection(category)
 
   useEffect(() => {
-    if (!needsColor && color) {
+    if (!needsColor && color !== "" && color !== "Not Specified") {
       setColor("")
     }
   }, [needsColor, color])
@@ -55,6 +59,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
     setFoundAtLocal(toLocalDatetimeInputValue(new Date()))
     setStorageLocation("")
     setNotes("")
+    setIsHighValue(false)
     setPhotoFile(null)
     setError(null)
     setSavedCode(null)
@@ -84,18 +89,28 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
         throw new Error("Please provide a valid date and time found.")
       }
 
+      if (photoFile) {
+        if (photoFile.size > MAX_UPLOAD_SIZE_BYTES) {
+          throw new Error("Photo size must be less than 5MB.")
+        }
+        if (!["image/jpeg", "image/png", "image/webp"].includes(photoFile.type)) {
+          throw new Error("Photo must be a JPEG, PNG, or WEBP image.")
+        }
+      }
+
       const photoUrl = photoFile ? await uploadPhoto(photoFile) : undefined
 
       const response = await api.post<{ item: { code: string } }>("/items", {
         title,
         category,
-        color: needsColor ? color : "Not Specified",
+        color: color || "Not Specified",
         foundLocation,
         foundAtUtc: foundDate.toISOString(),
         photoUrl,
         publicDescription: `${title} reported by admin inventory intake`,
         privateDiscoveryNote: notes || undefined,
         privateData: photoUrl ? { photoUrl } : undefined,
+        isHighValue,
         storageLocation,
       })
 
@@ -114,27 +129,32 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
 
   if (step === 2) {
     return (
-      <div className="p-8 text-center space-y-6 animate-in zoom-in-95 duration-300">
-        <div className="w-20 h-20 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto shadow-inner">
-          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
-        </div>
-        <div>
-          <h3 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">Item Logged Successfully</h3>
-          <p className="text-slate-500 font-medium">{savedCode ?? "Item"} has been added to the secure inventory.</p>
-        </div>
-        <div className="pt-4 flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1 h-12"
-            onClick={() => {
-              resetForm()
-              setStep(1)
-            }}
-          >
-            Log Another
-          </Button>
-          <Button className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold rounded-xl" onClick={onClose}>Close</Button>
-        </div>
+      <div className="animate-in zoom-in-95 duration-300 h-full flex items-center justify-center">
+        <StatusContent
+          title="Item Logged Successfully"
+          message={`${savedCode ?? "Item"} has been added to the secure inventory.`}
+          icon="success"
+          actions={
+            <div className="flex gap-3 mt-4">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs"
+                onClick={() => {
+                  resetForm()
+                  setStep(1)
+                }}
+              >
+                Log Another
+              </Button>
+              <Button 
+                className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs rounded-xl" 
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </div>
+          }
+        />
       </div>
     )
   }
@@ -142,19 +162,11 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Header */}
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Plus className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Log New Item</h2>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Log New Item"
+        icon={<Plus className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       {/* Form Area */}
       <form id="log-new-item-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
@@ -189,9 +201,9 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
               </div>
               {needsColor ? (
                 <div className="space-y-1.5">
-                  <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-                  <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm" required={needsColor}>
-                    <option value="">Select Color</option>
+                  <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color (Optional)</Label>
+                  <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200 shadow-sm">
+                    <option value="">Not Specified</option>
                     {ITEM_COLORS.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
@@ -258,6 +270,28 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
                 ))}
               </Select>
             </div>
+          </div>
+        </div>
+
+        {/* Security / Visibility */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+             <ShieldAlert className="w-3.5 h-3.5 text-brand" />
+             <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Security & Visibility</h4>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div className="space-y-1">
+              <Label htmlFor="isHighValue" className="font-bold text-slate-700">Mark as High Value Item</Label>
+              <p className="text-xs text-slate-500 font-medium">
+                Hides the physical proof photo from the public gallery and applies a "SECURED" badge to prevent false claims.
+              </p>
+            </div>
+            <Switch
+              id="isHighValue"
+              checked={isHighValue}
+              onCheckedChange={setIsHighValue}
+            />
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react"
-import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { 
   LayoutDashboard, 
   Package, 
@@ -8,6 +9,7 @@ import {
   History,
   Users,
   Archive,
+  ArchiveRestore,
   Settings as SettingsIcon,
   LogOut,
   Menu,
@@ -20,6 +22,13 @@ import { cn } from "@/lib/utils"
 
 export function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    if (logout) logout()
+    navigate("/")
+  }
   
   return (
     <aside 
@@ -69,26 +78,36 @@ export function AdminSidebar() {
         <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/expired-inventory" icon={<Archive className="w-5 h-5" />} label="Expired Inventory" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
           {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Administration</h4>}
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
         </div>
 
-        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Archive" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="Settings" isCollapsed={isCollapsed} />
       </div>
 
       {/* Footer Area */}
       <div className="p-3 border-t border-white/10 flex flex-col gap-1 flex-shrink-0">
-        <AdminSidebarItem 
-          to="/" 
-          icon={<LogOut className="w-5 h-5" />} 
-          label="Exit to Portal" 
-          isCollapsed={isCollapsed} 
-          variant="secondary"
-        />
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "flex flex-row items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+            isCollapsed ? "justify-center" : "justify-start",
+            "text-white/60 hover:bg-rose-500/20 hover:text-rose-200 w-full text-left"
+          )}
+          title={isCollapsed ? "Log Out" : undefined}
+        >
+          <div className="flex-shrink-0 transition-transform group-hover:scale-110 text-white/70 group-hover:text-white">
+            <LogOut className="w-5 h-5" />
+          </div>
+          {!isCollapsed && (
+            <span className="text-sm flex-1 whitespace-nowrap overflow-hidden text-ellipsis tracking-tight font-medium">Log Out</span>
+          )}
+        </button>
       </div>
     </aside>
   )

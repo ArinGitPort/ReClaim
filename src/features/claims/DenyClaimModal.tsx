@@ -1,6 +1,7 @@
 import { Modal } from "@/components/ui/Modal"
-import { X, XCircle, AlertCircle } from "lucide-react"
+import { XCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 
 interface DenyClaimModalProps {
   isOpen: boolean
@@ -21,22 +22,14 @@ export function DenyClaimModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-        {/* Header */}
-
-{/* Header */}
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-rose-50/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center shadow-sm">
-              <XCircle className="w-5 h-5 text-rose-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-extrabold text-rose-900 uppercase tracking-tight">Deny Claim Request</h2>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <ModalHeader
+          title="Deny Claim Request"
+          icon={<XCircle className="w-5 h-5 text-rose-600" />}
+          onClose={onClose}
+          containerClassName="bg-rose-50/30"
+          iconWrapperClassName="bg-rose-100"
+          titleClassName="text-rose-900"
+        />
 
         {/* Form Area */}
         <div className="p-8 space-y-6">
@@ -53,7 +46,7 @@ export function DenyClaimModal({
               value={denyReason}
               onChange={(e) => setDenyReason(e.target.value)}
               placeholder="e.g. The serial number provided does not match our records or the uploaded proof is insufficient..."
-              className="w-full min-h-[160px] bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm font-medium focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all outline-none shadow-inner resize-none"
+              className="w-full min-h-40 bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm font-medium focus:ring-4 focus:ring-brand/5 focus:border-brand focus:bg-white transition-all outline-none shadow-inner resize-none"
             />
           </div>
         </div>

@@ -1,7 +1,23 @@
-import { Shield, Map, Bell, Database, Mail, Building, Laptop, Phone } from "lucide-react"
+import { Shield, Map, Bell, Database, Mail, Building, Laptop, Phone, Loader2, CheckCircle2 } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { useState } from "react"
 
 export function SettingsPage() {
-  
+  const [isSaved, setIsSaved] = useState(false)
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm({
+    defaultValues: {
+      institutionName: "University of Technology",
+      supportEmail: "lostandfound@university.edu",
+      phone: "+1 (555) 123-4567"
+    }
+  })
+
+  const onSubmit = async (data: any) => {
+    // Mock API call
+    await new Promise(resolve => setTimeout(resolve, 800))
+    setIsSaved(true)
+    setTimeout(() => setIsSaved(false), 3000)
+  }
 
   return (
     <div className="space-y-8">
@@ -35,11 +51,18 @@ export function SettingsPage() {
           
           {/* Institutional Settings Form */}
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">Global Institution Details</h3>
-              <p className="text-sm text-slate-500 mt-1">Primary details used across the Lost & Found portal.</p>
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Global Institution Details</h3>
+                <p className="text-sm text-slate-500 mt-1">Primary details used across the Lost & Found portal.</p>
+              </div>
+              {isSaved && (
+                <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-bold animate-in fade-in duration-300">
+                  <CheckCircle2 className="w-4 h-4" /> Saved
+                </div>
+              )}
             </div>
-            <div className="p-6 space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -48,7 +71,7 @@ export function SettingsPage() {
                       <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
                         type="text" 
-                        defaultValue="University of Technology"
+                        {...register("institutionName")}
                         className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all text-sm font-semibold text-slate-900" 
                       />
                     </div>
@@ -62,7 +85,7 @@ export function SettingsPage() {
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
                         type="email" 
-                        defaultValue="lostandfound@university.edu"
+                        {...register("supportEmail")}
                         className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all text-sm font-semibold text-slate-900" 
                       />
                     </div>
@@ -73,7 +96,7 @@ export function SettingsPage() {
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
                         type="tel" 
-                        defaultValue="+1 (555) 123-4567"
+                        {...register("phone")}
                         className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all text-sm font-semibold text-slate-900" 
                       />
                     </div>
@@ -82,11 +105,12 @@ export function SettingsPage() {
               </div>
               
               <div className="pt-2 flex justify-end">
-                <button className="h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors">
-                  Save Changes
+                <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors disabled:opacity-70">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isSubmitting ? "Saving..." : "Save Changes"}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
 
           {/* Integration Status placeholder */}

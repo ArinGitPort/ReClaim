@@ -27,11 +27,6 @@ export async function submitClaim(input: {
     include: { foundItem: true },
   });
 
-  await prisma.foundItem.update({
-    where: { id: input.foundItemId },
-    data: { status: ItemStatus.CLAIM_PENDING },
-  });
-
   return claim;
 }
 
@@ -44,7 +39,11 @@ export async function listClaims(filters: { status?: ClaimStatus; statusIn?: Cla
       claimantUserId: filters.userId,
     },
     include: {
-      foundItem: true,
+      foundItem: {
+        include: {
+          aiEvidenceLogs: true,
+        },
+      },
       claimantUser: {
         select: {
           id: true,
@@ -96,7 +95,11 @@ export async function listClaimsPaginated(filters: {
     prisma.claim.findMany({
       where,
       include: {
-        foundItem: true,
+        foundItem: {
+          include: {
+            aiEvidenceLogs: true,
+          },
+        },
         claimantUser: {
           select: {
             id: true,
@@ -167,7 +170,7 @@ export async function decideClaim(input: {
   await prisma.foundItem.update({
     where: { id: claim.foundItemId },
     data: {
-      status: input.status === ClaimStatus.DENIED ? ItemStatus.AVAILABLE : ItemStatus.CLAIM_PENDING,
+      status: input.status === ClaimStatus.APPROVED ? ItemStatus.CLAIM_PENDING : ItemStatus.AVAILABLE,
     },
   });
 

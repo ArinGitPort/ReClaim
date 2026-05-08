@@ -3,7 +3,7 @@ import type { Request, Response } from "express"
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js"
 import { createManagedUser, updateManagedUser } from "@/services/userService.js";
-import { listUserPickups } from "@/services/userPickupService.js"
+import { listUserPickups, rerollPickupToken } from "@/services/userPickupService.js"
 
 const idParamsSchema = z.object({
   id: z.string().uuid(),
@@ -31,6 +31,12 @@ const updateUserSchema = z
 export async function getUserPickups(req: Request, res: Response): Promise<void> {
   const pickups = await listUserPickups(req.user!.id)
   res.json({ pickups })
+}
+
+export async function postUserPickupReroll(req: Request, res: Response): Promise<void> {
+  const itemId = req.params.itemId as string;
+  const newToken = await rerollPickupToken(req.user!.id, itemId)
+  res.json({ pickupToken: newToken })
 }
 
 export async function getAllUsers(req: Request, res: Response): Promise<void> {

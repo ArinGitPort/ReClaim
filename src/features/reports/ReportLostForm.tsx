@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { ReportConfirmationModal } from "./ReportConfirmationModal"
 import { api } from "@/lib/api"
 import { CAMPUS_LOCATIONS, ITEM_CATEGORIES, ITEM_COLORS } from "@/features/shared/constants"
+import { MAX_REPORT_EVIDENCE_FILES, MAX_UPLOAD_SIZE_BYTES } from "@/lib/constants"
 import {
   getClaimFieldGroup,
   requiresColorSelection,
@@ -21,9 +22,14 @@ export function ReportLostForm() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const needsColor = requiresColorSelection(category)
   const fieldGroup = category ? getClaimFieldGroup(category) : null
   const [categoryProofValues, setCategoryProofValues] = useState<Record<string, string>>({})
+
+  const maxFiles = MAX_REPORT_EVIDENCE_FILES
+  const maxFileSize = MAX_UPLOAD_SIZE_BYTES
+  const allowedFileTypes = new Set(["image/jpeg", "image/png", "image/webp"])
   
   // Form State
   const [formData, setFormData] = useState({
@@ -48,6 +54,44 @@ export function ReportLostForm() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const validateFiles = (files: File[]): string | null => {
+    if (files.length > maxFiles) {
+      return `Upload up to ${maxFiles} files only.`
+    }
+
+    if (files.some((file) => !allowedFileTypes.has(file.type))) {
+      return "Only JPG, PNG, and WEBP images are allowed."
+    }
+
+    if (files.some((file) => file.size > maxFileSize)) {
+      return "Each file must be 5MB or smaller."
+    }
+
+    return null
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? [])
+
+    if (files.length === 0) {
+      setSelectedFiles([])
+      return
+    }
+
+    const validationError = validateFiles(files)
+    if (validationError) {
+      setError(validationError)
+      setSelectedFiles([])
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      return
+    }
+
+    setError(null)
+    setSelectedFiles(files)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -61,7 +105,34 @@ export function ReportLostForm() {
     }
 
     try {
-      const proofData: Record<string, string> = {
+      let evidenceUrls: string[] = []
+
+      if (selectedFiles.length > 0) {
+        const validationError = validateFiles(selectedFiles)
+        if (validationError) {
+          setError(validationError)
+          setIsSubmitting(false)
+          return
+        }
+
+        const payload = new FormData()
+        selectedFiles.forEach((file) => {
+          payload.append("evidence", file)
+        })
+
+        try {
+          const uploadResponse = await api.post<{ evidenceUrls: string[] }>("/reports/upload-evidence", payload, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+          evidenceUrls = uploadResponse.data.evidenceUrls
+        } catch {
+          setError("Failed to upload evidence images. Please try again.")
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      const proofData: Record<string, unknown> = {
         categoryGroup: fieldGroup?.heading ?? "General",
         ...categoryProofValues,
         marks: formData.marks,
@@ -69,10 +140,14 @@ export function ReportLostForm() {
         additionalNotes: formData.privateNote,
       }
 
+      if (evidenceUrls.length > 0) {
+        proofData.attachments = evidenceUrls
+      }
+
       await api.post("/reports", {
         title: formData.itemName.trim(),
         category: formData.category,
-        color: needsColor ? formData.color : "Not Specified",
+        color: formData.color || "Not Specified",
         location: formData.location,
         reportedLostAtUtc: new Date(`${formData.date || new Date().toISOString().slice(0, 10)}T00:00:00.000Z`).toISOString(),
         timeWindow: formData.time,
@@ -102,6 +177,13 @@ export function ReportLostForm() {
       ...prev,
       [key]: value,
     }))
+  }
+
+  const clearSelectedFiles = () => {
+    setSelectedFiles([])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   return (
@@ -177,9 +259,9 @@ export function ReportLostForm() {
 
               {needsColor ? (
                 <div className="space-y-2">
-                  <Label htmlFor="color">Primary Color</Label>
-                  <Select id="color" name="color" required={needsColor} value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
-                    <option value="">Select color</option>
+                  <Label htmlFor="color">Primary Color (Optional)</Label>
+                  <Select id="color" name="color" value={formData.color} onChange={handleInputChange} className="bg-white shadow-sm border-slate-200">
+                    <option value="">Not Specified</option>
                     {ITEM_COLORS.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
@@ -318,13 +400,39 @@ export function ReportLostForm() {
                   onClick={() => fileInputRef.current?.click()}
                   className="group border-2 border-dashed border-slate-200 bg-white shadow-sm rounded-2xl p-6 sm:p-8 hover:border-brand hover:bg-brand/2 transition-all cursor-pointer text-center"
                 >
-                  <input type="file" className="hidden" ref={fileInputRef} accept="image/*" multiple />
+                  <input
+                    type="file"
+                    className="hidden"
+                    ref={fileInputRef}
+                    accept="image/png,image/jpeg,image/webp"
+                    multiple
+                    onChange={handleFileChange}
+                    disabled={isSubmitting}
+                  />
                   <div className="w-12 h-12 bg-slate-100 group-hover:bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
                     <Upload className="w-5 h-5 text-slate-400 group-hover:text-brand" />
                   </div>
                   <h4 className="font-bold text-slate-700">Click or drag to upload</h4>
-                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files - 5MB Limit per file</p>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files • 5MB Limit per file</p>
                 </div>
+                {selectedFiles.length > 0 && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Selected files ({selectedFiles.length})</span>
+                      <button type="button" onClick={clearSelectedFiles} className="text-[10px] font-bold uppercase tracking-widest text-brand">
+                        Clear
+                      </button>
+                    </div>
+                    <ul className="space-y-1">
+                      {selectedFiles.map((file) => (
+                        <li key={file.name} className="flex items-center justify-between gap-2">
+                          <span className="truncate">{file.name}</span>
+                          <span className="text-[10px] text-slate-400">{Math.ceil(file.size / 1024)} KB</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

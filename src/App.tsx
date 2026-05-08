@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom"
 
 // Public pages
 import { LandingPage } from "@/pages/public/PublicLandingPage"
@@ -36,11 +36,29 @@ import { ExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
 import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 import { SnapshotGalleryPage } from "@/pages/admin/AdminSnapshotGalleryPage"
+import { DismissedSnapshotsPage } from "@/pages/admin/AdminDismissedSnapshotsPage"
 import { CameraSettingsPage } from "@/pages/admin/AdminCameraSettingsPage"
 import { LiveMonitorPage } from "@/pages/admin/AdminLiveMonitorPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"
+
+function PublicOnlyRoutes() {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
+  }
+
+  if (user) {
+    if (user.role === "ADMIN" || user.role === "STAFF") {
+      return <Navigate to="/admin/dashboard" replace />
+    }
+    return <Navigate to="/gallery" replace />
+  }
+
+  return <Outlet />
+}
 
 function ProtectedUserRoutes() {
   const { user, isLoading } = useAuth()
@@ -86,9 +104,11 @@ function App() {
           <Router>
             <Routes>
             {/* Public / Unauthenticated Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route element={<PublicOnlyRoutes />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            </Route>
             
             {/* Protected / Authenticated Routes with Sidebar Navigation */}
             <Route element={<ProtectedUserRoutes />}>
@@ -112,6 +132,7 @@ function App() {
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="reports" element={<MissingItemsPage />} />
               <Route path="snapshots" element={<SnapshotGalleryPage />} />
+              <Route path="dismissed-snapshots" element={<DismissedSnapshotsPage />} />
               <Route path="claims" element={<ClaimsVerificationPage />} />
               <Route path="handover-log" element={<HandoverLogPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />

@@ -1,10 +1,12 @@
 import { useState } from "react"
-import { X, Save, Package, MapPin, Archive } from "lucide-react"
+import { Save, Package, MapPin, Archive, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
+import { Switch } from "@/components/ui/Switch"
 import { Textarea } from "@/components/ui/Textarea"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
 import {
@@ -25,6 +27,7 @@ type EditableItem = {
   storage: string
   status: string
   privateDiscoveryNote?: string
+  isHighValue?: boolean
 }
 
 const ITEM_STATUSES = ["AVAILABLE", "CLAIM_PENDING", "RETURNED", "ARCHIVED"] as const
@@ -46,6 +49,7 @@ export function EditInventoryItemModal({
   const [storageLocation, setStorageLocation] = useState(item.storage)
   const [status, setStatus] = useState(item.status)
   const [privateDiscoveryNote, setPrivateDiscoveryNote] = useState(item.privateDiscoveryNote ?? "")
+  const [isHighValue, setIsHighValue] = useState(item.isHighValue ?? false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,6 +73,7 @@ export function EditInventoryItemModal({
         storageLocation,
         status,
         privateDiscoveryNote: privateDiscoveryNote || undefined,
+        isHighValue,
       })
 
       onSaved?.()
@@ -85,20 +90,12 @@ export function EditInventoryItemModal({
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Save className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Edit Inventory Item</h2>
-            <p className="text-[11px] font-bold text-slate-400 mt-1">{item.code}</p>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Edit Inventory Item"
+        subtitle={item.code}
+        icon={<Save className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       <form id="edit-item-form" onSubmit={(event) => void handleSubmit(event)} className="flex-1 overflow-y-auto p-6 space-y-8">
         <div className="space-y-4">
@@ -122,8 +119,9 @@ export function EditInventoryItemModal({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color</Label>
-              <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200" required>
+              <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color (Optional)</Label>
+              <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200">
+                <option value="">Not Specified</option>
                 {ITEM_COLORS.map((option) => (
                   <option key={option} value={option}>{option}</option>
                 ))}
@@ -172,6 +170,27 @@ export function EditInventoryItemModal({
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+             <ShieldAlert className="w-3.5 h-3.5 text-brand" />
+             <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Security & Visibility</h4>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div className="space-y-1">
+              <Label htmlFor="isHighValue" className="font-bold text-slate-700">Mark as High Value Item</Label>
+              <p className="text-xs text-slate-500 font-medium">
+                Hides the physical proof photo from the public gallery and applies a "SECURED" badge to prevent false claims.
+              </p>
+            </div>
+            <Switch
+              id="isHighValue"
+              checked={isHighValue}
+              onCheckedChange={setIsHighValue}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
             <Archive className="w-3.5 h-3.5 text-brand" />
             <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Sensitive Discovery Notes</h4>
           </div>
@@ -182,7 +201,7 @@ export function EditInventoryItemModal({
               value={privateDiscoveryNote}
               onChange={(e) => setPrivateDiscoveryNote(e.target.value)}
               placeholder="Add internal notes"
-              className="min-h-[100px] bg-slate-50 border-slate-200 shadow-sm text-slate-600"
+              className="min-h-25 bg-slate-50 border-slate-200 shadow-sm text-slate-600"
             />
           </div>
         </div>

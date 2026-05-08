@@ -160,6 +160,7 @@ function toTargetLabel(targetType: string): string {
   if (targetType === "lost_report") return "Lost Report";
   if (targetType === "handover") return "Handover";
   if (targetType === "user") return "User";
+  if (targetType === "snapshot") return "AI Snapshot";
   return targetType;
 }
 
@@ -175,5 +176,7 @@ function toActionVerb(action: AuditAction): string {
   if (action === AuditAction.REPORT_UPDATED) return "updated";
   if (action === AuditAction.REPORT_LINKED) return "linked";
   if (action === AuditAction.HANDOVER_COMPLETED) return "completed";
+  if (action === AuditAction.SNAPSHOT_DISMISSED) return "dismissed";
+  if (action === AuditAction.SNAPSHOT_RESTORED) return "restored";
   return "updated";
 }

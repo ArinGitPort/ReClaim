@@ -72,7 +72,23 @@ export async function listReports(filters: {
             email: true,
           },
         },
-        matchedItem: true,
+        matchedItem: {
+          include: {
+            claims: {
+              where: {
+                status: "APPROVED",
+                pickupToken: { not: null },
+              },
+              select: {
+                pickupToken: true,
+                pickupTokenExpires: true,
+                claimantUserId: true,
+              },
+              orderBy: { createdAt: "desc" as const },
+              take: 1,
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       ...(typeof skip === "number" && typeof limit === "number" ? { skip, take: limit } : {}),
@@ -132,7 +148,7 @@ export async function updateReportStatus(input: {
         throw new HttpError(404, "Matched found item not found");
       }
 
-      if (matchedItem.status !== ItemStatus.AVAILABLE) {
+      if (matchedItem.status !== ItemStatus.AVAILABLE && matchedItem.status !== ItemStatus.CLAIM_PENDING) {
         throw new HttpError(409, "Found item is no longer available for matching");
       }
 

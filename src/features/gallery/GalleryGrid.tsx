@@ -4,19 +4,30 @@ import type { FoundItem } from "@/features/gallery/ItemCard"
 import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function GalleryGrid({
   page,
   pageSize,
+  search,
+  category,
+  date,
+  location,
   onDataChange,
 }: {
   page: number
   pageSize: number
+  search?: string
+  category?: string
+  date?: string
+  location?: string
   onDataChange?: (payload: { visibleCount: number; totalCount: number; pageCount: number }) => void
 }) {
   const [items, setItems] = useState<FoundItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [columns, setColumns] = useState(getColumns())
+  const { user } = useAuth()
+  const [activeClaimItemIds, setActiveClaimItemIds] = useState<Set<string>>(new Set())
 
   function getColumns() {
     if (typeof window === 'undefined') return 1
@@ -42,6 +53,9 @@ export function GalleryGrid({
           category: string
           foundLocation: string
           foundAtUtc: string
+          isHighValue: boolean
+          imageUrl?: string
+          status: string
         }>
         pagination: {
           page: number
@@ -53,6 +67,10 @@ export function GalleryGrid({
         params: {
           page,
           limit: pageSize,
+          search: search || undefined,
+          category: category || undefined,
+          date: date || undefined,
+          location: location || undefined,
         },
       })
 
@@ -62,7 +80,9 @@ export function GalleryGrid({
         category: item.category,
         location: item.foundLocation,
         dateLost: item.foundAtUtc,
-        isHighValue: ["electronics", "wallets/ids"].includes(item.category.toLowerCase()),
+        isHighValue: item.isHighValue,
+        imageUrl: item.imageUrl,
+        status: item.status,
       }))
 
       setItems(nextItems)
@@ -74,7 +94,30 @@ export function GalleryGrid({
     } finally {
       setIsLoading(false)
     }
-  }, [onDataChange, page, pageSize])
+  }, [onDataChange, page, pageSize, search, category, date, location])
+
+  useEffect(() => {
+    if (!user) {
+      setActiveClaimItemIds(new Set())
+      return
+    }
+
+    const fetchClaims = async () => {
+      try {
+        const res = await api.get<{ claims: Array<{ foundItemId: string, status: string }> }>("/claims")
+        const activeIds = new Set(
+          res.data.claims
+            .filter(c => c.status !== 'CANCELLED' && c.status !== 'DENIED')
+            .map(c => c.foundItemId)
+        )
+        setActiveClaimItemIds(activeIds)
+      } catch (err) {
+        console.error("Failed to fetch user claims", err)
+      }
+    }
+
+    void fetchClaims()
+  }, [user])
 
   useEffect(() => {
     void loadItems()
@@ -120,7 +163,7 @@ export function GalleryGrid({
       margin: '0 auto'
     }}>      
       {items.map(item => (
-        <ItemCard key={item.id} item={item} />
+        <ItemCard key={item.id} item={item} hasActiveClaim={activeClaimItemIds.has(item.id)} />
       ))}
     </div>
   )

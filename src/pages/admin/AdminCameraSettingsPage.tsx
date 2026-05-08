@@ -1,37 +1,90 @@
-import { useState } from "react"
-import { Video, Plus, Settings } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Video, Plus, Settings, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/Switch"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
+import { AddCameraModal } from "@/features/admin/components/AddCameraModal"
+import { api } from "@/lib/api"
 
 type CampusCamera = {
   id: string
+  code: string
   name: string
   location: string
+  sourceUrl: string
   isOnline: boolean
   aiEnabled: boolean
-  lastPing: string
+  lastPingAtUtc: string | null
 }
 
-const MOCK_CAMERAS: CampusCamera[] = [
-  { id: "CAM-01", name: "Main Entrance", location: "Main Library Gate", isOnline: true, aiEnabled: true, lastPing: "Active 2 mins ago" },
-  { id: "CAM-02", name: "Cafeteria Entry", location: "Student Union Hall", isOnline: true, aiEnabled: true, lastPing: "Active 5 mins ago" },
-  { id: "CAM-03", name: "Hallway North", location: "Engineering Bldg Corridor", isOnline: false, aiEnabled: false, lastPing: "Offline for 2 hours" },
-  { id: "CAM-04", name: "Gymnasium Doors", location: "Athletics Complex", isOnline: true, aiEnabled: false, lastPing: "Active 1 min ago" },
-]
-
 export function CameraSettingsPage() {
-  const [cameras, setCameras] = useState<CampusCamera[]>(MOCK_CAMERAS)
+  const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [cameraToDelete, setCameraToDelete] = useState<CampusCamera | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  const loadCameras = async () => {
+    try {
+      const response = await api.get<{ cameras: CampusCamera[] }>("/cameras")
+      setCameras(response.data.cameras)
+    } catch (err) {
+      alert("Failed to load cameras")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadCameras()
+  }, [])
 
   const filteredCameras = cameras.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.location.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const toggleAi = (id: string, newAiState: boolean) => {
-    setCameras(prev => prev.map(c => c.id === id ? { ...c, aiEnabled: newAiState } : c))
+  const toggleAi = async (id: string, newAiState: boolean) => {
+    try {
+      setCameras(prev => prev.map(c => c.id === id ? { ...c, aiEnabled: newAiState } : c))
+      await api.patch(`/cameras/${id}/ai`, { aiEnabled: newAiState })
+    } catch {
+      alert("Failed to update AI state")
+      setCameras(prev => prev.map(c => c.id === id ? { ...c, aiEnabled: !newAiState } : c))
+    }
+  }
+
+  const handleAddCamera = async (data: { name: string; location: string; sourceUrl: string }) => {
+    const response = await api.post<{ camera: CampusCamera }>("/cameras", data)
+    setCameras(prev => [...prev, response.data.camera])
+    setIsAddModalOpen(false)
+  }
+
+  const confirmDeleteCamera = async () => {
+    if (!cameraToDelete) return
+    setIsDeleting(true)
+    try {
+      await api.delete(`/cameras/${cameraToDelete.id}`)
+      setCameras(prev => prev.filter(c => c.id !== cameraToDelete.id))
+      setCameraToDelete(null)
+    } catch {
+      alert("Failed to delete camera")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const formatLastPing = (utcStr: string | null) => {
+    if (!utcStr) return "Never pinged"
+    const diffSeconds = Math.floor((Date.now() - new Date(utcStr).getTime()) / 1000)
+    if (diffSeconds < 60) return `Active ${diffSeconds}s ago`
+    const diffMins = Math.floor(diffSeconds / 60)
+    if (diffMins < 60) return `Active ${diffMins}m ago`
+    return `Offline for ${Math.floor(diffMins / 60)}h`
   }
 
   return (
@@ -40,7 +93,7 @@ export function CameraSettingsPage() {
         title="Camera Settings"
         description="Manage physical camera units and AI detection model settings."
         actions={(
-          <Button className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none">
+          <Button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none">
             <Plus className="w-4 h-4 mr-2" />
             Add New Camera
           </Button>
@@ -88,10 +141,10 @@ export function CameraSettingsPage() {
                       <div>
                         <div className="font-bold text-slate-900 flex items-center gap-2">
                           {camera.name}
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-wider">{camera.id}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-wider">{camera.code}</span>
                         </div>
                         <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                          {camera.location}
+                          {camera.location} &bull; {camera.sourceUrl}
                         </div>
                       </div>
                     </div>
@@ -118,16 +171,17 @@ export function CameraSettingsPage() {
                   </td>
                   <td className="px-8 py-5">
                     <div className={`text-sm font-semibold ${camera.isOnline ? 'text-slate-600' : 'text-rose-600'}`}>
-                      {camera.lastPing}
+                      {formatLastPing(camera.lastPingAtUtc)}
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-8 border-slate-200 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600"
+                      onClick={() => setCameraToDelete(camera)}
+                      className="h-8 border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 text-[10px] font-bold uppercase tracking-widest text-rose-600"
                     >
-                      <Settings className="mr-1.5 h-3.5 w-3.5" /> Settings
+                      Delete
                     </Button>
                   </td>
                 </tr>
@@ -136,6 +190,24 @@ export function CameraSettingsPage() {
           </tbody>
         </table>
       </AdminTableContainer>
+
+      <AddCameraModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onSubmit={handleAddCamera} 
+      />
+
+      <ConfirmModal
+        isOpen={!!cameraToDelete}
+        onClose={() => !isDeleting && setCameraToDelete(null)}
+        onConfirm={confirmDeleteCamera}
+        title="Delete Camera"
+        message={`Are you sure you want to delete ${cameraToDelete?.name}? This action cannot be undone and will stop AI detection for this location.`}
+        confirmText="Delete Camera"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

@@ -1,8 +1,23 @@
-import { User, Bell, Palette, Shield, Mail, Phone, MapPin, BadgeCheck } from "lucide-react"
+import { User, Bell, Palette, Shield, Mail, Phone, MapPin, BadgeCheck, Loader2, CheckCircle2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useForm } from "react-hook-form"
+import { useState } from "react"
 
 export function SettingsPage() {
   const { user } = useAuth()
+  const [isSaved, setIsSaved] = useState(false)
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm({
+    defaultValues: {
+      fullName: user?.name || "Student Name",
+      phone: ""
+    }
+  })
+
+  const onSubmit = async (data: any) => {
+    await new Promise(resolve => setTimeout(resolve, 800))
+    setIsSaved(true)
+    setTimeout(() => setIsSaved(false), 3000)
+  }
 
   return (
     <div className="w-full min-h-full pb-24 bg-slate-50/30">
@@ -59,18 +74,25 @@ export function SettingsPage() {
             
             {/* Account Details Form */}
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900">Personal Information</h3>
-                <p className="text-sm text-slate-500 mt-1">Update your contact details to ensure we can reach you when items are found.</p>
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Personal Information</h3>
+                  <p className="text-sm text-slate-500 mt-1">Update your contact details to ensure we can reach you when items are found.</p>
+                </div>
+                {isSaved && (
+                  <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-bold animate-in fade-in duration-300">
+                    <CheckCircle2 className="w-4 h-4" /> Saved
+                  </div>
+                )}
               </div>
-              <div className="p-6 space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold tracking-wide uppercase text-slate-500 mb-2">Full Name</label>
                       <input 
                         type="text" 
-                        defaultValue={user?.name || "Student Name"}
+                        {...register("fullName")}
                         className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-sm font-semibold text-slate-900" 
                       />
                     </div>
@@ -108,6 +130,7 @@ export function SettingsPage() {
                         <input 
                           type="tel" 
                           placeholder="+1 (555) 000-0000"
+                          {...register("phone")}
                           className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-sm font-semibold text-slate-900" 
                         />
                       </div>
@@ -131,11 +154,12 @@ export function SettingsPage() {
                 </div>
                 
                 <div className="pt-2 flex justify-end">
-                  <button className="h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors">
-                    Save Changes
+                  <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors disabled:opacity-70">
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {isSubmitting ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
 
             {/* General Preferences placeholder */}

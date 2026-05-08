@@ -1,12 +1,15 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { FileText, Calendar, MapPin, ArrowRight, Clock } from "lucide-react"
+import { FileText, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
-import { RecordsFilterBar, RecordsStatusChips } from "@/features/user/RecordsFilterBar"
+import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
+import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
+import { SlidersHorizontal } from "lucide-react"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type ReportRealtimeEvent = {
   reportId: string
@@ -31,6 +34,8 @@ interface ReportView {
   privateNote: string
   rawStatus: string
   status: string
+  pickupToken: string | null
+  pickupTokenExpires: string | null
 }
 
 export function MyReportsPage() {
@@ -42,7 +47,7 @@ export function MyReportsPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
@@ -59,16 +64,24 @@ export function MyReportsPage() {
           proofData?: Record<string, unknown>
           createdAt: string
           status: string
+          matchedItem?: {
+            claims?: Array<{
+              pickupToken: string | null
+              pickupTokenExpires: string | null
+              claimantUserId: string
+            }>
+          } | null
         }>
       }>("/reports", {
         params: {
-          statusIn: "UNDER_REVIEW,ACTIVE_SEARCH,RESOLVED",
+          statusIn: "UNDER_REVIEW,ACTIVE_SEARCH,MATCHED,RESOLVED",
         },
       })
 
       setReports(
         response.data.reports.map((report) => {
           const proof = report.proofData ?? {}
+          const matchedClaim = report.matchedItem?.claims?.[0]
           return {
             ticketId: report.id,
             id: report.reportCode,
@@ -84,7 +97,20 @@ export function MyReportsPage() {
             privateNote: String(proof.privateNote ?? "Not provided"),
             rawStatus: report.status,
             status: toStudentStatusLabel(report.status),
+            pickupToken: matchedClaim?.pickupToken ?? null,
+            pickupTokenExpires: matchedClaim?.pickupTokenExpires ?? null,
           }
+        }).sort((a, b) => {
+          const order: Record<string, number> = {
+            MATCHED: 1,
+            ACTIVE_SEARCH: 2,
+            UNDER_REVIEW: 3,
+            RESOLVED: 4,
+          }
+          const rankA = order[a.rawStatus] || 99
+          const rankB = order[b.rawStatus] || 99
+          if (rankA !== rankB) return rankA - rankB
+          return new Date(b.dateFiled).getTime() - new Date(a.dateFiled).getTime()
         })
       )
     } catch {
@@ -214,19 +240,34 @@ export function MyReportsPage() {
           </Link>
         </div>
 
-        <RecordsFilterBar
+        <UniversalFilterBar
           searchValue={search}
           onSearchChange={(value) => {
             setSearch(value)
             setPage(1)
           }}
-          statusValue={statusFilter}
-          onStatusChange={(value) => {
-            setStatusFilter(value)
-            setPage(1)
-          }}
-          statusOptions={statusOptions}
           searchPlaceholder="Search by report code, item, category, color, or location"
+          dropdowns={[
+            {
+              id: "status",
+              icon: <SlidersHorizontal />,
+              label: "Status",
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value)
+                setPage(1)
+              },
+              options: [
+                { value: "", label: "All Statuses" },
+                ...statusOptions
+              ]
+            }
+          ]}
+          onClear={search || statusFilter ? () => {
+            setSearch("")
+            setStatusFilter("")
+            setPage(1)
+          } : undefined}
         />
 
         <RecordsStatusChips
@@ -295,6 +336,30 @@ export function MyReportsPage() {
                     {report.privateNote}
                   </div>
                 </div>
+                {report.rawStatus === "MATCHED" && report.pickupToken && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-emerald-800">Claim Approved — Pickup Token Issued</div>
+                        <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
+                        <Ticket className="w-5 h-5" />
+                        {report.pickupToken}
+                      </div>
+                      {report.pickupTokenExpires && (
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                          Expires {new Date(report.pickupTokenExpires).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {isClosableReportStatus(report.rawStatus) && (
                   <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
                     <button
@@ -340,6 +405,7 @@ function ReportStatusMessage({ status }: { status: string }) {
     "Submitted": "Your report was received and is queued for admin review",
     "Under Review": "Admin is reviewing your report",
     "Active Search": "Administration has authorized this report and is actively searching",
+    "Match Found": "A matching item has been found — check Token Wallet for pickup details",
     "Closed": "Report workflow is complete",
     "Rejected": "Report was reviewed and not authorized",
   }
@@ -354,6 +420,10 @@ function ReportStatusMessage({ status }: { status: string }) {
 function toStudentStatusLabel(status: string): string {
   if (status === "RESOLVED") {
     return "Closed"
+  }
+
+  if (status === "MATCHED") {
+    return "Match Found"
   }
 
   return status.replaceAll("_", " ")

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import multer from "multer";
 import { itemUploadsRoot } from "@/config/paths.js";
+import { MAX_UPLOAD_SIZE_BYTES } from "@/config/constants.js";
 import { HttpError } from "@/utils/errors.js";
 
 fs.mkdirSync(itemUploadsRoot, { recursive: true });
@@ -31,7 +32,7 @@ const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export const itemPhotoUpload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: MAX_UPLOAD_SIZE_BYTES },
   fileFilter: (_req, file, cb) => {
     if (allowedMimeTypes.has(file.mimetype)) {
       cb(null, true);

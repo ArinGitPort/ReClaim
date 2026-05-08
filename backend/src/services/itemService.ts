@@ -12,6 +12,7 @@ export async function createFoundItem(input: {
   publicDescription?: string;
   privateDiscoveryNote?: string;
   privateData?: Prisma.InputJsonValue;
+  isHighValue?: boolean;
   storageLocation?: string;
   evidence?: {
     sourceCameraId: string;
@@ -32,6 +33,7 @@ export async function createFoundItem(input: {
       publicDescription: input.publicDescription,
       privateDiscoveryNote: input.privateDiscoveryNote,
       privateData: input.privateData,
+      isHighValue: input.isHighValue ?? false,
       storageLocation: input.storageLocation,
       createdById: input.actorUserId,
       aiEvidenceLogs: input.evidence
@@ -52,13 +54,17 @@ export async function createFoundItem(input: {
 export async function listPublicItems(filters: {
   search?: string;
   category?: string;
+  location?: string;
+  dateStart?: Date;
   status?: ItemStatus;
   page?: number;
   limit?: number;
 }) {
-  const where = {
-    status: filters.status ?? ItemStatus.AVAILABLE,
+  const where: Record<string, unknown> = {
+    status: filters.status ?? { in: [ItemStatus.AVAILABLE, ItemStatus.CLAIM_PENDING] },
     category: filters.category,
+    foundLocation: filters.location ? { contains: filters.location, mode: "insensitive" } : undefined,
+    foundAtUtc: filters.dateStart ? { gte: filters.dateStart } : undefined,
     OR: filters.search
       ? [
           { title: { contains: filters.search, mode: "insensitive" as const } },
@@ -87,6 +93,8 @@ export async function listPublicItems(filters: {
         foundAtUtc: true,
         publicDescription: true,
         status: true,
+        isHighValue: true,
+        privateData: true,
       },
     }),
     prisma.foundItem.count({ where }),
@@ -161,6 +169,7 @@ export async function updateFoundItem(input: {
   storageLocation?: string | null;
   privateDiscoveryNote?: string | null;
   status?: ItemStatus;
+  isHighValue?: boolean;
 }) {
   return prisma.foundItem.update({
     where: { id: input.itemId },
@@ -173,6 +182,7 @@ export async function updateFoundItem(input: {
       storageLocation: input.storageLocation,
       privateDiscoveryNote: input.privateDiscoveryNote,
       status: input.status,
+      isHighValue: input.isHighValue,
     },
   });
 }
