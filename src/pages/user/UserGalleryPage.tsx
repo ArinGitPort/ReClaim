@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { GalleryGrid } from "@/features/gallery/GalleryGrid"
 import { PaginationControls } from "@/components/ui/PaginationControls"
@@ -17,6 +17,11 @@ export function GalleryPage() {
   const [location, setLocation] = useState("")
 
   const pageSize = 12
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [search, category, date, location])
 
   return (
     <div className="w-full min-h-full pb-24">
@@ -43,11 +48,12 @@ export function GalleryPage() {
             onChange: setCategory,
             options: [
               { label: "All Categories", value: "" },
-              { label: "Electronics", value: "electronics" },
-              { label: "Wallets & IDs", value: "wallets" },
-              { label: "Clothing", value: "clothing" },
-              { label: "Bags", value: "bags" },
-              { label: "Other", value: "other" }
+              { label: "Electronics", value: "Electronics" },
+              { label: "Wallets & IDs", value: "Wallets & IDs" },
+              { label: "Clothing", value: "Clothing" },
+              { label: "Bags & Backpacks", value: "Bags & Backpacks" },
+              { label: "Keys", value: "Keys" },
+              { label: "Other", value: "Everyday Items" }
             ],
           },
           {
@@ -89,6 +95,10 @@ export function GalleryPage() {
         <GalleryGrid
           page={page}
           pageSize={pageSize}
+          search={search}
+          category={category}
+          date={date}
+          location={location}
           onDataChange={({ visibleCount, totalCount: total, pageCount: totalPages }) => {
             setItemCount(visibleCount)
             setTotalCount(total)

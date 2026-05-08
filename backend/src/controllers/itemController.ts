@@ -59,6 +59,8 @@ export async function postItemPhoto(req: Request, res: Response): Promise<void> 
 export async function getPublicItems(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const category = typeof req.query.category === "string" ? req.query.category : undefined;
+  const location = typeof req.query.location === "string" ? req.query.location : undefined;
+  const dateStr = typeof req.query.date === "string" ? req.query.date : undefined;
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
   const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
@@ -69,7 +71,17 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
   const page = Number.isFinite(pageQuery) && (pageQuery as number) > 0 ? (pageQuery as number) : 1;
   const limit = Number.isFinite(limitQuery) && (limitQuery as number) > 0 ? Math.min(limitQuery as number, 100) : 12;
 
-  const result = await listPublicItems({ search, category, status, page, limit });
+  let dateStart: Date | undefined = undefined;
+  if (dateStr === "today") {
+    dateStart = new Date();
+    dateStart.setHours(0, 0, 0, 0);
+  } else if (dateStr === "7days") {
+    dateStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  } else if (dateStr === "30days") {
+    dateStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const result = await listPublicItems({ search, category, location, dateStart, status, page, limit });
   const items = result.items.map((item) => {
     // If it's a high value item, do not expose imageUrl to public endpoints
     let imageUrl = undefined;

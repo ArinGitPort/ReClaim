@@ -24,6 +24,7 @@ import { AdminExportButton } from "@/features/admin/components/AdminExportButton
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { ITEM_CATEGORIES } from "@/features/shared/constants"
 
 type InventoryRow = {
   id: string
@@ -153,10 +154,7 @@ export function InventoryPage() {
 
   const statusOptions = useMemo(() => ["AVAILABLE", "CLAIM_PENDING", "ARCHIVED"], [])
 
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(inventoryItems.map((item) => item.category))).sort((a, b) => a.localeCompare(b)),
-    [inventoryItems]
-  )
+  const categoryOptions = ITEM_CATEGORIES
 
   const visibleItems = useMemo(() => inventoryItems.filter((item) => item.status !== "RETURNED"), [inventoryItems])
 

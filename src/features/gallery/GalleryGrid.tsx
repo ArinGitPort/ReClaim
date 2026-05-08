@@ -9,10 +9,18 @@ import { useAuth } from "@/contexts/AuthContext"
 export function GalleryGrid({
   page,
   pageSize,
+  search,
+  category,
+  date,
+  location,
   onDataChange,
 }: {
   page: number
   pageSize: number
+  search?: string
+  category?: string
+  date?: string
+  location?: string
   onDataChange?: (payload: { visibleCount: number; totalCount: number; pageCount: number }) => void
 }) {
   const [items, setItems] = useState<FoundItem[]>([])
@@ -59,6 +67,10 @@ export function GalleryGrid({
         params: {
           page,
           limit: pageSize,
+          search: search || undefined,
+          category: category || undefined,
+          date: date || undefined,
+          location: location || undefined,
         },
       })
 
@@ -82,7 +94,7 @@ export function GalleryGrid({
     } finally {
       setIsLoading(false)
     }
-  }, [onDataChange, page, pageSize])
+  }, [onDataChange, page, pageSize, search, category, date, location])
 
   useEffect(() => {
     if (!user) {

@@ -54,6 +54,8 @@ export async function createFoundItem(input: {
 export async function listPublicItems(filters: {
   search?: string;
   category?: string;
+  location?: string;
+  dateStart?: Date;
   status?: ItemStatus;
   page?: number;
   limit?: number;
@@ -61,6 +63,8 @@ export async function listPublicItems(filters: {
   const where: Record<string, unknown> = {
     status: filters.status ?? { in: [ItemStatus.AVAILABLE, ItemStatus.CLAIM_PENDING] },
     category: filters.category,
+    foundLocation: filters.location ? { contains: filters.location, mode: "insensitive" } : undefined,
+    foundAtUtc: filters.dateStart ? { gte: filters.dateStart } : undefined,
     OR: filters.search
       ? [
           { title: { contains: filters.search, mode: "insensitive" as const } },
