@@ -84,6 +84,17 @@ export async function postReport(req: Request, res: Response): Promise<void> {
   res.status(201).json({ report });
 }
 
+export async function postReportEvidence(req: Request, res: Response): Promise<void> {
+  const files = Array.isArray(req.files) ? (req.files as Express.Multer.File[]) : [];
+
+  if (files.length === 0) {
+    throw new HttpError(400, "No evidence files uploaded");
+  }
+
+  const evidenceUrls = files.map((file) => `/uploads/reports/${file.filename}`);
+  res.status(201).json({ evidenceUrls });
+}
+
 export async function getReports(req: Request, res: Response): Promise<void> {
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const statusInQuery = typeof req.query.statusIn === "string" ? req.query.statusIn : undefined;

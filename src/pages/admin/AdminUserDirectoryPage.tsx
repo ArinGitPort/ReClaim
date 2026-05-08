@@ -17,6 +17,8 @@ import {
   ClaimHistoryModal 
 } from "@/features/admin/modals"
 import type { ActiveModalState, UserDirUser } from "@/features/admin/types"
+import { useDebounce } from "@/lib/hooks/useDebounce"
+import { Skeleton } from "@/components/ui/Skeleton"
 
 type UserSortField = "name" | "createdAt"
 
@@ -29,6 +31,8 @@ export function UserDirectoryPage() {
   const [rowsPerPage, setRowsPerPage] = useState(15)
   const [pageCount, setPageCount] = useState(1)
   const [totalUsers, setTotalUsers] = useState(0)
+  const debouncedSearch = useDebounce(searchQuery, 400)
+  const debouncedRole = useDebounce(roleFilter, 400)
   
   const [sortField] = useState<UserSortField>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
@@ -43,8 +47,8 @@ export function UserDirectoryPage() {
       setLoading(true)
       const res = await api.get('/user', {
         params: {
-          search: searchQuery || undefined,
-          role: roleFilter || undefined,
+          search: debouncedSearch || undefined,
+          role: debouncedRole || undefined,
           page,
           limit: rowsPerPage,
           sortBy: sortField,
@@ -69,13 +73,10 @@ export function UserDirectoryPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, roleFilter, page, rowsPerPage, sortField, sortOrder, selectedUserId])
+  }, [debouncedSearch, debouncedRole, page, rowsPerPage, sortField, sortOrder, selectedUserId])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchUsers()
-    }, 400)
-    return () => clearTimeout(timer)
+    fetchUsers()
   }, [fetchUsers])
 
   useEffect(() => {
@@ -138,7 +139,17 @@ export function UserDirectoryPage() {
 
            <div className="flex-1 overflow-y-auto p-2 space-y-1">
              {loading ? (
-                <div className="p-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading...</div>
+                <div className="p-4 space-y-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={`user-skeleton-${index}`} className="p-3 rounded-lg border border-slate-200 bg-white flex items-center gap-3">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-2.5 w-40" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
              ) : users.length === 0 ? (
                 <div className="p-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No users found.</div>
              ) : (

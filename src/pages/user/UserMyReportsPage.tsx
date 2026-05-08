@@ -9,6 +9,7 @@ import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { SlidersHorizontal } from "lucide-react"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type ReportRealtimeEvent = {
   reportId: string
@@ -46,7 +47,7 @@ export function MyReportsPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {

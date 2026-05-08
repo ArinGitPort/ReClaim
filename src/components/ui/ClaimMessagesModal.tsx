@@ -3,7 +3,8 @@ import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { Modal } from "./Modal"
 import { Button } from "./button"
-import { SendHorizonal, User, ShieldAlert, Loader2, X } from "lucide-react"
+import { ModalHeader } from "./ModalHeader"
+import { SendHorizonal, User, ShieldAlert, Loader2, MessageSquare } from "lucide-react"
 
 interface Message {
   id: string
@@ -187,20 +188,14 @@ export function ClaimMessagesModal({ claimId, isOpen, onClose, onMessageSent, is
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl flex flex-col pt-0 pb-0 overflow-hidden h-[600px] bg-slate-50 p-0">
-      {/* Header */}
-      <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0 bg-white">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900">Claim Communication</h3>
-          <p className="text-xs font-semibold text-slate-500 mt-0.5">Discuss details or provide proof</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Claim Communication"
+        subtitle="Discuss details or provide proof"
+        icon={<MessageSquare className="w-5 h-5 text-white" />}
+        onClose={onClose}
+        containerClassName="p-5 bg-white shrink-0"
+        titleClassName="text-slate-900"
+      />
 
       <div className="flex-1 overflow-hidden">
         <ClaimMessages claimId={claimId} onMessageSent={onMessageSent} isReadOnly={isReadOnly} />

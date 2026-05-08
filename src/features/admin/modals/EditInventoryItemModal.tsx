@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { X, Save, Package, MapPin, Archive, ShieldAlert } from "lucide-react"
+import { Save, Package, MapPin, Archive, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
 import { Switch } from "@/components/ui/Switch"
 import { Textarea } from "@/components/ui/Textarea"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
 import {
@@ -89,20 +90,12 @@ export function EditInventoryItemModal({
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Save className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Edit Inventory Item</h2>
-            <p className="text-[11px] font-bold text-slate-400 mt-1">{item.code}</p>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Edit Inventory Item"
+        subtitle={item.code}
+        icon={<Save className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       <form id="edit-item-form" onSubmit={(event) => void handleSubmit(event)} className="flex-1 overflow-y-auto p-6 space-y-8">
         <div className="space-y-4">
@@ -208,7 +201,7 @@ export function EditInventoryItemModal({
               value={privateDiscoveryNote}
               onChange={(e) => setPrivateDiscoveryNote(e.target.value)}
               placeholder="Add internal notes"
-              className="min-h-[100px] bg-slate-50 border-slate-200 shadow-sm text-slate-600"
+              className="min-h-25 bg-slate-50 border-slate-200 shadow-sm text-slate-600"
             />
           </div>
         </div>

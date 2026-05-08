@@ -15,12 +15,15 @@ import {
   MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
+import { Modal } from "@/components/ui/Modal"
 import { cn } from "@/lib/utils"
 import { MatchLinkingModal } from "@/features/admin/modals"
 import { api } from "@/lib/api"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { useSearchParams } from "react-router-dom"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type ReportStatus = "SUBMITTED" | "UNDER_REVIEW" | "ACTIVE_SEARCH" | "MATCHED" | "RESOLVED" | "REJECTED"
 
@@ -65,8 +68,9 @@ export function MissingItemsPage() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [revealedPrivateNotes, setRevealedPrivateNotes] = useState<Record<string, boolean>>({})
   const [showLinker, setShowLinker] = useState(false)
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false)
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [pageCount, setPageCount] = useState(1)
   const [totalReports, setTotalReports] = useState(0)
 
@@ -266,33 +270,39 @@ export function MissingItemsPage() {
     }
   }
 
+  const handleConfirmReject = async () => {
+    setIsRejectConfirmOpen(false)
+    await updateReportStatus("REJECTED")
+  }
+
   return (
     <div className="space-y-8">
-      {showLinker && selectedReport && (
-        <div className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto py-10 px-4">
-          <div className="fixed inset-0 bg-slate-900/80" onClick={() => setShowLinker(false)} />
-          <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
-            <MatchLinkingModal
-              reportId={reports.find(r => r.id === selectedReport)?.id || selectedReport}
-              reportCode={reports.find(r => r.id === selectedReport)?.code || ""}
-              itemTitle={reports.find(r => r.id === selectedReport)?.item || "Item"}
-              onLinked={() => {
-                const currentId = selectedReport
-                if (!currentId) return
-                setReports((prev) => prev.map((row) => (
-                  row.id === currentId ? { ...row, status: "MATCHED" } : row
-                )))
-              }}
-              prefill={report ? {
-                category: report.category,
-                color: report.color,
-                dateFrom: report.reportedLostAtUtcRaw,
-              } : undefined}
-              onClose={() => setShowLinker(false)}
-            />
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showLinker && Boolean(selectedReport)}
+        onClose={() => setShowLinker(false)}
+        className="w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200 p-0"
+      >
+        {selectedReport && (
+          <MatchLinkingModal
+            reportId={reports.find(r => r.id === selectedReport)?.id || selectedReport}
+            reportCode={reports.find(r => r.id === selectedReport)?.code || ""}
+            itemTitle={reports.find(r => r.id === selectedReport)?.item || "Item"}
+            onLinked={() => {
+              const currentId = selectedReport
+              if (!currentId) return
+              setReports((prev) => prev.map((row) => (
+                row.id === currentId ? { ...row, status: "MATCHED" } : row
+              )))
+            }}
+            prefill={report ? {
+              category: report.category,
+              color: report.color,
+              dateFrom: report.reportedLostAtUtcRaw,
+            } : undefined}
+            onClose={() => setShowLinker(false)}
+          />
+        )}
+      </Modal>
 
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Missing Items</h1>
@@ -572,7 +582,12 @@ export function MissingItemsPage() {
                     {/* Footer Decision Unit */}
                     {canReviewReport ? (
                       <div className="pt-8 border-t border-slate-100 flex gap-4">
-                        <Button disabled={isUpdating} onClick={() => void updateReportStatus("REJECTED")} variant="outline" className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all">
+                        <Button
+                          disabled={isUpdating}
+                          onClick={() => setIsRejectConfirmOpen(true)}
+                          variant="outline"
+                          className="flex-1 h-12 bg-white border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all"
+                        >
                           <XCircle className="w-4 h-4 mr-2" /> Reject Report
                         </Button>
                         <Button disabled={isUpdating} onClick={() => void updateReportStatus("ACTIVE_SEARCH")} className="flex-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all active:scale-95 shadow-sm">
@@ -602,6 +617,18 @@ export function MissingItemsPage() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isRejectConfirmOpen}
+        onClose={() => !isUpdating && setIsRejectConfirmOpen(false)}
+        onConfirm={() => void handleConfirmReject()}
+        title="Reject Report"
+        message={`Reject report ${report?.code ?? ""}? This action cannot be undone and will close the review.`}
+        confirmText="Reject"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isUpdating}
+      />
     </div>
   )
 }

@@ -1,33 +1,37 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Mail, ArrowLeft, Send } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/lib/validations/authSchemas"
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState("")
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) {
-      setError("Please enter your registered email address.")
-      return
-    }
-
-    setError(null)
-    setIsSubmitting(true)
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    setSubmitError(null)
     
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500))
+      setSubmittedEmail(data.email)
       setSuccess(true)
     } catch {
-      setError("Something went wrong. Please try again.")
-    } finally {
-      setIsSubmitting(false)
+      setSubmitError("Something went wrong. Please try again.")
     }
   }
 
@@ -46,7 +50,7 @@ export function ForgotPasswordForm() {
         <div className="space-y-6">
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm space-y-2 leading-relaxed">
             <p>
-              We've sent a password reset link to <strong>{email}</strong>.
+              We've sent a password reset link to <strong>{submittedEmail}</strong>.
             </p>
             <p>
               Please check your inbox and spam folder.
@@ -60,10 +64,10 @@ export function ForgotPasswordForm() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {submitError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-              {error}
+              {submitError}
             </div>
           )}
 
@@ -77,12 +81,12 @@ export function ForgotPasswordForm() {
                 type="email"
                 placeholder="e.g. student@school.edu"
                 className="pl-10 h-12"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email")}
                 disabled={isSubmitting}
-                required
+                aria-invalid={Boolean(errors.email)}
               />
             </div>
+            {errors.email && <p className="text-xs font-semibold text-red-600">{errors.email.message}</p>}
           </div>
 
           <Button 

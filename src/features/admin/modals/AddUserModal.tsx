@@ -1,11 +1,12 @@
 import { type FormEvent, useEffect, useState } from "react"
 import { AxiosError } from "axios"
-import { Plus, UserPlus, Shield, X } from "lucide-react"
+import { Plus, UserPlus, Shield } from "lucide-react"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Select } from "@/components/ui/Select"
 import { Label } from "@/components/ui/Label"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
 import type { CreateManagedUserPayload } from "@/features/admin/types"
 
@@ -27,12 +28,6 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [role, setRole] = useState<UserRoleOption>("STUDENT")
 
-  useEffect(() => {
-    if (!isOpen) {
-      resetForm()
-    }
-  }, [isOpen])
-
   const resetForm = () => {
     setName("")
     setEmail("")
@@ -43,6 +38,12 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
     setError(null)
     setIsSubmitting(false)
   }
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm()
+    }
+  }, [isOpen])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -79,19 +80,11 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl flex flex-col max-h-[90vh]">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Plus className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Add User Account</h2>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Add User Account"
+        icon={<Plus className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       <form id="add-user-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
         <div className="space-y-4">

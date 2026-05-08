@@ -2,12 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Calendar, CheckCircle2, Clock3, FileSearch, ShieldAlert, User, XCircle, MessageSquare } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { cn } from "@/lib/utils"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { ClaimMessages } from "@/components/ui/ClaimMessagesModal"
+import { useDebounce } from "@/lib/hooks/useDebounce"
+import { Skeleton } from "@/components/ui/Skeleton"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
+type ClaimDecision = "APPROVED" | "DENIED" | "INQUIRY_REQUIRED"
 
 type ClaimRow = {
   id: string
@@ -35,7 +40,7 @@ export function ClaimsVerificationPage() {
   const [claims, setClaims] = useState<ClaimRow[]>([])
   const [totalClaims, setTotalClaims] = useState(0)
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [pageCount, setPageCount] = useState(1)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -44,6 +49,9 @@ export function ClaimsVerificationPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [note, setNote] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [pendingDecision, setPendingDecision] = useState<ClaimDecision | null>(null)
+  const debouncedSearch = useDebounce(search, 350)
+  const debouncedStatus = useDebounce(statusFilter, 350)
 
   const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -60,8 +68,8 @@ export function ClaimsVerificationPage() {
       }>("/claims", {
         params: {
           statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED",
-          status: statusFilter || undefined,
-          search: search.trim() || undefined,
+          status: debouncedStatus || undefined,
+          search: debouncedSearch.trim() || undefined,
           page,
           limit: rowsPerPage,
         },
@@ -81,14 +89,10 @@ export function ClaimsVerificationPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, rowsPerPage, search, statusFilter])
+  }, [debouncedSearch, debouncedStatus, page, rowsPerPage])
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadClaims()
-    }, 350)
-
-    return () => window.clearTimeout(timeoutId)
+    void loadClaims()
   }, [loadClaims])
 
   useEffect(() => {
@@ -157,6 +161,56 @@ export function ClaimsVerificationPage() {
     }
   }
 
+  const decisionConfig = useMemo(() => {
+    if (!pendingDecision || !selectedClaim) {
+      return null
+    }
+
+    const subject = selectedClaim.foundItem.title
+
+    switch (pendingDecision) {
+      case "APPROVED":
+        return {
+          title: "Approve Claim",
+          message: `Approve claim ${selectedClaim.claimCode} for ${subject}? This will authorize pickup.`,
+          confirmText: "Approve",
+          isDestructive: false,
+        }
+      case "DENIED":
+        return {
+          title: "Deny Claim",
+          message: `Deny claim ${selectedClaim.claimCode} for ${subject}? This cannot be undone.`,
+          confirmText: "Deny",
+          isDestructive: true,
+        }
+      case "INQUIRY_REQUIRED":
+        return {
+          title: "Request Inquiry",
+          message: `Request more information for claim ${selectedClaim.claimCode}? The claim stays in review.`,
+          confirmText: "Request",
+          isDestructive: false,
+        }
+    }
+  }, [pendingDecision, selectedClaim])
+
+  const requestDecision = (status: ClaimDecision) => {
+    if (status === "DENIED" && !note.trim()) {
+      setError("A reviewer note is required for denial.")
+      return
+    }
+
+    setPendingDecision(status)
+  }
+
+  const handleConfirmDecision = async () => {
+    if (!pendingDecision) {
+      return
+    }
+
+    await decide(pendingDecision)
+    setPendingDecision(null)
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -206,7 +260,19 @@ export function ClaimsVerificationPage() {
           </div>
 
           <div className="space-y-3">
-            {isLoading && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">Loading claims...</div>}
+            {isLoading && (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`claims-skeleton-${index}`} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              ))
+            )}
             {!isLoading && filteredClaims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
 
             {filteredClaims.map((claim) => (
@@ -357,7 +423,7 @@ export function ClaimsVerificationPage() {
                     type="button"
                     variant="outline"
                     disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("INQUIRY_REQUIRED")}
+                    onClick={() => requestDecision("INQUIRY_REQUIRED")}
                     className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
                   >
                     <Clock3 className="w-4 h-4 mr-2" /> Request Inquiry
@@ -366,7 +432,7 @@ export function ClaimsVerificationPage() {
                     type="button"
                     variant="outline"
                     disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("DENIED")}
+                    onClick={() => requestDecision("DENIED")}
                     className="h-10 border-rose-200 text-rose-700 hover:bg-rose-50"
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Deny
@@ -374,7 +440,7 @@ export function ClaimsVerificationPage() {
                   <Button
                     type="button"
                     disabled={isSubmitting || !isPendingState(selectedClaim.status)}
-                    onClick={() => void decide("APPROVED")}
+                    onClick={() => requestDecision("APPROVED")}
                     className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
@@ -385,6 +451,18 @@ export function ClaimsVerificationPage() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(pendingDecision)}
+        onClose={() => !isSubmitting && setPendingDecision(null)}
+        onConfirm={() => void handleConfirmDecision()}
+        title={decisionConfig?.title ?? ""}
+        message={decisionConfig?.message ?? ""}
+        confirmText={decisionConfig?.confirmText ?? "Confirm"}
+        cancelText="Cancel"
+        isDestructive={decisionConfig?.isDestructive ?? false}
+        isLoading={isSubmitting}
+      />
     </div>
   )
 }

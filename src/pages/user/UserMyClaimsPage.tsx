@@ -1,9 +1,10 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket, MessageSquare } from "lucide-react"
+import { Package, Calendar, MapPin, ArrowRight, Clock, ShieldCheck, Ticket, MessageSquare, RefreshCw, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
+import { Modal } from "@/components/ui/Modal"
 import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { SlidersHorizontal } from "lucide-react"
@@ -14,7 +15,9 @@ import { ClaimMessagesModal, ClaimMessages } from "@/components/ui/ClaimMessages
 interface ClaimView {
   ticketId: string
   id: string
+  itemId: string
   item: string
+  imageUrl?: string | null
   category: string
   location: string
   submittedDate: string
@@ -31,9 +34,11 @@ export function MyClaimsPage() {
   const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
   const [claims, setClaims] = useState<ClaimView[]>([])
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("ACTIVE")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
   const [chatTicketId, setChatTicketId] = useState<string | null>(null)
+  const [rerollingItemId, setRerollingItemId] = useState<string | null>(null)
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
 
@@ -48,11 +53,13 @@ export function MyClaimsPage() {
         pickupToken?: string | null
         pickupTokenExpires?: string | null
         foundItem: {
+          id: string
           code: string
           title: string
           category: string
           foundLocation: string
           status: string
+          imageUrl?: string | null
         }
       }>
     }>("/claims", {
@@ -65,7 +72,9 @@ export function MyClaimsPage() {
       response.data.claims.map((claim) => ({
         ticketId: claim.id,
         id: claim.claimCode,
+        itemId: claim.foundItem.id,
         item: claim.foundItem.title,
+        imageUrl: claim.foundItem.imageUrl,
         category: claim.foundItem.category,
         location: claim.foundItem.foundLocation,
         submittedDate: new Date(claim.createdAt).toLocaleDateString(),
@@ -83,8 +92,12 @@ export function MyClaimsPage() {
           DENIED: 4,
           CANCELLED: 5,
         };
-        const rankA = order[a.rawStatus] || 99;
-        const rankB = order[b.rawStatus] || 99;
+        let rankA = order[a.rawStatus] || 99;
+        let rankB = order[b.rawStatus] || 99;
+
+        if (a.rawStatus === "APPROVED" && a.itemStatus === "RETURNED") rankA = 6;
+        if (b.rawStatus === "APPROVED" && b.itemStatus === "RETURNED") rankB = 6;
+
         if (rankA !== rankB) return rankA - rankB;
         return new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime();
       })
@@ -115,7 +128,12 @@ export function MyClaimsPage() {
     const normalizedSearch = search.trim().toLowerCase()
 
     return claims.filter((claim) => {
-      if (statusFilter && claim.status !== statusFilter) {
+      if (statusFilter === "ACTIVE") {
+        const isActive = claim.rawStatus === "PENDING_VERIFICATION" || 
+                         claim.rawStatus === "INQUIRY_REQUIRED" || 
+                         (claim.rawStatus === "APPROVED" && claim.itemStatus !== "RETURNED")
+        if (!isActive) return false
+      } else if (statusFilter && claim.status !== statusFilter) {
         return false
       }
 
@@ -156,11 +174,26 @@ export function MyClaimsPage() {
     }
   }
 
+  async function handleRerollToken(itemId: string): Promise<void> {
+    setRerollingItemId(itemId)
+    try {
+      await api.post(`/users/pickups/${itemId}/reroll`)
+      await loadClaims()
+    } finally {
+      setRerollingItemId(null)
+    }
+  }
+
   const statusOptions = useMemo(() => {
-    return Array.from(new Set(claims.map((claim) => claim.status))).map((status) => ({
+    const baseOptions = Array.from(new Set(claims.map((claim) => claim.status))).map((status) => ({
       label: status,
       value: status,
     }))
+    
+    return [
+      { label: "Active", value: "ACTIVE" },
+      ...baseOptions
+    ]
   }, [claims])
 
   return (
@@ -202,9 +235,9 @@ export function MyClaimsPage() {
               ]
             }
           ]}
-          onClear={search || statusFilter ? () => {
+          onClear={search || (statusFilter !== "ACTIVE" && statusFilter !== "") ? () => {
             setSearch("")
-            setStatusFilter("")
+            setStatusFilter("ACTIVE")
             setPage(1)
           } : undefined}
         />
@@ -226,10 +259,20 @@ export function MyClaimsPage() {
               )}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-                {/* Icon */}
-                <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
-                  <Package className="w-7 h-7 text-slate-400" />
-                </div>
+                {/* Icon or Image */}
+                {claim.imageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setPreviewImageUrl(claim.imageUrl!)}
+                    className="w-14 h-14 bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden shrink-0 hover:ring-2 hover:ring-brand/50 transition-all focus:outline-none"
+                  >
+                    <img src={claim.imageUrl} alt={claim.item} className="w-full h-full object-cover" />
+                  </button>
+                ) : (
+                  <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
+                    <Package className="w-7 h-7 text-slate-400" />
+                  </div>
+                )}
 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
@@ -313,8 +356,22 @@ export function MyClaimsPage() {
                             {claim.pickupToken}
                           </div>
                           {claim.pickupTokenExpires && (
-                            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                              Expires {new Date(claim.pickupTokenExpires).toLocaleString()}
+                            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+                              {new Date(claim.pickupTokenExpires).getTime() < Date.now() ? (
+                                <div className="flex items-center gap-2 text-rose-600">
+                                  <span>Expired</span>
+                                  <button
+                                    onClick={() => void handleRerollToken(claim.itemId)}
+                                    disabled={rerollingItemId === claim.itemId}
+                                    className="px-2 py-1 bg-rose-100 hover:bg-rose-200 rounded text-[9px] flex items-center gap-1 disabled:opacity-50"
+                                  >
+                                    {rerollingItemId === claim.itemId ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                    Reroll
+                                  </button>
+                                </div>
+                              ) : (
+                                `Expires ${new Date(claim.pickupTokenExpires).toLocaleString()}`
+                              )}
                             </div>
                           )}
                         </div>
@@ -367,6 +424,28 @@ export function MyClaimsPage() {
           onClose={() => setChatTicketId(null)}
           isReadOnly={filteredClaims.find((c) => c.ticketId === chatTicketId)?.rawStatus !== "INQUIRY_REQUIRED"}
         />
+      )}
+
+      {previewImageUrl && (
+        <Modal
+          isOpen={true}
+          onClose={() => setPreviewImageUrl(null)}
+          className="max-w-2xl p-0 overflow-hidden bg-transparent border-0 shadow-none"
+        >
+          <div className="relative group">
+            <img 
+              src={previewImageUrl} 
+              alt="Preview" 
+              className="w-full max-h-[80vh] object-contain rounded-2xl bg-black/50"
+            />
+            <button
+              onClick={() => setPreviewImageUrl(null)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-md"
+            >
+              &times;
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   )

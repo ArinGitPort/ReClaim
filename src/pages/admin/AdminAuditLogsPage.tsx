@@ -2,9 +2,13 @@ import { useEffect, useMemo, useState } from "react"
 import { Filter, Eye, X, Activity, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
+import { Modal } from "@/components/ui/Modal"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { api } from "@/lib/api"
+import { useDebounce } from "@/lib/hooks/useDebounce"
+import { Skeleton } from "@/components/ui/Skeleton"
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 
 type AuditAction =
   | "ITEM_CREATED"
@@ -67,22 +71,20 @@ export function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState<AuditAction | "">("")
   const [selectedLog, setSelectedLog] = useState<AuditLogRow | null>(null)
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [pageCount, setPageCount] = useState(1)
   const [total, setTotal] = useState(0)
+  const debouncedSearch = useDebounce(searchQuery, 300)
+  const debouncedAction = useDebounce(actionFilter, 300)
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadLogs({
-        search: searchQuery.trim() || undefined,
-        action: actionFilter || undefined,
-        page,
-        limit: rowsPerPage,
-      })
-    }, 300)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [searchQuery, actionFilter, page, rowsPerPage])
+    void loadLogs({
+      search: debouncedSearch.trim() || undefined,
+      action: debouncedAction || undefined,
+      page,
+      limit: rowsPerPage,
+    })
+  }, [debouncedSearch, debouncedAction, page, rowsPerPage])
 
   async function loadLogs(filters: { search?: string; action?: AuditAction; page: number; limit: number }): Promise<void> {
     setIsLoading(true)
@@ -122,10 +124,13 @@ export function AuditLogsPage() {
 
   return (
     <div className="space-y-8">
-      {selectedLog && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto px-4 py-10 md:py-16">
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedLog(null)} />
-          <div className="relative w-full max-h-[90vh] flex flex-col max-w-3xl overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl">
+      <Modal
+        isOpen={Boolean(selectedLog)}
+        onClose={() => setSelectedLog(null)}
+        className="w-full flex flex-col max-w-3xl overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl p-0 max-h-[90vh]"
+      >
+        {selectedLog && (
+          <>
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
@@ -182,10 +187,9 @@ export function AuditLogsPage() {
                 <PayloadPanel payload={selectedLog.payload} />
               </div>
             </div>
-
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       <AdminListHeader
         title="Records & Accountability"
@@ -279,11 +283,22 @@ export function AuditLogsPage() {
             ))}
 
             {isLoading && (
-              <tr>
-                <td colSpan={6} className="px-8 py-10 text-center text-sm font-semibold text-slate-500">
-                  Loading activity records...
-                </td>
-              </tr>
+              Array.from({ length: 6 }).map((_, index) => (
+                <tr key={`audit-skeleton-${index}`}>
+                  <td colSpan={6} className="px-8 py-4">
+                    <div className="grid grid-cols-6 gap-4 items-center">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-40" />
+                      <div className="flex justify-end">
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
 
             {!isLoading && logs.length === 0 && (

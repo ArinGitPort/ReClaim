@@ -5,6 +5,7 @@ import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { Button } from "@/components/ui/button"
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 type PickupRow = {
   source: "CLAIM" | "REPORT_MATCH"
@@ -22,7 +23,7 @@ export function ReadyToClaimPage() {
   const [search, setSearch] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
   const [page, setPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
 
   async function loadPickups(): Promise<void> {
     const response = await api.get<{ pickups: PickupRow[] }>("/user/pickups")

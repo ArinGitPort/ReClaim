@@ -1,8 +1,10 @@
 import { Modal } from "@/components/ui/Modal"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { X, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { api } from "@/lib/api"
+import { getImageUrl } from "@/lib/utils"
 import { getClaimFieldGroup } from "@/features/shared/itemCategoryRules"
 
 interface ClaimThisItemModalProps {
@@ -66,24 +68,19 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
     }
   }
 
-  const fullImageUrl = itemImageUrl ? `${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${itemImageUrl}` : null
+  const fullImageUrl = getImageUrl(itemImageUrl) ?? null
 
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center shadow-sm">
-              <ShieldCheck className="w-5 h-5 text-brand" />
-            </div>
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900 uppercase tracking-tight">Claim This Item</h2>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <ModalHeader
+          title="Claim This Item"
+          icon={<ShieldCheck className="w-5 h-5 text-brand" />}
+          onClose={onClose}
+          containerClassName="bg-slate-50/30"
+          iconWrapperClassName="bg-brand/10"
+          titleClassName="text-slate-900"
+        />
 
         <form id="claim-this-item-form" onSubmit={(event) => void handleSubmitClaim(event)} className="p-8 space-y-8">
           {fullImageUrl && (

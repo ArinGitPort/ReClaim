@@ -1,7 +1,10 @@
-import { type FormEvent, useState } from "react"
-import { Camera, MapPin, Clock, Check, Trash2, X, AlertCircle } from "lucide-react"
+import { useState } from "react"
+import { Camera, MapPin, Clock, Check, Trash2 } from "lucide-react"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/ui/ModalHeader"
+import { getImageUrl } from "@/lib/utils"
 
 type AISnapshot = {
   id: string
@@ -25,6 +28,7 @@ interface SnapshotDetailsModalProps {
 
 export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onLogFound }: SnapshotDetailsModalProps) {
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isDismissConfirmOpen, setIsDismissConfirmOpen] = useState(false)
 
   if (!snapshot) return null
 
@@ -45,6 +49,11 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
     }
   }
 
+  const handleConfirmDismiss = async () => {
+    setIsDismissConfirmOpen(false)
+    await handleDismiss()
+  }
+
   const handleLogFound = async () => {
     setIsProcessing(true)
     try {
@@ -57,28 +66,20 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl flex flex-col max-h-[90vh]">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Camera className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">AI Snapshot Review</h2>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="AI Snapshot Review"
+        icon={<Camera className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Large Image Preview */}
-        <div className="w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center relative min-h-[300px] shadow-inner">
+        <div className="w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center relative min-h-75 shadow-inner">
           {snapshot.snapshotPath ? (
             <img 
-              src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${snapshot.snapshotPath}`} 
+              src={getImageUrl(snapshot.snapshotPath)}
               alt="Snapshot" 
-              className="w-full h-auto max-h-[500px] object-contain" 
+              className="w-full h-auto max-h-125 object-contain" 
             />
           ) : (
             <div className="text-slate-600 flex flex-col items-center">
@@ -118,7 +119,7 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
       <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
         <Button
           type="button"
-          onClick={handleDismiss}
+          onClick={() => setIsDismissConfirmOpen(true)}
           disabled={isProcessing}
           className="flex-1 h-12 bg-white border border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600 font-bold rounded-xl uppercase tracking-widest text-xs shadow-sm transition-all"
         >
@@ -135,6 +136,18 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
           Log as Found Item
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={isDismissConfirmOpen}
+        onClose={() => !isProcessing && setIsDismissConfirmOpen(false)}
+        onConfirm={() => void handleConfirmDismiss()}
+        title="Dismiss Snapshot"
+        message="Dismiss this AI snapshot as a false alarm? This removes it from the review queue."
+        confirmText="Dismiss"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isProcessing}
+      />
     </Modal>
   )
 }

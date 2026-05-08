@@ -1,5 +1,6 @@
-import { Image as ImageIcon, Info, MapPin, Package, X } from "lucide-react"
+import { Image as ImageIcon, Info, MapPin, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 
 type InventoryItemDetails = {
   code: string
@@ -23,20 +24,14 @@ export function InventoryItemDetailsModal({
 }) {
   return (
     <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
-      <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center shadow-sm">
-            <Info className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Item Details</h2>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">{item.code}</div>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Item Details"
+        subtitle={item.code}
+        icon={<Info className="w-6 h-6 text-white" />}
+        onClose={onClose}
+        containerClassName="px-8 py-6 bg-white"
+        titleClassName="text-slate-900"
+      />
 
       <div className="p-8 overflow-y-auto space-y-6 bg-slate-50/60">
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">

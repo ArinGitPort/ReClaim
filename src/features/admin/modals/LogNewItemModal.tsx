@@ -4,7 +4,6 @@ import {
   MapPin, 
   Upload, 
   Plus, 
-  X,
   Camera,
   Archive,
   ShieldAlert
@@ -16,6 +15,7 @@ import { Select } from "@/components/ui/Select"
 import { Switch } from "@/components/ui/Switch"
 import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
 import { AxiosError } from "axios"
 import {
@@ -25,6 +25,7 @@ import {
   STORAGE_LOCATIONS,
 } from "@/features/shared/constants"
 import { requiresColorSelection } from "@/features/shared/itemCategoryRules"
+import { MAX_UPLOAD_SIZE_BYTES } from "@/lib/constants"
 
 
 export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
@@ -86,6 +87,15 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
       const foundDate = new Date(foundAtLocal)
       if (Number.isNaN(foundDate.getTime())) {
         throw new Error("Please provide a valid date and time found.")
+      }
+
+      if (photoFile) {
+        if (photoFile.size > MAX_UPLOAD_SIZE_BYTES) {
+          throw new Error("Photo size must be less than 5MB.")
+        }
+        if (!["image/jpeg", "image/png", "image/webp"].includes(photoFile.type)) {
+          throw new Error("Photo must be a JPEG, PNG, or WEBP image.")
+        }
       }
 
       const photoUrl = photoFile ? await uploadPhoto(photoFile) : undefined
@@ -152,19 +162,11 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Header */}
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <Plus className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Log New Item</h2>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Log New Item"
+        icon={<Plus className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       {/* Form Area */}
       <form id="log-new-item-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">

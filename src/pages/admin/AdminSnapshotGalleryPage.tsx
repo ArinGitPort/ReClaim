@@ -6,6 +6,7 @@ import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListFilters, AdminListHeader, AdminSearchInput } from "@/features/admin/components/admin-list-layout"
 import { SnapshotDetailsModal } from "@/features/admin/modals/SnapshotDetailsModal"
 import { api } from "@/lib/api"
+import { getImageUrl } from "@/lib/utils"
 
 type AISnapshot = {
   id: string
@@ -179,7 +180,7 @@ export function SnapshotGalleryPage() {
                 {/* Image Placeholder */}
                 <div className="w-full h-32 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden group-hover:opacity-90 transition-opacity">
                   {snapshot.snapshotPath ? (
-                    <img src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${snapshot.snapshotPath}`} alt="Snapshot" className="w-full h-full object-cover" />
+                    <img src={getImageUrl(snapshot.snapshotPath)} alt="Snapshot" className="w-full h-full object-cover" />
                   ) : (
                     <>
                       <Camera className="w-6 h-6 mb-1 opacity-50" />

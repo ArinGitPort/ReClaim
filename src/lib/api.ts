@@ -26,3 +26,16 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const responseMessage = error?.response?.data?.message || error?.response?.data?.error;
+    const status = error?.response?.status;
+    const fallbackMessage = status
+      ? `Request failed with status ${status}.`
+      : "Network error. Please check your connection and try again.";
+    error.userMessage = responseMessage ?? fallbackMessage;
+    return Promise.reject(error);
+  }
+);

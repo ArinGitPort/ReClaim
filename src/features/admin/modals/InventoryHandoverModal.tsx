@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { CheckCircle2, Search, ShieldCheck, User, Package, X } from "lucide-react"
+import { CheckCircle2, Search, ShieldCheck, User, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { Input } from "@/components/ui/Input"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { api } from "@/lib/api"
@@ -44,7 +45,6 @@ export function InventoryHandoverModal({
 }) {
   const [tokenInput, setTokenInput] = useState("")
   const [preview, setPreview] = useState<HandoverPreview | null>(null)
-  const [note, setNote] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -93,7 +93,6 @@ export function InventoryHandoverModal({
       await api.post("/handover/confirm", {
         pickupToken: token,
         idVerified: true,
-        note: note.trim() || undefined,
       })
 
       onCompleted?.()
@@ -124,20 +123,15 @@ export function InventoryHandoverModal({
 
   return (
     <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
-      <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-sm">
-            <ShieldCheck className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Start Handover</h2>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Target Item: {item.code}</div>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Start Handover"
+        subtitle={`Target Item: ${item.code}`}
+        icon={<ShieldCheck className="w-6 h-6 text-white" />}
+        onClose={onClose}
+        containerClassName="px-8 py-6 bg-white"
+        iconWrapperClassName="bg-emerald-600 w-12 h-12"
+        titleClassName="text-slate-900 text-xl"
+      />
 
       <div className="p-6 border-b border-slate-100 bg-white space-y-3">
         <div className="relative group">
@@ -194,17 +188,6 @@ export function InventoryHandoverModal({
                 <p className="text-xs font-semibold text-slate-500">Code: {preview.item.code}</p>
                 <p className="text-xs font-semibold text-slate-500">Storage: {preview.item.storageLocation}</p>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Verification Note (optional)</label>
-              <textarea
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                rows={3}
-                placeholder="Add handover verification notes..."
-              />
             </div>
           </>
         )}

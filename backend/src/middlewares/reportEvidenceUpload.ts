@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import multer from "multer";
-import { itemUploadsRoot } from "@/config/paths.js";
+import { reportUploadsRoot } from "@/config/paths.js";
 import { MAX_UPLOAD_SIZE_BYTES } from "@/config/constants.js";
 import { HttpError } from "@/utils/errors.js";
 
-fs.mkdirSync(itemUploadsRoot, { recursive: true });
+fs.mkdirSync(reportUploadsRoot, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, itemUploadsRoot);
+    cb(null, reportUploadsRoot);
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
 
 const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export const itemPhotoUpload = multer({
+export const reportEvidenceUpload = multer({
   storage,
   limits: { fileSize: MAX_UPLOAD_SIZE_BYTES },
   fileFilter: (_req, file, cb) => {

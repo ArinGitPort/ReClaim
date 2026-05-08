@@ -39,7 +39,11 @@ export async function listClaims(filters: { status?: ClaimStatus; statusIn?: Cla
       claimantUserId: filters.userId,
     },
     include: {
-      foundItem: true,
+      foundItem: {
+        include: {
+          aiEvidenceLogs: true,
+        },
+      },
       claimantUser: {
         select: {
           id: true,
@@ -91,7 +95,11 @@ export async function listClaimsPaginated(filters: {
     prisma.claim.findMany({
       where,
       include: {
-        foundItem: true,
+        foundItem: {
+          include: {
+            aiEvidenceLogs: true,
+          },
+        },
         claimantUser: {
           select: {
             id: true,

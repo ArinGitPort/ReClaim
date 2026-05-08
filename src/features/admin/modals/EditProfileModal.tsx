@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react"
 import { AxiosError } from "axios"
-import { UserCog, Shield, X } from "lucide-react"
+import { UserCog, Shield } from "lucide-react"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
 import { api } from "@/lib/api"
 import type { UpdateManagedUserPayload, UserModalProps } from "@/features/admin/types"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 
 type UserRoleOption = "STUDENT" | "STAFF" | "ADMIN"
 
@@ -62,19 +63,11 @@ export function EditProfileModal({ isOpen, onClose, onSaved, user }: UserModalPr
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl flex flex-col max-h-[90vh]">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-sm">
-            <UserCog className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-brand uppercase tracking-tight">Manage Profile</h2>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Manage Profile"
+        icon={<UserCog className="w-5 h-5 text-white" />}
+        onClose={onClose}
+      />
 
       <form id="edit-user-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
         <div className="space-y-4">

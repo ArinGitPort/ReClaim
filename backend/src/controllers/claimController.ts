@@ -111,7 +111,14 @@ export async function getClaims(req: Request, res: Response): Promise<void> {
 
   if (req.user?.role === "STUDENT") {
     const claims = await listClaims({ status, statusIn, userId: userScoped });
-    res.json({ claims });
+    const mappedClaims = claims.map((c) => ({
+      ...c,
+      foundItem: {
+        ...c.foundItem,
+        imageUrl: extractPhotoPath(c.foundItem.privateData) ?? c.foundItem.aiEvidenceLogs?.[0]?.snapshotPath,
+      },
+    }));
+    res.json({ claims: mappedClaims });
     return;
   }
 
@@ -125,8 +132,16 @@ export async function getClaims(req: Request, res: Response): Promise<void> {
     limit,
   });
 
+  const mappedPaginatedClaims = result.claims.map((c) => ({
+    ...c,
+    foundItem: {
+      ...c.foundItem,
+      imageUrl: extractPhotoPath(c.foundItem.privateData) ?? c.foundItem.aiEvidenceLogs?.[0]?.snapshotPath,
+    },
+  }));
+
   res.json({
-    claims: result.claims,
+    claims: mappedPaginatedClaims,
     pagination: {
       page: result.page,
       limit: result.limit,
@@ -134,6 +149,14 @@ export async function getClaims(req: Request, res: Response): Promise<void> {
       pageCount: result.pageCount,
     },
   });
+}
+
+function extractPhotoPath(privateData: unknown): string | undefined {
+  if (!privateData || typeof privateData !== "object") {
+    return undefined;
+  }
+  const maybePhoto = (privateData as { photoUrl?: unknown }).photoUrl;
+  return typeof maybePhoto === "string" ? maybePhoto : undefined;
 }
 
 export async function patchClaimDecision(req: Request, res: Response): Promise<void> {

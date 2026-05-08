@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { ShieldAlert, Laptop, MapPin, Plus, Clock } from "lucide-react"
 import { ClaimThisItemModal } from "@/features/claims/ClaimThisItemModal"
+import { getImageUrl } from "@/lib/utils"
 
 export interface FoundItem {
   id: string
@@ -94,7 +95,7 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
             </div>
           ) : item.imageUrl ? (
             <img 
-              src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, "")}${item.imageUrl}`}
+              src={getImageUrl(item.imageUrl)}
               alt={item.title}
               style={{
                 width: '100%',

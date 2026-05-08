@@ -5,6 +5,7 @@ import { Select } from "@/components/ui/Select"
 import { Button } from "@/components/ui/button"
 
 import { api } from "@/lib/api"
+import { AI_STREAM_BASE_URL } from "@/lib/constants"
 
 // Simulated mock data for recent detections
 const MOCK_RECENT_DETECTIONS = [
@@ -223,7 +224,7 @@ function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: CampusCamera, i
       {/* Live MJPEG Stream */}
       {!imageError && isStreaming ? (
         <img 
-          src={`http://127.0.0.1:5000/stream/${cam.id}`} 
+          src={`${AI_STREAM_BASE_URL}/${cam.id}`} 
           alt={`Live feed from ${cam.name}`}
           className="w-full h-full object-cover"
           onError={() => setImageError(true)}

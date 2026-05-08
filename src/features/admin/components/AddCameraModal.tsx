@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useRef } from "react"
-import { X } from "lucide-react"
+import { Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/Modal"
+import { ModalHeader } from "@/components/ui/ModalHeader"
 import { Select } from "@/components/ui/Select"
-
-interface CampusCamera {
-  id: string
-  code: string
-  name: string
-  location: string
-  sourceUrl: string
-  isOnline: boolean
-  aiEnabled: boolean
-  lastPingAtUtc: string | null
-}
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { addCameraSchema, type AddCameraFormData } from "@/lib/validations/adminSchemas"
 
 interface AddCameraModalProps {
   isOpen: boolean
@@ -22,12 +15,26 @@ interface AddCameraModalProps {
 }
 
 export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProps) {
-  const [name, setName] = useState("")
-  const [location, setLocation] = useState("")
-  const [sourceType, setSourceType] = useState("webcam")
-  const [webcamIndex, setWebcamIndex] = useState("0")
-  const [rtspUrl, setRtspUrl] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<AddCameraFormData>({
+    resolver: zodResolver(addCameraSchema),
+    defaultValues: {
+      name: "",
+      location: "",
+      sourceType: "webcam",
+      webcamIndex: "0",
+      rtspUrl: "",
+    },
+  })
+
+  const sourceType = watch("sourceType")
+  const webcamIndex = watch("webcamIndex") || "0"
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -91,110 +98,106 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
     return () => {
       stopStream()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, sourceType, webcamIndex]) // Removed 'devices' from dependencies to prevent infinite loops
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
-    const finalSourceUrl = sourceType === "webcam" ? webcamIndex : rtspUrl
+  const onFormSubmit = async (data: AddCameraFormData) => {
+    const finalSourceUrl = data.sourceType === "webcam" ? (data.webcamIndex || "0") : (data.rtspUrl || "")
 
     try {
-      await onSubmit({ name, location, sourceUrl: finalSourceUrl })
-      setName("")
-      setLocation("")
-      setSourceType("webcam")
-      setWebcamIndex("0")
-      setRtspUrl("")
+      await onSubmit({ name: data.name, location: data.location, sourceUrl: finalSourceUrl })
+      reset()
       onClose()
-    } finally {
-      setIsSubmitting(false)
+    } catch (err) {
+      console.error(err)
     }
   }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="w-[800px] max-w-[90vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
-      <div className="flex items-center justify-between p-6 pb-2 border-b border-slate-100">
-        <h2 className="text-xl font-bold text-slate-900">Add New Camera</h2>
-        <button
-          onClick={onClose}
-          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <ModalHeader
+        title="Add New Camera"
+        icon={<Camera className="w-5 h-5 text-white" />}
+        onClose={onClose}
+        containerClassName="p-6 pb-4"
+        titleClassName="text-slate-900"
+      />
 
-      <form onSubmit={handleSubmit} className="p-6">
+      <form onSubmit={handleSubmit(onFormSubmit)} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Column: Inputs */}
           <div className="space-y-5">
         <div>
           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Camera Name</label>
           <input
-            required
-            type="text"
+            {...register("name")}
             placeholder="e.g. Main Entrance"
-            value={name}
-            onChange={e => setName(e.target.value)}
             className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
           />
+          {errors.name && <p className="mt-1 text-xs text-rose-600 font-semibold">{errors.name.message}</p>}
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Location</label>
           <input
-            required
-            type="text"
+            {...register("location")}
             placeholder="e.g. Building A Lobby"
-            value={location}
-            onChange={e => setLocation(e.target.value)}
             className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
           />
+          {errors.location && <p className="mt-1 text-xs text-rose-600 font-semibold">{errors.location.message}</p>}
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Source Type</label>
-            <Select
-              value={sourceType}
-              onChange={(e) => setSourceType(e.target.value)}
-              className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
-            >
-              <option value="webcam">Local Webcam</option>
-              <option value="rtsp">IP Camera / RTSP Stream</option>
-            </Select>
+            <Controller
+              name="sourceType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
+                >
+                  <option value="webcam">Local Webcam</option>
+                  <option value="rtsp">IP Camera / RTSP Stream</option>
+                </Select>
+              )}
+            />
           </div>
 
           {sourceType === "webcam" ? (
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Webcam Source</label>
-              <Select
-                value={webcamIndex}
-                onChange={(e) => setWebcamIndex(e.target.value)}
-                className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
-              >
-                {devices.length === 0 ? (
-                  <option value="0">Camera 0 (Default)</option>
-                ) : (
-                  devices.map((d, idx) => (
-                    <option key={d.deviceId || idx} value={idx.toString()}>
-                      {d.label || `Camera ${idx}`}
-                    </option>
-                  ))
+              <Controller
+                name="webcamIndex"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
+                  >
+                    {devices.length === 0 ? (
+                      <option value="0">Camera 0 (Default)</option>
+                    ) : (
+                      devices.map((d, idx) => (
+                        <option key={d.deviceId || idx} value={idx.toString()}>
+                          {d.label || `Camera ${idx}`}
+                        </option>
+                      ))
+                    )}
+                  </Select>
                 )}
-              </Select>
+              />
             </div>
           ) : (
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Stream URL</label>
               <input
-                required
-                type="text"
+                {...register("rtspUrl")}
                 placeholder="e.g. rtsp://user:pass@192.168.1.100/stream"
-                value={rtspUrl}
-                onChange={e => setRtspUrl(e.target.value)}
                 className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
               />
+              {errors.rtspUrl && <p className="mt-1 text-xs text-rose-600 font-semibold">{errors.rtspUrl.message}</p>}
             </div>
           )}
           </div>

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 type InventoryMatch = {
   id: string
@@ -52,6 +53,8 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
     setSearchText(defaultSearchValue)
   }, [defaultSearchValue])
 
+  const debouncedSearch = useDebounce(searchText, 300)
+
   useEffect(() => {
     async function loadInventory(): Promise<void> {
       setIsLoading(true)
@@ -69,7 +72,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
             status: string
           }>
         }>("/items/admin", {
-          params: searchText.trim() ? { search: searchText.trim() } : undefined,
+          params: debouncedSearch.trim() ? { search: debouncedSearch.trim() } : undefined,
         })
 
         setInventoryMatches(
@@ -95,12 +98,8 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
       }
     }
 
-    const timeoutId = window.setTimeout(() => {
-      void loadInventory()
-    }, 300)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [prefill, searchText])
+    void loadInventory()
+  }, [prefill, debouncedSearch])
 
   const selectedItem = useMemo(
     () => inventoryMatches.find((item) => item.id === selectedMatch),
