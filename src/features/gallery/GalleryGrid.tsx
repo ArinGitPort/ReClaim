@@ -28,6 +28,7 @@ export function GalleryGrid({
   const [columns, setColumns] = useState(getColumns())
   const { user } = useAuth()
   const [activeClaimItemIds, setActiveClaimItemIds] = useState<Set<string>>(new Set())
+  const [cooldownByItemId, setCooldownByItemId] = useState<Map<string, string>>(new Map())
 
   function getColumns() {
     if (typeof window === 'undefined') return 1
@@ -96,28 +97,46 @@ export function GalleryGrid({
     }
   }, [onDataChange, page, pageSize, search, category, date, location])
 
-  useEffect(() => {
+  const loadActiveClaims = useCallback(async (): Promise<void> => {
     if (!user) {
       setActiveClaimItemIds(new Set())
+      setCooldownByItemId(new Map())
       return
     }
 
-    const fetchClaims = async () => {
-      try {
-        const res = await api.get<{ claims: Array<{ foundItemId: string, status: string }> }>("/claims")
-        const activeIds = new Set(
-          res.data.claims
-            .filter(c => c.status !== 'CANCELLED' && c.status !== 'DENIED')
-            .map(c => c.foundItemId)
-        )
-        setActiveClaimItemIds(activeIds)
-      } catch (err) {
-        console.error("Failed to fetch user claims", err)
-      }
+    try {
+      const res = await api.get<{
+        claims: Array<{
+          foundItemId: string
+          status: string
+          updatedAt?: string
+        }>
+      }>("/claims")
+      const activeIds = new Set(
+        res.data.claims
+          .filter((claim) => ["PENDING_VERIFICATION", "INQUIRY_REQUIRED", "APPROVED"].includes(claim.status))
+          .map((claim) => claim.foundItemId)
+      )
+      const now = Date.now()
+      const cooldowns = new Map<string, string>()
+      res.data.claims
+        .filter((claim) => ["EXPIRED", "CANCELLED"].includes(claim.status) && claim.updatedAt)
+        .forEach((claim) => {
+          const availableAtMs = new Date(claim.updatedAt as string).getTime() + 24 * 60 * 60 * 1000
+          if (Number.isFinite(availableAtMs) && availableAtMs > now) {
+            cooldowns.set(claim.foundItemId, new Date(availableAtMs).toISOString())
+          }
+        })
+      setActiveClaimItemIds(activeIds)
+      setCooldownByItemId(cooldowns)
+    } catch (err) {
+      console.error("Failed to fetch user claims", err)
     }
-
-    void fetchClaims()
   }, [user])
+
+  useEffect(() => {
+    void loadActiveClaims()
+  }, [loadActiveClaims])
 
   useEffect(() => {
     void loadItems()
@@ -129,15 +148,18 @@ export function GalleryGrid({
       return
     }
 
-    const handleItemUpdated = () => {
+    const handleRefresh = () => {
       void loadItems()
+      void loadActiveClaims()
     }
 
-    socket.on("item.updated", handleItemUpdated)
+    socket.on("item.updated", handleRefresh)
+    socket.on("claim.status.updated", handleRefresh)
     return () => {
-      socket.off("item.updated", handleItemUpdated)
+      socket.off("item.updated", handleRefresh)
+      socket.off("claim.status.updated", handleRefresh)
     }
-  }, [loadItems])
+  }, [loadItems, loadActiveClaims])
 
   if (isLoading) {
     return <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>
@@ -163,7 +185,12 @@ export function GalleryGrid({
       margin: '0 auto'
     }}>      
       {items.map(item => (
-        <ItemCard key={item.id} item={item} hasActiveClaim={activeClaimItemIds.has(item.id)} />
+        <ItemCard
+          key={item.id}
+          item={item}
+          hasActiveClaim={activeClaimItemIds.has(item.id)}
+          cooldownAvailableAt={cooldownByItemId.get(item.id)}
+        />
       ))}
     </div>
   )

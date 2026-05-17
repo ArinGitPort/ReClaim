@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { env } from "@/config/env.js";
 import { prisma } from "@/lib/prisma.js";
-import { createFoundItem, listAdminItems, listPublicItems, updateFoundItem } from "@/services/itemService.js";
+import { createFoundItem, getApprovedHandoverClaim, listAdminItems, listPublicItems, updateFoundItem } from "@/services/itemService.js";
 import { logAudit } from "@/services/auditService.js";
 import { HttpError } from "@/utils/errors.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
@@ -64,7 +64,6 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
   const statusQuery = typeof req.query.status === "string" ? req.query.status : undefined;
   const pageQuery = typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : undefined;
   const limitQuery = typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : undefined;
-  const expired = req.query.expired === "true";
   const status = statusQuery && Object.values(ItemStatus).includes(statusQuery as ItemStatus)
     ? (statusQuery as ItemStatus)
     : undefined;
@@ -133,10 +132,27 @@ export async function getAdminItems(req: Request, res: Response): Promise<void> 
     status,
     page,
     limit,
+    expired,
+  });
+
+  const items = result.items.map((item) => {
+    const handoverClaim = getApprovedHandoverClaim(item.claims);
+    return {
+      ...item,
+      handoverClaim: handoverClaim
+        ? {
+            id: handoverClaim.id,
+            claimCode: handoverClaim.claimCode,
+            pickupTokenExpires: handoverClaim.pickupTokenExpires,
+            claimantUserId: handoverClaim.claimantUserId,
+          }
+        : null,
+      isHandoverReady: Boolean(handoverClaim),
+    };
   });
 
   res.json({
-    items: result.items,
+    items,
     pagination: {
       page: result.page,
       limit: result.limit,

@@ -12,7 +12,7 @@ export function SettingsPage() {
     }
   })
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (_data: any) => {
     // Mock API call
     await new Promise(resolve => setTimeout(resolve, 800))
     setIsSaved(true)

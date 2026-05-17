@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { UserStatus } from "@prisma/client";
 import { env } from "@/config/env.js";
+import { prisma } from "@/lib/prisma.js";
 import { HttpError } from "@/utils/errors.js";
 
 interface JwtPayload {
@@ -9,7 +11,7 @@ interface JwtPayload {
   email: string;
 }
 
-export function requireAuth(req: Request, _res: Response, next: NextFunction): void {
+export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.header("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     throw new HttpError(401, "Missing or invalid authorization header");
@@ -17,11 +19,28 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
 
   const token = authHeader.slice("Bearer ".length);
   const payload = jwt.verify(token, env.jwtSecret) as JwtPayload;
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: {
+      id: true,
+      role: true,
+      email: true,
+      status: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError(401, "User account no longer exists");
+  }
+
+  if (user.status !== UserStatus.ACTIVE) {
+    throw new HttpError(403, "User account is disabled");
+  }
 
   req.user = {
-    id: payload.sub,
-    role: payload.role,
-    email: payload.email,
+    id: user.id,
+    role: user.role,
+    email: user.email,
   };
 
   next();

@@ -12,6 +12,7 @@ interface ConfirmModalProps {
   cancelText?: string
   isDestructive?: boolean
   isLoading?: boolean
+  confirmButtonClassName?: string
 }
 
 export function ConfirmModal({
@@ -24,6 +25,7 @@ export function ConfirmModal({
   cancelText = "Cancel",
   isDestructive = false,
   isLoading = false,
+  confirmButtonClassName,
 }: ConfirmModalProps) {
   if (!isOpen) return null
 
@@ -62,7 +64,7 @@ export function ConfirmModal({
         <Button
           onClick={onConfirm}
           disabled={isLoading}
-          className={`flex-1 h-12 font-black text-white shadow-sm transition-all active:scale-95 rounded-xl ${isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand hover:bg-brand-active'}`}
+          className={`flex-1 h-12 font-black text-white shadow-sm transition-all active:scale-95 rounded-xl ${confirmButtonClassName ?? (isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand hover:bg-brand-active')}`}
         >
           {isLoading ? "Processing..." : confirmText}
         </Button>

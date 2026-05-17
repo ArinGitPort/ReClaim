@@ -1,9 +1,10 @@
-import { UserRole } from "@prisma/client";
+import { AuditAction, UserRole, UserStatus } from "@prisma/client";
 import type { Request, Response } from "express"
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js"
-import { createManagedUser, updateManagedUser } from "@/services/userService.js";
+import { createManagedUser, resetManagedUserPassword, updateAccountStatus, updateManagedUser } from "@/services/userService.js";
 import { listUserPickups, rerollPickupToken } from "@/services/userPickupService.js"
+import { logAudit } from "@/services/auditService.js";
 
 const idParamsSchema = z.object({
   id: z.string().uuid(),
@@ -28,6 +29,15 @@ const updateUserSchema = z
     message: "At least one field is required",
   });
 
+const accountStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "DISABLED", "SUSPENDED"]),
+  reason: z.string().trim().optional(),
+});
+
+const resetPasswordSchema = z.object({
+  temporaryPassword: z.string().min(8).optional(),
+});
+
 export async function getUserPickups(req: Request, res: Response): Promise<void> {
   const pickups = await listUserPickups(req.user!.id)
   res.json({ pickups })
@@ -42,6 +52,7 @@ export async function postUserPickupReroll(req: Request, res: Response): Promise
 export async function getAllUsers(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined
   const role = typeof req.query.role === "string" ? req.query.role : undefined
+  const status = typeof req.query.status === "string" ? req.query.status : undefined
   const page = Math.max(1, Number(req.query.page) || 1)
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25))
   const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt"
@@ -60,6 +71,10 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
   
   if (role) {
     where.role = role
+  }
+
+  if (status && Object.values(UserStatus).includes(status as UserStatus)) {
+    where.status = status
   }
   
   let orderBy: any = { createdAt: sortOrder }
@@ -83,9 +98,33 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
         email: true,
         studentId: true,
         role: true,
+        status: true,
+        passwordResetRequired: true,
+        lastLoginAt: true,
+        disabledAt: true,
+        disabledReason: true,
         createdAt: true,
+        reports: {
+          select: {
+            status: true,
+          },
+        },
+        claims: {
+          select: {
+            status: true,
+            foundItem: {
+              select: {
+                status: true,
+              },
+            },
+          },
+        },
         _count: {
-          select: { claims: true }
+          select: {
+            claims: true,
+            reports: true,
+            handovers: true,
+          }
         }
       },
       orderBy,
@@ -97,8 +136,33 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
 
   const pageCount = Math.max(1, Math.ceil(total / limit))
 
+  const mappedUsers = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    studentId: user.studentId,
+    role: user.role,
+    status: user.status,
+    passwordResetRequired: user.passwordResetRequired,
+    lastLoginAt: user.lastLoginAt,
+    disabledAt: user.disabledAt,
+    disabledReason: user.disabledReason,
+    createdAt: user.createdAt,
+    _count: user._count,
+    metrics: {
+      pendingClaims: user.claims.filter((claim) => claim.status === "PENDING_VERIFICATION" || claim.status === "INQUIRY_REQUIRED").length,
+      activeReports: user.reports.filter((report) => report.status === "SUBMITTED" || report.status === "UNDER_REVIEW" || report.status === "ACTIVE_SEARCH" || report.status === "MATCHED").length,
+      returnedItems: user._count.handovers,
+      activeClaims: user.claims.filter((claim) => (
+        claim.status === "PENDING_VERIFICATION" ||
+        claim.status === "INQUIRY_REQUIRED" ||
+        (claim.status === "APPROVED" && claim.foundItem.status !== "RETURNED")
+      )).length,
+    },
+  }))
+
   res.json({
-    users,
+    users: mappedUsers,
     pagination: {
       page,
       limit,
@@ -119,6 +183,11 @@ export async function getUserDetails(req: Request, res: Response): Promise<void>
       email: true,
       studentId: true,
       role: true,
+      status: true,
+      passwordResetRequired: true,
+      lastLoginAt: true,
+      disabledAt: true,
+      disabledReason: true,
       createdAt: true,
       claims: {
         include: { foundItem: true },
@@ -153,12 +222,30 @@ export async function postUser(req: Request, res: Response): Promise<void> {
     role: body.role,
   });
 
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.USER_CREATED,
+    targetType: "user",
+    targetId: user.id,
+    description: "Admin created a user account",
+    targetReferenceCode: user.email,
+    payload: {
+      targetReferenceCode: user.email,
+      role: user.role,
+    },
+  });
+
   res.status(201).json({ user });
 }
 
 export async function patchUser(req: Request, res: Response): Promise<void> {
   const { id } = idParamsSchema.parse(req.params);
   const body = updateUserSchema.parse(req.body);
+
+  const beforeUser = await prisma.user.findUnique({
+    where: { id },
+    select: { role: true, email: true },
+  });
 
   const user = await updateManagedUser({
     userId: id,
@@ -168,5 +255,87 @@ export async function patchUser(req: Request, res: Response): Promise<void> {
     role: body.role,
   });
 
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: beforeUser?.role && body.role && beforeUser.role !== body.role ? AuditAction.USER_ROLE_CHANGED : AuditAction.USER_UPDATED,
+    targetType: "user",
+    targetId: user.id,
+    description: beforeUser?.role && body.role && beforeUser.role !== body.role
+      ? `Admin changed user role from ${beforeUser.role} to ${body.role}`
+      : "Admin updated user profile",
+    targetReferenceCode: user.email,
+    payload: {
+      targetReferenceCode: user.email,
+      beforeRole: beforeUser?.role,
+      afterRole: user.role,
+    },
+  });
+
   res.json({ user });
+}
+
+export async function patchUserStatus(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = accountStatusSchema.parse(req.body);
+
+  if (id === req.user!.id && body.status !== "ACTIVE") {
+    res.status(400).json({ error: "You cannot disable or suspend your own administrator account" });
+    return;
+  }
+
+  const user = await updateAccountStatus({
+    userId: id,
+    actorUserId: req.user!.id,
+    status: body.status as UserStatus,
+    disabledReason: body.reason,
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: user.status === "ACTIVE" ? AuditAction.USER_ENABLED : AuditAction.USER_DISABLED,
+    targetType: "user",
+    targetId: user.id,
+    description: user.status === "ACTIVE" ? "Admin enabled user account" : `Admin set user account to ${user.status}`,
+    targetReferenceCode: user.email,
+    payload: {
+      targetReferenceCode: user.email,
+      status: user.status,
+      reason: user.disabledReason,
+    },
+  });
+
+  res.json({ user });
+}
+
+export async function postUserPasswordReset(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = resetPasswordSchema.parse(req.body);
+  const temporaryPassword = body.temporaryPassword ?? createTemporaryPassword();
+
+  const user = await resetManagedUserPassword({
+    userId: id,
+    temporaryPassword,
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.USER_PASSWORD_RESET,
+    targetType: "user",
+    targetId: user.id,
+    description: "Admin reset user password",
+    targetReferenceCode: user.email,
+    payload: {
+      targetReferenceCode: user.email,
+      passwordResetRequired: true,
+    },
+  });
+
+  res.json({
+    user,
+    temporaryPassword,
+  });
+}
+
+function createTemporaryPassword(): string {
+  return `ReClaim-${Math.random().toString(36).slice(2, 8).toUpperCase()}!`;
 }

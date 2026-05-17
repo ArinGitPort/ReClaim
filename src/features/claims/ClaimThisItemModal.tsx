@@ -14,9 +14,10 @@ interface ClaimThisItemModalProps {
   itemTitle: string
   itemCategory: string
   itemImageUrl?: string
+  cooldownAvailableAt?: string
 }
 
-export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemImageUrl }: ClaimThisItemModalProps) {
+export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemImageUrl, cooldownAvailableAt }: ClaimThisItemModalProps) {
   const [proofValues, setProofValues] = useState<Record<string, string>>({})
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -24,6 +25,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
   const [isImageExpanded, setIsImageExpanded] = useState(false)
 
   const fieldGroup = getClaimFieldGroup(itemCategory)
+  const isCooldownActive = Boolean(cooldownAvailableAt && new Date(cooldownAvailableAt).getTime() > Date.now())
 
   useEffect(() => {
     if (isOpen) {
@@ -46,6 +48,11 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
     event.preventDefault()
     setError(null)
 
+    if (isCooldownActive && cooldownAvailableAt) {
+      setError(`You can claim this item again after ${formatFriendlyDateTime(cooldownAvailableAt)}.`)
+      return
+    }
+
     const missingRequired = fieldGroup.fields.find((field) => field.required && !(proofValues[field.key] ?? "").trim())
     if (missingRequired) {
       setError(`Please complete: ${missingRequired.label}`)
@@ -63,6 +70,17 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         },
       })
       onClose()
+    } catch (err) {
+      const userMessage = typeof err === "object" && err && "userMessage" in err
+        ? (err as { userMessage?: unknown }).userMessage
+        : undefined
+      const availableAt = typeof err === "object" && err && "response" in err
+        ? (err as { response?: { data?: { details?: { availableAt?: unknown } } } }).response?.data?.details?.availableAt
+        : undefined
+      const message = typeof userMessage === "string"
+        ? formatClaimErrorMessage(userMessage, availableAt)
+        : "Unable to submit this claim. The item may already be reserved."
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -157,6 +175,11 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
             </div>
           </div>
           {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
+          {isCooldownActive && cooldownAvailableAt && !error && (
+            <p className="text-sm font-semibold text-rose-600">
+              You can claim this item again after {formatFriendlyDateTime(cooldownAvailableAt)}.
+            </p>
+          )}
         </form>
 
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
@@ -169,7 +192,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
           <button
             type="submit"
             form="claim-this-item-form"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isCooldownActive}
             className="flex-1 h-12 bg-brand hover:bg-brand-active transition-all text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 shadow-sm uppercase tracking-widest"
           >
             <CheckCircle2 className="w-4 h-4" />
@@ -204,4 +227,27 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
       )}
     </>
   )
+}
+
+function formatClaimErrorMessage(message: string, availableAt: unknown): string {
+  if (typeof availableAt === "string") {
+    return `You can claim this item again after ${formatFriendlyDateTime(availableAt)}.`
+  }
+
+  return message
+}
+
+function formatFriendlyDateTime(dateString: string): string {
+  const date = new Date(dateString)
+  if (Number.isNaN(date.getTime())) {
+    return dateString
+  }
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
 }

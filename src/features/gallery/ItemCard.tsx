@@ -17,6 +17,7 @@ export interface FoundItem {
 interface ItemCardProps {
   item: FoundItem
   hasActiveClaim?: boolean
+  cooldownAvailableAt?: string
 }
 
 const getRelativeTime = (dateString: string) => {
@@ -27,12 +28,21 @@ const getRelativeTime = (dateString: string) => {
   return `${Math.round(diffHours / 24)}d ago`;
 }
 
-export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
+export function ItemCard({ item, hasActiveClaim = false, cooldownAvailableAt }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
   const isClaimPending = item.status === "CLAIM_PENDING"
-  const isClaimable = !isClaimPending && !hasActiveClaim
+  const isOnCooldown = Boolean(cooldownAvailableAt && new Date(cooldownAvailableAt).getTime() > now)
+  const isClaimable = !isClaimPending && !hasActiveClaim && !isOnCooldown
+  const disabledReason = hasActiveClaim
+    ? "You already have an active claim for this item."
+    : isOnCooldown && cooldownAvailableAt
+      ? `Cooldown active until ${formatFriendlyDateTime(cooldownAvailableAt)}.`
+      : isClaimPending
+        ? "This item is temporarily reserved while a claim is reviewed."
+        : null
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -40,6 +50,15 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
+
+  useEffect(() => {
+    if (!cooldownAvailableAt) {
+      return
+    }
+
+    const intervalId = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(intervalId)
+  }, [cooldownAvailableAt])
 
   // MASONRY RANDOM FACTOR based on ID length or chars to be deterministic
   const randomFactor = item.title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 3;
@@ -67,7 +86,7 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
           breakInside: 'avoid',
           cursor: isClaimable ? 'pointer' : 'default',
           border: '1px solid #e2e8f0',
-          opacity: (isClaimPending || hasActiveClaim) ? 0.85 : 1,
+          opacity: (isClaimPending || hasActiveClaim || isOnCooldown) ? 0.85 : 1,
         }}
       >
         <div style={{
@@ -192,12 +211,12 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: isClaimable ? 'pointer' : 'not-allowed',
-              opacity: (isClaimPending || hasActiveClaim) ? 0 : ((isMobile || isHovered) ? 1 : 0),
+              opacity: (isClaimPending || hasActiveClaim || isOnCooldown) ? 0 : ((isMobile || isHovered) ? 1 : 0),
               transform: (isMobile || isHovered) ? 'scale(1)' : 'scale(0.8)',
               transition: 'all 0.2s ease',
               boxShadow: '0 2px 8px rgba(38, 61, 168, 0.4)'
             }}
-            title={hasActiveClaim ? "Claim already submitted" : "Claim this item"}
+            title={disabledReason ?? "Claim this item"}
           >
             <Plus style={{ width: '18px', height: '18px' }} />
           </button>
@@ -221,7 +240,7 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
               textTransform: 'uppercase',
             }}>
               <Clock style={{ width: '10px', height: '10px' }} />
-              Claim Pending
+              Reserved
             </div>
           )}
 
@@ -244,7 +263,30 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
               textTransform: 'uppercase',
             }}>
               <ShieldAlert style={{ width: '10px', height: '10px' }} />
-              Claim Submitted
+              Your Claim
+            </div>
+          )}
+
+          {isOnCooldown && !hasActiveClaim && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              backgroundColor: 'rgba(225, 29, 72, 0.9)',
+              backdropFilter: 'blur(4px)',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}>
+              <Clock style={{ width: '10px', height: '10px' }} />
+              Cooldown
             </div>
           )}
         </div>
@@ -252,17 +294,24 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
         <div style={{
           padding: '10px 12px',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: 'column',
+          gap: '6px',
           backgroundColor: '#fff'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px', fontWeight: 500 }}>    
-            <MapPin style={{ width: '12px', height: '12px', color: '#263DA8' }} />
-            <span style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.location}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px', fontWeight: 500, minWidth: 0 }}>    
+              <MapPin style={{ width: '12px', height: '12px', color: '#263DA8', flexShrink: 0 }} />
+              <span style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.location}</span>
+            </div>
+            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>
+              {getRelativeTime(item.dateLost)}
+            </span>
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {getRelativeTime(item.dateLost)}
-          </span>
+          {disabledReason && (
+            <p style={{ margin: 0, fontSize: '10px', lineHeight: 1.35, color: '#64748b', fontWeight: 700 }}>
+              {disabledReason}
+            </p>
+          )}
         </div>
       </div>
 
@@ -273,7 +322,23 @@ export function ItemCard({ item, hasActiveClaim = false }: ItemCardProps) {
         itemTitle={item.title}
         itemCategory={item.category}
         itemImageUrl={item.imageUrl}
+        cooldownAvailableAt={cooldownAvailableAt}
       />
     </>
   )
+}
+
+function formatFriendlyDateTime(dateString: string): string {
+  const date = new Date(dateString)
+  if (Number.isNaN(date.getTime())) {
+    return dateString
+  }
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
 }

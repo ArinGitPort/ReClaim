@@ -1,5 +1,5 @@
 import { StatusBadge } from "@/components/ui/StatusBadge"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { 
   Plus, 
   Filter, 
@@ -38,6 +38,13 @@ type InventoryRow = {
   location: string
   status: string
   storage: string
+  isHandoverReady: boolean
+  handoverClaim?: {
+    id: string
+    claimCode: string
+    pickupTokenExpires?: string | null
+    claimantUserId: string
+  } | null
   privateDiscoveryNote?: string
   photoUrl?: string
 }
@@ -61,7 +68,7 @@ export function InventoryPage() {
   const debouncedStatus = useDebounce(statusFilter, 350)
   const debouncedCategory = useDebounce(categoryFilter, 350)
 
-  async function loadItems(): Promise<void> {
+  const loadItems = useCallback(async (): Promise<void> => {
     setIsLoading(true)
     setError(null)
     try {
@@ -78,6 +85,13 @@ export function InventoryPage() {
           storageLocation?: string | null
           privateDiscoveryNote?: string | null
           privateData?: unknown
+          isHandoverReady?: boolean
+          handoverClaim?: {
+            id: string
+            claimCode: string
+            pickupTokenExpires?: string | null
+            claimantUserId: string
+          } | null
           aiEvidenceLogs?: Array<{
             snapshotPath: string
           }>
@@ -111,6 +125,8 @@ export function InventoryPage() {
           location: item.foundLocation,
           status: item.status,
           storage: item.storageLocation ?? "Not assigned",
+          isHandoverReady: Boolean(item.isHandoverReady),
+          handoverClaim: item.handoverClaim ?? null,
           privateDiscoveryNote: item.privateDiscoveryNote ?? undefined,
           photoUrl: getImageUrl(extractPhotoPath(item.privateData) ?? item.aiEvidenceLogs?.[0]?.snapshotPath),
         }))
@@ -126,7 +142,7 @@ export function InventoryPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [debouncedCategory, debouncedSearch, debouncedStatus, page, rowsPerPage])
 
   useEffect(() => {
     setPage(1)
@@ -134,7 +150,7 @@ export function InventoryPage() {
 
   useEffect(() => {
     void loadItems()
-  }, [debouncedSearch, debouncedStatus, debouncedCategory, page, rowsPerPage])
+  }, [loadItems])
 
   useEffect(() => {
     const socket = getRealtimeSocket()
@@ -150,7 +166,7 @@ export function InventoryPage() {
     return () => {
       socket.off("item.updated", handleItemUpdated)
     }
-  }, [search, statusFilter, categoryFilter, page, rowsPerPage])
+  }, [loadItems])
 
   const statusOptions = useMemo(() => ["AVAILABLE", "CLAIM_PENDING", "ARCHIVED"], [])
 
@@ -355,7 +371,8 @@ export function InventoryPage() {
                       <Button
                         type="button"
                         onClick={() => setHandoverItem(item)}
-                        disabled={item.status !== "CLAIM_PENDING"}
+                        disabled={!item.isHandoverReady}
+                        title={item.isHandoverReady ? "Start handover" : "Approve or link a claim before handover"}
                         className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
                       >
                         <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />

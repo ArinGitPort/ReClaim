@@ -6,11 +6,17 @@ export interface BadgeProps {
 }
 
 export function StatusBadge({ status, className }: BadgeProps) {
-  const label = status === "CLAIM_PENDING" ? "CLAIM PENDING" : status.replaceAll("_", " ")
+  const label =
+    status === "CLAIM_PENDING"
+      ? "CLAIM PENDING"
+      : status === "PASSWORD_RESET_REQUIRED"
+        ? "PASSWORD RESET REQUIRED"
+        : status.replaceAll("_", " ")
 
   const getStyles = () => {
     switch (status) {
       case "AVAILABLE":
+      case "ACTIVE":
       case "Approved":
       case "Resolved":
         return "bg-emerald-50 text-emerald-700 border-emerald-100"
@@ -24,9 +30,16 @@ export function StatusBadge({ status, className }: BadgeProps) {
       case "Closed":
         return "bg-slate-50 text-slate-500 border-slate-100"
       case "ARCHIVED":
+      case "DISABLED":
       case "Denied":
       case "Rejected":
+      case "Expired":
         return "bg-rose-50 text-rose-700 border-rose-100"
+      case "SUSPENDED":
+      case "PASSWORD_RESET_REQUIRED":
+        return "bg-amber-50 text-amber-700 border-amber-100"
+      case "Cancelled":
+        return "bg-slate-50 text-slate-500 border-slate-100"
       case "Pending Verification":
       case "Open":
       case "Under Review":

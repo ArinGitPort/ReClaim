@@ -13,7 +13,7 @@ export function SettingsPage() {
     }
   })
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (_data: any) => {
     await new Promise(resolve => setTimeout(resolve, 800))
     setIsSaved(true)
     setTimeout(() => setIsSaved(false), 3000)

@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"

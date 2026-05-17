@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { api, clearStoredToken, getStoredToken, setStoredToken } from "@/lib/api"
 import { disconnectRealtimeSocket } from "@/lib/realtime"
 
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void hydrateUser()
   }, [])
 
-  const login: AuthContextType["login"] = async (email, password) => {
+  const login = useCallback<AuthContextType["login"]>(async (email, password) => {
     const response = await api.post<{ token: string; user: User }>("/auth/login", {
       email,
       password,
@@ -55,22 +55,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setStoredToken(response.data.token)
     setUser(response.data.user)
-  }
+  }, [])
 
-  const register: AuthContextType["register"] = async (input) => {
+  const register = useCallback<AuthContextType["register"]>(async (input) => {
     await api.post("/auth/register", {
       ...input,
       role: "STUDENT",
     })
 
     await login(input.email, input.password)
-  }
+  }, [login])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     disconnectRealtimeSocket()
     clearStoredToken()
     setUser(null)
-  }
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
     }),
-    [isLoading, user]
+    [isLoading, login, logout, register, user]
   )
 
   return (

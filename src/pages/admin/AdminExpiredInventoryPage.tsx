@@ -1,5 +1,5 @@
 import { AlertTriangle, Trash2, Clock } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContainer } from "@/features/admin/components/admin-list-layout"
@@ -25,7 +25,7 @@ export function ExpiredInventoryPage() {
   const [isDisposing, setIsDisposing] = useState(false)
   const debouncedSearch = useDebounce(searchQuery, 400)
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true)
       const res = await api.get('/items/admin', { params: { expired: true, search: debouncedSearch || undefined } })
@@ -35,11 +35,11 @@ export function ExpiredInventoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedSearch])
 
   useEffect(() => {
-    fetchItems()
-  }, [debouncedSearch])
+    void fetchItems()
+  }, [fetchItems])
 
   const toggleSelect = (id: string) => {
     const newSec = new Set(selectedIds)
@@ -65,7 +65,7 @@ export function ExpiredInventoryPage() {
       await api.post('/items/batch-dispose', { itemIds: Array.from(selectedIds) })
       // Clear selection and refresh
       setSelectedIds(new Set())
-      fetchItems()
+      void fetchItems()
     } catch (err) {
       console.error("Failed to dispose items", err)
       alert("Failed to dispose items")

@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js";
 import { HttpError } from "@/utils/errors.js";
-import { env } from "@/config/env.js";
 import { logAudit } from "@/services/auditService.js";
 import { AuditAction } from "@prisma/client";
 

@@ -351,7 +351,7 @@ export function HandoverLogPage() {
           }
         }}
         title="Restore Handover"
-        message="Are you sure you want to restore this handover? The item will be returned to CLAIM_PENDING status."
+        message="Are you sure you want to restore this handover? The handover log will be removed, the item will become available again, and the previous approved claim will be cancelled."
         confirmText="Yes, Restore"
         cancelText="Cancel"
         isDestructive={true}

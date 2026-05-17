@@ -7,6 +7,7 @@ import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
+import { emitClaimStatusUpdated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
   id: string;
@@ -147,9 +148,29 @@ export async function postHandoverConfirm(req: Request, res: Response): Promise<
     });
   }
 
+  const studentNotification = await createNotificationForUser({
+    userId: result.claim.claimantUserId,
+    title: "Handover Completed",
+    message: `${result.claim.claimCode} was completed. Your item has been marked returned.`,
+    route: "/my-claims",
+  });
+
+  emitNotificationCreated({
+    userId: studentNotification.userId,
+    notification: studentNotification,
+  });
+
   emitItemUpdated({
     itemId: result.handover.foundItemId,
     status: "RETURNED",
+  });
+
+  emitClaimStatusUpdated({
+    claimId: result.claim.id,
+    claimCode: result.claim.claimCode,
+    status: result.claim.status,
+    claimantUserId: result.claim.claimantUserId,
+    foundItemId: result.claim.foundItemId,
   });
 
   res.status(201).json({
@@ -162,9 +183,29 @@ export async function postHandoverCancel(req: Request, res: Response): Promise<v
   const { pickupToken } = handoverPreviewSchema.parse(req.body);
   const claim = await cancelHandoverByToken({ pickupToken });
 
+  const claimantNotification = await createNotificationForUser({
+    userId: claim.claimantUserId,
+    title: "Handover Cancelled",
+    message: `${claim.claimCode} was cancelled by the Admin Office. The item is available again.`,
+    route: "/my-claims",
+  });
+
+  emitNotificationCreated({
+    userId: claimantNotification.userId,
+    notification: claimantNotification,
+  });
+
   emitItemUpdated({
     itemId: claim.foundItemId,
     status: "AVAILABLE",
+  });
+
+  emitClaimStatusUpdated({
+    claimId: claim.id,
+    claimCode: claim.claimCode,
+    status: claim.status,
+    claimantUserId: claim.claimantUserId,
+    foundItemId: claim.foundItemId,
   });
 
   res.json({ claim });
@@ -174,6 +215,33 @@ export async function postHandoverRestore(req: Request, res: Response): Promise<
   const id = req.params.id as string;
   
   const result = await restoreHandover({ handoverId: id });
+
+  emitItemUpdated({
+    itemId: result.foundItemId,
+    status: "AVAILABLE",
+  });
+
+  if (result.restoredClaim) {
+    const studentNotification = await createNotificationForUser({
+      userId: result.restoredClaim.claimantUserId,
+      title: "Handover Restored",
+      message: `${result.restoredClaim.claimCode} was restored by the Admin Office. The prior handover has been reversed.`,
+      route: "/my-claims",
+    });
+
+    emitNotificationCreated({
+      userId: studentNotification.userId,
+      notification: studentNotification,
+    });
+
+    emitClaimStatusUpdated({
+      claimId: result.restoredClaim.id,
+      claimCode: result.restoredClaim.claimCode,
+      status: result.restoredClaim.status,
+      claimantUserId: result.restoredClaim.claimantUserId,
+      foundItemId: result.restoredClaim.foundItemId,
+    });
+  }
 
   res.json(result);
 }

@@ -22,6 +22,12 @@ type AuditAction =
   | "REPORT_LINKED"
   | "HANDOVER_COMPLETED"
   | "AUTH_LOGIN"
+  | "USER_CREATED"
+  | "USER_UPDATED"
+  | "USER_ROLE_CHANGED"
+  | "USER_DISABLED"
+  | "USER_ENABLED"
+  | "USER_PASSWORD_RESET"
   | "SNAPSHOT_DISMISSED"
   | "SNAPSHOT_RESTORED"
 
@@ -63,6 +69,12 @@ const actionOptions: Array<{ label: string; value: AuditAction | "" }> = [
   { label: "Report Linked", value: "REPORT_LINKED" },
   { label: "Handover Completed", value: "HANDOVER_COMPLETED" },
   { label: "Auth Login", value: "AUTH_LOGIN" },
+  { label: "User Created", value: "USER_CREATED" },
+  { label: "User Updated", value: "USER_UPDATED" },
+  { label: "User Role Changed", value: "USER_ROLE_CHANGED" },
+  { label: "User Disabled", value: "USER_DISABLED" },
+  { label: "User Enabled", value: "USER_ENABLED" },
+  { label: "User Password Reset", value: "USER_PASSWORD_RESET" },
   { label: "Snapshot Dismissed", value: "SNAPSHOT_DISMISSED" },
   { label: "Snapshot Restored", value: "SNAPSHOT_RESTORED" },
 ]

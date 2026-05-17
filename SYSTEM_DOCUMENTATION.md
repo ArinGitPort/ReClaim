@@ -1,7 +1,7 @@
 # ReClaim SaaS Technical Specification
 
 ## 1. Executive Summary
-ReClaim is a comprehensive Lost and Found management SaaS utilizing computer vision to automate item detection and logging. The primary technology stack consists of a React (Vite) frontend, a Node.js/Express backend, a PostgreSQL database managed via Prisma ORM, and an independent Python YOLOv8 daemon for real-time security camera inference. 
+ReClaim is a comprehensive Lost and Found management SaaS utilizing computer vision to automate item detection and logging. The primary technology stack consists of a React (Vite) frontend, a Node.js/Express backend, a PostgreSQL database managed via Prisma ORM, and an independent Python YOLO11 daemon for real-time security camera inference. 
 
 The goal of this document is to serve as the definitive "Source of Truth" for developers and system architects, detailing the "If/Then" logic, data flow, and constraints of the system.
 
@@ -13,7 +13,7 @@ The system operates on a decoupled client-server architecture with a secondary m
 - **Frontend (Client):** A React SPA that handles UI state and routing. It communicates with the backend exclusively via HTTPS RESTful API calls, sending and receiving JSON payloads. Authentication is managed via JWT tokens stored in HTTP-only cookies or local storage.
 - **Backend (API Gateway & Core Logic):** A Node.js/Express server that validates incoming requests (via Zod), executes business logic, and interacts with the database. It serves static media assets (e.g., uploaded proof images, AI snapshots) via localized routes.
 - **Database (Persistence):** A PostgreSQL relational database. The Prisma ORM manages schema migrations, connection pooling, and query execution.
-- **AI Service Daemon:** A standalone Python process that consumes RTSP/MJPEG camera streams, performs object detection inference via YOLOv8, and POSTs structured JSON metadata alongside WebP image payloads to the backend API using a pre-shared service key.
+- **AI Service Daemon:** A standalone Python process that consumes RTSP/MJPEG camera streams, performs object detection inference via YOLO11, and POSTs structured JSON metadata alongside full-frame annotated image payloads to the backend API using a pre-shared service key.
 
 ---
 
@@ -185,10 +185,17 @@ The system operates on a decoupled client-server architecture with a secondary m
 - `DATABASE_URL`: Connection string for PostgreSQL.
 - `JWT_SECRET`: Cryptographic key for signing user sessions.
 - `PORT`: Execution port (default 4000).
-- `SERVICE_API_KEY`: Pre-shared key for the AI daemon authentication.
+- `SERVICE_TOKEN`: Pre-shared key for AI daemon authentication. Legacy aliases `SERVICE_API_KEY` and `BACKEND_SERVICE_TOKEN` are also accepted by the backend.
+- `AI_ACTOR_USER_ID`: Optional user ID used when AI ingestion creates found-item records.
 
 **Frontend:**
-- `VITE_API_URL`: Fully qualified URI pointing to the backend API Gateway.
+- `VITE_API_BASE_URL`: Fully qualified URI pointing to the backend API Gateway, for example `http://localhost:4000/api`. Legacy alias `VITE_API_URL` is also accepted.
+
+**AI Service:**
+- `BACKEND_API_BASE`: Backend API base URL, for example `http://localhost:4000/api`.
+- `BACKEND_SERVICE_TOKEN`: Service token sent to protected AI/backend endpoints. Legacy aliases `SERVICE_TOKEN` and `SERVICE_API_KEY` are also accepted.
+- `YOLO_MODEL`: Optional Ultralytics model name/path for the AI daemon. Defaults to `yolo11m.pt`.
+- `YOLO_DEVICE`: Optional inference device. Defaults to `auto`, which uses CUDA GPU when PyTorch detects it and falls back to CPU.
 
 ### Initialization Commands
 1. **Database & Backend:**

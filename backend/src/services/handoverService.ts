@@ -281,6 +281,9 @@ export async function cancelHandoverByToken(input: { pickupToken: string }) {
 export async function restoreHandover(input: { handoverId: string }) {
   const handover = await prisma.handoverLog.findUnique({
     where: { id: input.handoverId },
+    include: {
+      claim: true,
+    },
   });
 
   if (!handover) {
@@ -292,11 +295,28 @@ export async function restoreHandover(input: { handoverId: string }) {
       where: { id: handover.id },
     });
 
+    const restoredClaim = handover.claimId
+      ? await tx.claim.update({
+          where: { id: handover.claimId },
+          data: {
+            status: ClaimStatus.CANCELLED,
+            pickupToken: null,
+            pickupTokenExpires: null,
+            reviewerNote: "Handover restored by admin; previous approved claim was cancelled",
+          },
+        })
+      : null;
+
     await tx.foundItem.update({
       where: { id: handover.foundItemId },
-      data: { status: ItemStatus.CLAIM_PENDING },
+      data: { status: ItemStatus.AVAILABLE },
     });
 
-    return { success: true };
+    return {
+      success: true,
+      foundItemId: handover.foundItemId,
+      restoredClaim,
+      releasedToUserId: handover.releasedToUserId,
+    };
   });
 }

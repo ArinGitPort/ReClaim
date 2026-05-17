@@ -1,7 +1,7 @@
 import { io, type Socket } from "socket.io-client"
 import { getStoredToken } from "@/lib/api"
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "http://localhost:4000/api"
 
 function getRealtimeBaseUrl(): string {
   return API_BASE_URL.endsWith("/api")

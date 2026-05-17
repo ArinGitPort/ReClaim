@@ -24,6 +24,7 @@ interface ClaimView {
   rawStatus: string
   status: string
   reviewerNote?: string | null
+  reservationExpiresAt: string | null
   pickupToken: string | null
   pickupTokenExpires: string | null
   itemStatus: string
@@ -41,6 +42,12 @@ export function MyClaimsPage() {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(intervalId)
+  }, [])
 
   const loadClaims = useCallback(async (): Promise<void> => {
     const response = await api.get<{
@@ -50,6 +57,7 @@ export function MyClaimsPage() {
         status: string
         createdAt: string
         reviewerNote?: string | null
+        reservationExpiresAt?: string | null
         pickupToken?: string | null
         pickupTokenExpires?: string | null
         foundItem: {
@@ -64,7 +72,7 @@ export function MyClaimsPage() {
       }>
     }>("/claims", {
       params: {
-        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,APPROVED,DENIED",
+        statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED,APPROVED,DENIED,CANCELLED,EXPIRED",
       },
     })
 
@@ -81,6 +89,7 @@ export function MyClaimsPage() {
         rawStatus: claim.status,
         status: formatClaimStatus(claim.status),
         reviewerNote: claim.reviewerNote,
+        reservationExpiresAt: claim.reservationExpiresAt ?? null,
         pickupToken: claim.pickupToken ?? null,
         pickupTokenExpires: claim.pickupTokenExpires ?? null,
         itemStatus: claim.foundItem.status,
@@ -91,6 +100,7 @@ export function MyClaimsPage() {
           APPROVED: 3,
           DENIED: 4,
           CANCELLED: 5,
+          EXPIRED: 6,
         };
         let rankA = order[a.rawStatus] || 99;
         let rankB = order[b.rawStatus] || 99;
@@ -297,7 +307,7 @@ export function MyClaimsPage() {
                 {/* Status */}
                 <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
                   <StatusBadge status={claim.status} />
-                  <ClaimStatusMessage status={claim.status} />                <button
+                  <ClaimStatusMessage claim={claim} now={now} />                <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -327,6 +337,22 @@ export function MyClaimsPage() {
                   </div>
                 )}
 
+                {(claim.rawStatus === "PENDING_VERIFICATION" || claim.rawStatus === "INQUIRY_REQUIRED") && claim.reservationExpiresAt && (
+                  <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-brand/20 bg-brand/5 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-brand/20 flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5 text-brand" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-800">Item Reserved During Review</div>
+                        <div className="text-xs font-semibold text-slate-500 mt-0.5">
+                          Hold expires in {formatTimeRemaining(claim.reservationExpiresAt, now)}. If it expires or you close the ticket, you can claim this item again after 24 hours.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {claim.rawStatus === "APPROVED" && claim.pickupToken && (
                   <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
                     {claim.itemStatus === "RETURNED" ? (
@@ -346,7 +372,7 @@ export function MyClaimsPage() {
                             <ShieldCheck className="w-5 h-5 text-emerald-600" />
                           </div>
                           <div>
-                            <div className="text-sm font-bold text-emerald-800">Claim Approved — Pickup Token Issued</div>
+                            <div className="text-sm font-bold text-emerald-800">Claim Approved - Pickup Token Issued</div>
                             <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
                           </div>
                         </div>
@@ -451,10 +477,10 @@ export function MyClaimsPage() {
   )
 }
 
-function ClaimStatusMessage({ status }: { status: string }) {
+function ClaimStatusMessage({ claim, now }: { claim: ClaimView; now: number }) {
   return (
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-      <Clock className="w-3 h-3" /> {claimStatusMessage(status)}
+      <Clock className="w-3 h-3" /> {claimStatusMessage(claim, now)}
     </p>
   )
 }
@@ -475,24 +501,58 @@ function formatClaimStatus(rawStatus: string): string {
     APPROVED: "Approved",
     DENIED: "Denied",
     CANCELLED: "Cancelled",
+    EXPIRED: "Expired",
   }
   return map[rawStatus] ?? rawStatus.replaceAll("_", " ")
 }
 
-function claimStatusMessage(status: string): string {
-  if (status === "Inquiry Required") {
+function claimStatusMessage(claim: ClaimView, now: number): string {
+  if (claim.rawStatus === "PENDING_VERIFICATION" && claim.reservationExpiresAt) {
+    return `Reserved for ${formatTimeRemaining(claim.reservationExpiresAt, now)}`
+  }
+
+  if (claim.rawStatus === "INQUIRY_REQUIRED" && claim.reservationExpiresAt) {
+    return `Action needed - hold expires in ${formatTimeRemaining(claim.reservationExpiresAt, now)}`
+  }
+
+  if (claim.status === "Inquiry Required") {
     return "Admin requires additional proof details"
   }
 
-  if (status === "Denied") {
+  if (claim.status === "Denied") {
     return "Claim denied by admin review"
   }
 
-  if (status === "Approved") {
+  if (claim.status === "Approved") {
     return "Claim approved — present your token at the Admin Office"
   }
 
+  if (claim.status === "Expired") {
+    return "Reservation expired before review"
+  }
+
+  if (claim.status === "Cancelled") {
+    return "Closed by you; retry cooldown may apply"
+  }
+
   return "Awaiting admin review"
+}
+
+function formatTimeRemaining(expiresAt: string, now: number): string {
+  const diffMs = new Date(expiresAt).getTime() - now
+  if (!Number.isFinite(diffMs) || diffMs <= 0) {
+    return "0m"
+  }
+
+  const totalMinutes = Math.ceil(diffMs / (1000 * 60))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours <= 0) {
+    return `${minutes}m`
+  }
+
+  return `${hours}h ${minutes}m`
 }
 
 function isClosableClaimStatus(status: string): boolean {

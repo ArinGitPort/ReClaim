@@ -4,7 +4,10 @@ import { HttpError } from "@/utils/errors.js";
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof HttpError) {
-    res.status(err.statusCode).json({ error: err.message });
+    res.status(err.statusCode).json({
+      error: err.message,
+      details: err.details,
+    });
     return;
   }
 

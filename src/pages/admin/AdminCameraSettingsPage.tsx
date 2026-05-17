@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Video, Plus, Settings, X } from "lucide-react"
+import { Video, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/Switch"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
@@ -21,7 +21,7 @@ type CampusCamera = {
 export function CameraSettingsPage() {
   const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const [, setIsLoading] = useState(true)
   const [cameraToDelete, setCameraToDelete] = useState<CampusCamera | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -31,7 +31,7 @@ export function CameraSettingsPage() {
     try {
       const response = await api.get<{ cameras: CampusCamera[] }>("/cameras")
       setCameras(response.data.cameras)
-    } catch (err) {
+    } catch {
       alert("Failed to load cameras")
     } finally {
       setIsLoading(false)

@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js";
-import { HttpError } from "@/utils/errors.js";
 
 const createCameraSchema = z.object({
   name: z.string().min(1),

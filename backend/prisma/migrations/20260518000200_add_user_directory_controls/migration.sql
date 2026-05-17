@@ -1,0 +1,22 @@
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'DISABLED', 'SUSPENDED');
+
+-- AlterEnum
+ALTER TYPE "AuditAction" ADD VALUE 'USER_CREATED';
+ALTER TYPE "AuditAction" ADD VALUE 'USER_UPDATED';
+ALTER TYPE "AuditAction" ADD VALUE 'USER_ROLE_CHANGED';
+ALTER TYPE "AuditAction" ADD VALUE 'USER_DISABLED';
+ALTER TYPE "AuditAction" ADD VALUE 'USER_ENABLED';
+ALTER TYPE "AuditAction" ADD VALUE 'USER_PASSWORD_RESET';
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE "User" ADD COLUMN "passwordResetRequired" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "lastLoginAt" TIMESTAMPTZ(6);
+ALTER TABLE "User" ADD COLUMN "disabledAt" TIMESTAMPTZ(6);
+ALTER TABLE "User" ADD COLUMN "disabledReason" TEXT;
+ALTER TABLE "User" ADD COLUMN "disabledById" UUID;
+
+-- CreateIndex
+CREATE INDEX "User_status_idx" ON "User"("status");
+CREATE INDEX "User_role_idx" ON "User"("role");

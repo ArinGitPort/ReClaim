@@ -43,10 +43,19 @@ export async function loginUser(input: { email: string; password: string }) {
     throw new HttpError(401, "Invalid credentials");
   }
 
+  if (user.status !== "ACTIVE") {
+    throw new HttpError(403, "Account is disabled. Please contact an administrator.");
+  }
+
   const ok = await bcrypt.compare(input.password, user.passwordHash);
   if (!ok) {
     throw new HttpError(401, "Invalid credentials");
   }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
 
   const token = jwt.sign(
     {
@@ -66,6 +75,7 @@ export async function loginUser(input: { email: string; password: string }) {
       email: user.email,
       studentId: user.studentId,
       role: user.role,
+      passwordResetRequired: user.passwordResetRequired,
     },
   };
 }

@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListHeader, AdminSearchInput } from "@/features/admin/components/admin-list-layout"
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
+import { StatusBadge } from "@/components/ui/StatusBadge"
 import { 
   AddUserModal,
   EditProfileModal, 
@@ -22,17 +23,28 @@ import { Skeleton } from "@/components/ui/Skeleton"
 
 type UserSortField = "name" | "createdAt"
 
+function formatDirectoryDate(value?: string | null) {
+  if (!value) return "Never"
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value))
+}
+
 export function UserDirectoryPage() {
   const [users, setUsers] = useState<UserDirUser[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(15)
   const [pageCount, setPageCount] = useState(1)
   const [totalUsers, setTotalUsers] = useState(0)
   const debouncedSearch = useDebounce(searchQuery, 400)
   const debouncedRole = useDebounce(roleFilter, 400)
+  const debouncedStatus = useDebounce(statusFilter, 400)
   
   const [sortField] = useState<UserSortField>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
@@ -49,6 +61,7 @@ export function UserDirectoryPage() {
         params: {
           search: debouncedSearch || undefined,
           role: debouncedRole || undefined,
+          status: debouncedStatus || undefined,
           page,
           limit: rowsPerPage,
           sortBy: sortField,
@@ -73,7 +86,7 @@ export function UserDirectoryPage() {
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearch, debouncedRole, page, rowsPerPage, sortField, sortOrder, selectedUserId])
+  }, [debouncedSearch, debouncedRole, debouncedStatus, page, rowsPerPage, sortField, sortOrder, selectedUserId])
 
   useEffect(() => {
     fetchUsers()
@@ -82,7 +95,7 @@ export function UserDirectoryPage() {
   useEffect(() => {
     setPage(1)
     setSelectedUser(null)
-  }, [searchQuery, roleFilter, rowsPerPage, sortField, sortOrder])
+  }, [searchQuery, roleFilter, statusFilter, rowsPerPage, sortField, sortOrder])
 
   const toggleSort = () => {
     setSortOrder((current) => (current === "asc" ? "desc" : "asc"))
@@ -92,7 +105,7 @@ export function UserDirectoryPage() {
     <div className="space-y-6">
       <AdminListHeader
         title="User Account Management"
-        description="Centralized student database, claim history tracking, and verification desk."
+        description="Centralized account directory, role management, claim history, and verification desk."
         actions={(
           <>
             <Button onClick={() => setActiveModal("add")} className="flex-1 sm:flex-initial h-10 px-4 bg-brand hover:bg-brand-active text-white font-bold rounded-xl shadow-sm border-none">
@@ -124,6 +137,16 @@ export function UserDirectoryPage() {
                   <option value="ADMIN">Admin</option>
                   <option value="STAFF">Staff</option>
                   <option value="STUDENT">Student</option>
+                </Select>
+                <Select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  className="flex-1 h-9 bg-white border-slate-200 rounded-lg shadow-sm text-xs font-bold"
+                >
+                  <option value="">All Status</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="DISABLED">Disabled</option>
+                  <option value="SUSPENDED">Suspended</option>
                 </Select>
                 
                 <Button 
@@ -176,9 +199,15 @@ export function UserDirectoryPage() {
                          <div className="text-[10px] text-slate-500 font-medium">
                            {u.studentId || "No ID Linked"} • {u.role}
                          </div>
+                         <div className="mt-1 flex flex-wrap gap-1">
+                           <StatusBadge status={u.status} className="px-2 py-0.5 text-[8px] shadow-none" />
+                           {u.passwordResetRequired && (
+                             <StatusBadge status="PASSWORD_RESET_REQUIRED" className="px-2 py-0.5 text-[8px] shadow-none" />
+                           )}
+                         </div>
                        </div>
                     </div>
-                    {u._count.claims > 0 && (
+                    {(u.metrics?.activeClaims ?? 0) > 0 && (
                       <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="Active claims present" />
                     )}
                  </div>
@@ -229,7 +258,7 @@ export function UserDirectoryPage() {
                              <span className="text-slate-300">•</span>
                              <span className="flex items-center"><FileBadge className="w-4 h-4 mr-1.5 text-slate-400" /> ID: {selectedUser.studentId || "UNVERIFIED"}</span>
                           </div>
-                          <div className="mt-4 flex gap-2">
+                          <div className="mt-4 flex flex-wrap gap-2">
                             <span className={`px-2.5 py-1 text-[10px] font-black tracking-widest uppercase rounded border ${
                               selectedUser.role === 'ADMIN' ? 'bg-amber-50 border-amber-200 text-amber-700' :
                               selectedUser.role === 'STUDENT' ? 'bg-brand/10 border-brand/20 text-brand' :
@@ -237,8 +266,15 @@ export function UserDirectoryPage() {
                             }`}>
                               {selectedUser.role} Account
                             </span>
+                            <StatusBadge status={selectedUser.status} className="px-2.5 py-1 text-[10px] rounded" />
+                            {selectedUser.passwordResetRequired && (
+                              <StatusBadge status="PASSWORD_RESET_REQUIRED" className="px-2.5 py-1 text-[10px] rounded" />
+                            )}
                             <span className="px-2.5 py-1 text-[10px] font-black tracking-widest uppercase rounded bg-slate-50 border border-slate-200 text-slate-500">
-                              Joined {new Date(selectedUser.createdAt).toLocaleDateString()}
+                              Joined {formatDirectoryDate(selectedUser.createdAt)}
+                            </span>
+                            <span className="px-2.5 py-1 text-[10px] font-black tracking-widest uppercase rounded bg-slate-50 border border-slate-200 text-slate-500">
+                              Last Login {formatDirectoryDate(selectedUser.lastLoginAt)}
                             </span>
                           </div>
                         </div>
@@ -258,6 +294,31 @@ export function UserDirectoryPage() {
 
                {/* Central Detail Content */}
                <div className="p-8 space-y-8 flex-shrink-0">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Directory Status</p>
+                     <div className="mt-2">
+                       <StatusBadge status={selectedUser.status} />
+                     </div>
+                     {selectedUser.disabledReason && (
+                       <p className="mt-3 text-xs font-semibold text-slate-500">{selectedUser.disabledReason}</p>
+                     )}
+                   </div>
+                   <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Sign In</p>
+                     <p className="mt-2 text-sm font-bold text-slate-800">{formatDirectoryDate(selectedUser.lastLoginAt)}</p>
+                     <p className="mt-1 text-xs font-medium text-slate-500">Tracked on successful login.</p>
+                   </div>
+                   <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password State</p>
+                     <div className="mt-2">
+                       <StatusBadge status={selectedUser.passwordResetRequired ? "PASSWORD_RESET_REQUIRED" : "ACTIVE"} />
+                     </div>
+                     <p className="mt-1 text-xs font-medium text-slate-500">
+                       {selectedUser.passwordResetRequired ? "Temporary credentials are currently assigned." : "No admin reset is pending."}
+                     </p>
+                   </div>
+                 </div>
                  
                  {/* Quick Statistics Strip (Modal Triggers) */}
                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -268,7 +329,7 @@ export function UserDirectoryPage() {
                        <AlertCircle className="absolute -right-2 -bottom-2 w-20 h-20 text-amber-500 opacity-10 group-hover:scale-110 transition-transform" />
                        <span className="text-amber-800 font-bold text-sm tracking-tight mb-1">Pending Verifications</span>
                        <div className="text-3xl font-black text-amber-600">
-                         {selectedUser._count.claims > 0 ? 1 : 0}
+                         {selectedUser.metrics?.pendingClaims ?? 0}
                        </div>
                        <span className="text-[10px] text-amber-700 font-extrabold uppercase tracking-widest mt-3 flex items-center">
                          Review Queue →
@@ -282,7 +343,7 @@ export function UserDirectoryPage() {
                        <PackageSearch className="absolute -right-2 -bottom-2 w-20 h-20 text-emerald-500 opacity-10 group-hover:scale-110 transition-transform" />
                        <span className="text-emerald-800 font-bold text-sm tracking-tight mb-1">Missing Items Reported</span>
                        <div className="text-3xl font-black text-emerald-600">
-                          {selectedUser.studentId ? 2 : 0}
+                          {selectedUser.metrics?.activeReports ?? 0}
                        </div>
                        <span className="text-[10px] text-emerald-700 font-extrabold uppercase tracking-widest mt-3 flex items-center">
                          View Reports →
@@ -304,7 +365,6 @@ export function UserDirectoryPage() {
                     </div>
                  </div>
 
-                 {/* No longer showing inline lists! They are offloaded to Modals. Keep the UI incredibly clean. */}
                  <div className="text-center p-12 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 mt-8">
                      <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
                      <p className="font-bold text-sm">Select metrics above to view details</p>
@@ -329,7 +389,6 @@ export function UserDirectoryPage() {
          isOpen={activeModal === "edit"} 
          onClose={() => setActiveModal(null)} 
          onSaved={() => {
-           setActiveModal(null)
            void fetchUsers()
          }}
          user={selectedUser} 

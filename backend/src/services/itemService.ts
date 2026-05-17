@@ -1,4 +1,4 @@
-import { ItemStatus, Prisma } from "@prisma/client";
+import { ClaimStatus, ItemStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma.js";
 import { createCode } from "@/utils/codes.js";
 
@@ -141,7 +141,17 @@ export async function listAdminItems(filters: {
       where,
       include: {
         aiEvidenceLogs: true,
-        claims: true,
+        claims: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            claimCode: true,
+            status: true,
+            pickupToken: true,
+            pickupTokenExpires: true,
+            claimantUserId: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
@@ -157,6 +167,23 @@ export async function listAdminItems(filters: {
     limit,
     pageCount: Math.max(1, Math.ceil(total / limit)),
   };
+}
+
+export function getApprovedHandoverClaim(
+  claims: Array<{
+    id: string;
+    claimCode: string;
+    status: ClaimStatus;
+    pickupToken: string | null;
+    pickupTokenExpires: Date | null;
+    claimantUserId: string;
+  }>
+) {
+  return claims.find((claim) => (
+    claim.status === ClaimStatus.APPROVED &&
+    Boolean(claim.pickupToken) &&
+    (!claim.pickupTokenExpires || claim.pickupTokenExpires > new Date())
+  ));
 }
 
 export async function updateFoundItem(input: {

@@ -68,6 +68,8 @@ export async function me(req: Request, res: Response): Promise<void> {
       email: true,
       studentId: true,
       role: true,
+      status: true,
+      passwordResetRequired: true,
     },
   });
 

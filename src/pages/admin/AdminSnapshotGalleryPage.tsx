@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
-import { ScanSearch, Camera, AlertCircle, Check, Trash2, MapPin, Clock } from "lucide-react"
+import { ScanSearch, Camera, AlertCircle, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/Select"
 import { PaginationControls } from "@/components/ui/PaginationControls"
@@ -27,14 +27,14 @@ export function SnapshotGalleryPage() {
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [snapshots, setSnapshots] = useState<AISnapshot[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [, setIsLoading] = useState(true)
   const [selectedSnapshot, setSelectedSnapshot] = useState<AISnapshot | null>(null)
 
   const loadSnapshots = async () => {
     try {
       const response = await api.get<{ snapshots: AISnapshot[] }>("/snapshots")
       setSnapshots(response.data.snapshots)
-    } catch (err) {
+    } catch {
       alert("Failed to load snapshots")
     } finally {
       setIsLoading(false)

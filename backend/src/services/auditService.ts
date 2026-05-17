@@ -178,5 +178,11 @@ function toActionVerb(action: AuditAction): string {
   if (action === AuditAction.HANDOVER_COMPLETED) return "completed";
   if (action === AuditAction.SNAPSHOT_DISMISSED) return "dismissed";
   if (action === AuditAction.SNAPSHOT_RESTORED) return "restored";
+  if (action === AuditAction.USER_CREATED) return "created";
+  if (action === AuditAction.USER_UPDATED) return "updated";
+  if (action === AuditAction.USER_ROLE_CHANGED) return "changed role for";
+  if (action === AuditAction.USER_DISABLED) return "disabled";
+  if (action === AuditAction.USER_ENABLED) return "enabled";
+  if (action === AuditAction.USER_PASSWORD_RESET) return "reset password for";
   return "updated";
 }

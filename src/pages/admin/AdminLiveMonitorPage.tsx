@@ -251,7 +251,7 @@ export function LiveMonitorPage() {
   )
 }
 
-function CameraFeed({ cam, idx, time, isFocus, onClick }: { cam: CampusCamera, idx: number, time: string, isFocus?: boolean, onClick?: () => void }) {
+function CameraFeed({ cam, idx: _idx, time, isFocus, onClick }: { cam: CampusCamera, idx: number, time: string, isFocus?: boolean, onClick?: () => void }) {
   const [imageError, setImageError] = useState(false)
   const isStreaming = cam.isOnline
   const isAiActive = cam.isOnline && cam.aiEnabled

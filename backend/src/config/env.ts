@@ -2,8 +2,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-function requireEnv(key: string): string {
-  const value = process.env[key];
+function readEnv(key: string, aliases: string[] = []): string | undefined {
+  return [key, ...aliases].map((envKey) => process.env[envKey]).find((value): value is string => Boolean(value));
+}
+
+function requireEnv(key: string, aliases: string[] = []): string {
+  const value = readEnv(key, aliases);
   if (!value) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
@@ -17,6 +21,6 @@ export const env = {
   jwtSecret: requireEnv("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173",
-  serviceToken: requireEnv("SERVICE_TOKEN"),
+  serviceToken: requireEnv("SERVICE_TOKEN", ["SERVICE_API_KEY", "BACKEND_SERVICE_TOKEN"]),
   aiActorUserId: process.env.AI_ACTOR_USER_ID,
 };

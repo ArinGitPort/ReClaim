@@ -48,6 +48,7 @@ export function InventoryHandoverModal({
   const [isSearching, setIsSearching] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [showStartConfirm, setShowStartConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -207,7 +208,7 @@ export function InventoryHandoverModal({
             </Button>
           )}
           <Button
-            onClick={() => void handleConfirm()}
+            onClick={() => setShowStartConfirm(true)}
             disabled={!preview || isConfirming || isCancelling}
             className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white"
           >
@@ -216,6 +217,21 @@ export function InventoryHandoverModal({
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showStartConfirm}
+        onClose={() => setShowStartConfirm(false)}
+        onConfirm={() => {
+          setShowStartConfirm(false)
+          void handleConfirm()
+        }}
+        title="Confirm Handover"
+        message={preview ? `Confirm that ${preview.student.name} has presented valid ID and should receive ${preview.item.title}? This will mark the item as returned.` : "Confirm this handover?"}
+        confirmText="Yes, Start Handover"
+        cancelText="Review Details"
+        isLoading={isConfirming}
+        confirmButtonClassName="bg-emerald-600 hover:bg-emerald-700"
+      />
 
       <ConfirmModal
         isOpen={showCancelConfirm}
