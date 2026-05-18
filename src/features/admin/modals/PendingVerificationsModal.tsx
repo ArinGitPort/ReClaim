@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertCircle, CheckCircle, MessageSquare, PackageCheck } from "lucide-react"
+import { AlertCircle, CheckCircle, MessageSquare } from "lucide-react"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { Modal } from "@/components/ui/Modal"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
+import { formatStatusLabel } from "@/lib/status"
 import type { UserDirectoryDetails, UserModalProps } from "@/features/admin/types"
 
 export function PendingVerificationsModal({ isOpen, onClose, user }: UserModalProps) {
@@ -44,9 +46,14 @@ export function PendingVerificationsModal({ isOpen, onClose, user }: UserModalPr
 
       <div className="p-6 bg-slate-50/70 max-h-[70vh] overflow-y-auto">
         {isLoading ? (
-          <EmptyState title="Loading claims..." description="Fetching the latest verification records." />
+          <EmptyState title="Loading claims..." description="Fetching the latest verification records." className="bg-white" />
         ) : pendingClaims.length === 0 ? (
-          <EmptyState title="No pending verifications" description="This account has no claim tickets waiting for review." success />
+          <EmptyState
+            icon={<CheckCircle className="h-9 w-9 text-emerald-400" />}
+            title="No pending verifications"
+            description="This account has no claim tickets waiting for review."
+            className="bg-white"
+          />
         ) : (
           <div className="space-y-3">
             {pendingClaims.map((claim) => (
@@ -55,7 +62,7 @@ export function PendingVerificationsModal({ isOpen, onClose, user }: UserModalPr
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{claim.claimCode}</span>
-                      <StatusBadge status={formatStatus(claim.status)} />
+                      <StatusBadge status={formatStatusLabel(claim.status)} />
                     </div>
                     <h4 className="mt-2 text-base font-black text-slate-900">{claim.foundItem.title}</h4>
                     <p className="mt-1 text-xs font-semibold text-slate-500">
@@ -85,19 +92,4 @@ export function PendingVerificationsModal({ isOpen, onClose, user }: UserModalPr
       </div>
     </Modal>
   )
-}
-
-function EmptyState({ title, description, success = false }: { title: string; description: string; success?: boolean }) {
-  const Icon = success ? CheckCircle : PackageCheck
-  return (
-    <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center">
-      <Icon className={`mx-auto mb-3 h-9 w-9 ${success ? "text-emerald-400" : "text-slate-300"}`} />
-      <div className="text-sm font-black text-slate-700">{title}</div>
-      <div className="mt-1 text-xs font-semibold text-slate-400">{description}</div>
-    </div>
-  )
-}
-
-function formatStatus(status: string): string {
-  return status.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())
 }

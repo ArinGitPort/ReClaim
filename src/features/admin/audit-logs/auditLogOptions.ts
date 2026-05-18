@@ -1,0 +1,25 @@
+import type { AuditAction } from "./types"
+
+export const actionOptions: Array<{ label: string; value: AuditAction | "" }> = [
+  { label: "All Actions", value: "" },
+  { label: "Item Created", value: "ITEM_CREATED" },
+  { label: "Item Updated", value: "ITEM_UPDATED" },
+  { label: "Claim Submitted", value: "CLAIM_SUBMITTED" },
+  { label: "Claim Reviewed", value: "CLAIM_REVIEWED" },
+  { label: "Claim Approved", value: "CLAIM_APPROVED" },
+  { label: "Claim Denied", value: "CLAIM_DENIED" },
+  { label: "Report Submitted", value: "REPORT_SUBMITTED" },
+  { label: "Report Updated", value: "REPORT_UPDATED" },
+  { label: "Report Linked", value: "REPORT_LINKED" },
+  { label: "Handover Completed", value: "HANDOVER_COMPLETED" },
+  { label: "Auth Login", value: "AUTH_LOGIN" },
+  { label: "User Created", value: "USER_CREATED" },
+  { label: "User Updated", value: "USER_UPDATED" },
+  { label: "User Role Changed", value: "USER_ROLE_CHANGED" },
+  { label: "User Disabled", value: "USER_DISABLED" },
+  { label: "User Enabled", value: "USER_ENABLED" },
+  { label: "User Password Reset", value: "USER_PASSWORD_RESET" },
+  { label: "System Settings Updated", value: "SYSTEM_SETTINGS_UPDATED" },
+  { label: "Snapshot Dismissed", value: "SNAPSHOT_DISMISSED" },
+  { label: "Snapshot Restored", value: "SNAPSHOT_RESTORED" },
+]

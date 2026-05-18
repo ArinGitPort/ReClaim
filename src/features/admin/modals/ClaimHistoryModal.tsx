@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react"
 import { History, PackageCheck } from "lucide-react"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { Modal } from "@/components/ui/Modal"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { api } from "@/lib/api"
+import { formatShortDate } from "@/lib/formatters"
+import { formatStatusLabel } from "@/lib/status"
 import type { UserDirectoryDetails, UserModalProps } from "@/features/admin/types"
 
 export function ClaimHistoryModal({ isOpen, onClose, user }: UserModalProps) {
@@ -62,9 +65,14 @@ export function ClaimHistoryModal({ isOpen, onClose, user }: UserModalProps) {
 
       <div className="p-6 bg-slate-50/70 max-h-[70vh] overflow-y-auto">
         {isLoading ? (
-          <EmptyState title="Loading history..." description="Fetching account activity." />
+          <EmptyState title="Loading history..." description="Fetching account activity." className="bg-white" />
         ) : timeline.length === 0 ? (
-          <EmptyState title="No history yet" description="This account has no claims or returned-item handovers." />
+          <EmptyState
+            icon={<PackageCheck className="h-9 w-9" />}
+            title="No history yet"
+            description="This account has no claims or returned-item handovers."
+            className="bg-white"
+          />
         ) : (
           <div className="space-y-3">
             {timeline.map((entry) => (
@@ -72,14 +80,14 @@ export function ClaimHistoryModal({ isOpen, onClose, user }: UserModalProps) {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{entry.kind} • {entry.code}</span>
-                      <StatusBadge status={formatStatus(entry.status)} />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{entry.kind} {"\u2022"} {entry.code}</span>
+                      <StatusBadge status={formatStatusLabel(entry.status)} />
                     </div>
                     <h4 className="mt-2 text-base font-black text-slate-900">{entry.title}</h4>
                     <p className="mt-1 text-xs font-semibold text-slate-500">{entry.meta}</p>
                   </div>
                   <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                    {new Date(entry.date).toLocaleDateString()}
+                    {formatShortDate(entry.date)}
                   </div>
                 </div>
               </div>
@@ -89,18 +97,4 @@ export function ClaimHistoryModal({ isOpen, onClose, user }: UserModalProps) {
       </div>
     </Modal>
   )
-}
-
-function EmptyState({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center">
-      <PackageCheck className="mx-auto mb-3 h-9 w-9 text-slate-300" />
-      <div className="text-sm font-black text-slate-700">{title}</div>
-      <div className="mt-1 text-xs font-semibold text-slate-400">{description}</div>
-    </div>
-  )
-}
-
-function formatStatus(status: string): string {
-  return status.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())
 }
