@@ -37,6 +37,7 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
   const webcamIndex = watch("webcamIndex") || "0"
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
@@ -105,11 +106,15 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
     const finalSourceUrl = data.sourceType === "webcam" ? (data.webcamIndex || "0") : (data.rtspUrl || "")
 
     try {
+      setSubmitError(null)
       await onSubmit({ name: data.name, location: data.location, sourceUrl: finalSourceUrl })
       reset()
       onClose()
-    } catch (err) {
-      console.error(err)
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "userMessage" in err
+        ? String((err as { userMessage?: unknown }).userMessage)
+        : "Failed to add camera."
+      setSubmitError(message)
     }
   }
 
@@ -231,6 +236,12 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
             </div>
           </div>
         </div>
+
+        {submitError && (
+          <p className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
+            {submitError}
+          </p>
+        )}
 
         <div className="pt-8 flex justify-end border-t border-slate-100 mt-8">
           <Button 

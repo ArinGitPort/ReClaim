@@ -7,6 +7,7 @@ import { AuditAction } from "@prisma/client";
 
 const createSnapshotSchema = z.object({
   sourceCameraId: z.string().min(1),
+  snapshotHash: z.string().optional(),
   detectionMeta: z.string().transform((str) => {
     try {
       return JSON.parse(str);
@@ -21,13 +22,14 @@ export async function uploadSnapshot(req: Request, res: Response): Promise<void>
     throw new HttpError(400, "Snapshot image is required");
   }
 
-  const { sourceCameraId, detectionMeta } = createSnapshotSchema.parse(req.body);
+  const { sourceCameraId, snapshotHash, detectionMeta } = createSnapshotSchema.parse(req.body);
   const snapshotPath = `/uploads/items/${req.file.filename}`;
 
   const evidenceLog = await prisma.aIEvidenceLog.create({
     data: {
       sourceCameraId,
       snapshotPath,
+      snapshotHash,
       detectionMeta,
       detectedAtUtc: new Date(),
       isEncrypted: false,

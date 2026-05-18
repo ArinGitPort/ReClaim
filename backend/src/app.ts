@@ -18,6 +18,7 @@ import { dashboardRoutes } from "@/routes/dashboardRoutes.js";
 import { snapshotRoutes } from "@/routes/snapshotRoutes.js";
 import { cameraRoutes } from "@/routes/cameraRoutes.js";
 import { settingsRoutes } from "@/routes/settingsRoutes.js";
+import { aiServiceRoutes } from "@/routes/aiServiceRoutes.js";
 
 export const app = express();
 
@@ -70,6 +71,7 @@ app.get("/api", (_req, res) => {
       snapshots: "/api/snapshots",
       cameras: "/api/cameras",
       settings: "/api/settings",
+      aiService: "/api/ai-service",
     },
   });
 });
@@ -87,6 +89,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/snapshots", snapshotRoutes);
 app.use("/api/cameras", cameraRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/ai-service", aiServiceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

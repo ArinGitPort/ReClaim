@@ -18,6 +18,26 @@ export function getConfidenceBadgeClass(confidence: number) {
   return "bg-amber-50 text-amber-700 border-amber-200"
 }
 
+export function getSnapshotReasonLabels(snapshot: AISnapshot): string[] {
+  const meta = snapshot.detectionMeta ?? {}
+  const labels: string[] = []
+
+  if (typeof meta.stationaryDuration === "number") {
+    labels.push(`Stationary for ${Math.round(meta.stationaryDuration)}s`)
+  }
+  if (meta.personWasNearby) {
+    labels.push("Person moved away")
+  }
+  if (meta.zoneName) {
+    labels.push(`Zone: ${meta.zoneName}`)
+  }
+  if (meta.reason && labels.length === 0) {
+    labels.push(...meta.reason.split("/").map((part) => part.trim()).filter(Boolean))
+  }
+
+  return labels.slice(0, 4)
+}
+
 export function filterSnapshots(
   snapshots: AISnapshot[],
   searchQuery: string,

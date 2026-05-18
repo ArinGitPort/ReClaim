@@ -8,6 +8,20 @@ export type AISnapshot = {
     category?: string
     confidence?: number
     location?: string
+    model?: string
+    snapshotType?: string
+    stationaryDuration?: number
+    personWasNearby?: boolean
+    personLeftAt?: string | null
+    zoneName?: string | null
+    reason?: string
+    duplicateKey?: string
+    boundingBox?: {
+      x1: number
+      y1: number
+      x2: number
+      y2: number
+    }
   }
 }
 

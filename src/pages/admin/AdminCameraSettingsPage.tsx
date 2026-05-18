@@ -6,6 +6,7 @@ import { AddCameraModal } from "@/features/admin/components/AddCameraModal"
 import {
   CameraSettingsFilters,
   CameraSettingsTable,
+  CameraZoneModal,
   useCameraSettings,
 } from "@/features/admin/camera-settings"
 
@@ -35,12 +36,19 @@ export function CameraSettingsPage() {
         cameras={cameras.filteredCameras}
         onToggleAi={cameras.toggleAi}
         onDeleteClick={cameras.setCameraToDelete}
+        onConfigureZones={cameras.setCameraToConfigure}
       />
 
       <AddCameraModal
         isOpen={cameras.isAddModalOpen}
         onClose={() => cameras.setIsAddModalOpen(false)}
         onSubmit={cameras.handleAddCamera}
+      />
+
+      <CameraZoneModal
+        camera={cameras.cameraToConfigure}
+        onClose={() => cameras.setCameraToConfigure(null)}
+        onSave={cameras.saveCameraZones}
       />
 
       <ConfirmModal

@@ -23,4 +23,6 @@ export const env = {
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173",
   serviceToken: requireEnv("SERVICE_TOKEN", ["SERVICE_API_KEY", "BACKEND_SERVICE_TOKEN"]),
   aiActorUserId: process.env.AI_ACTOR_USER_ID,
+  aiServiceBaseUrl: process.env.AI_SERVICE_BASE_URL ?? "http://127.0.0.1:5000",
+  aiDaemonPython: process.env.AI_DAEMON_PYTHON ?? "python",
 };

@@ -38,6 +38,11 @@ export function CameraFeed({ cam, idx: _idx, time, isFocus, onClick }: CameraFee
           <span className={isFocus ? "text-lg text-slate-700" : "text-xs text-slate-700"}>
             {!cam.isOnline ? "OFFLINE" : "STREAM_UNAVAILABLE"}
           </span>
+          {cam.isOnline && (
+            <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+              Start AI Service to enable live stream
+            </span>
+          )}
         </div>
       )}
 

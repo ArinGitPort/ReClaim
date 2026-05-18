@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { api } from "@/lib/api"
-import type { CampusCamera } from "@/features/admin/cameras/types"
+import type { CameraZoneConfig, CampusCamera } from "@/features/admin/cameras/types"
 import { cameraMatchesSearch } from "./cameraSettingsUtils"
 
 export function useCameraSettings() {
@@ -10,6 +10,7 @@ export function useCameraSettings() {
   const [cameraToDelete, setCameraToDelete] = useState<CampusCamera | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [cameraToConfigure, setCameraToConfigure] = useState<CampusCamera | null>(null)
 
   const loadCameras = async () => {
     try {
@@ -47,6 +48,12 @@ export function useCameraSettings() {
     setIsAddModalOpen(false)
   }
 
+  const saveCameraZones = async (camera: CampusCamera, zoneConfig: CameraZoneConfig | null) => {
+    const response = await api.patch<{ camera: CampusCamera }>(`/cameras/${camera.id}/zones`, { zoneConfig })
+    setCameras((prev) => prev.map((entry) => entry.id === camera.id ? response.data.camera : entry))
+    setCameraToConfigure(null)
+  }
+
   const confirmDeleteCamera = async () => {
     if (!cameraToDelete) return
     setIsDeleting(true)
@@ -71,8 +78,11 @@ export function useCameraSettings() {
     isDeleting,
     isAddModalOpen,
     setIsAddModalOpen,
+    cameraToConfigure,
+    setCameraToConfigure,
     toggleAi,
     handleAddCamera,
+    saveCameraZones,
     confirmDeleteCamera,
   }
 }

@@ -1,13 +1,14 @@
 import { LayoutGrid, MonitorPlay } from "lucide-react"
-import type { LiveMonitorViewMode } from "./types"
+import type { AiServiceStatus, LiveMonitorViewMode } from "./types"
 
 type LiveMonitorToolbarProps = {
   viewMode: LiveMonitorViewMode
   time: string
+  aiService: AiServiceStatus | null
   onViewModeChange: (mode: LiveMonitorViewMode) => void
 }
 
-export function LiveMonitorToolbar({ viewMode, time, onViewModeChange }: LiveMonitorToolbarProps) {
+export function LiveMonitorToolbar({ viewMode, time, aiService, onViewModeChange }: LiveMonitorToolbarProps) {
   return (
     <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-2 sm:p-3 shadow-sm flex-shrink-0">
       <div className="flex items-center gap-3 px-1">
@@ -33,6 +34,9 @@ export function LiveMonitorToolbar({ viewMode, time, onViewModeChange }: LiveMon
       </div>
 
       <div className="text-[10px] font-mono text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 uppercase tracking-widest flex items-center gap-2">
+        {aiService?.running && aiService.device && (
+          <span className="hidden md:inline">AI_DEVICE: {aiService.device}</span>
+        )}
         <span>SYS_TIME: {time}</span>
       </div>
     </div>

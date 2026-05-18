@@ -9,9 +9,10 @@ type CameraSettingsTableProps = {
   cameras: CampusCamera[]
   onToggleAi: (id: string, enabled: boolean) => void
   onDeleteClick: (camera: CampusCamera) => void
+  onConfigureZones: (camera: CampusCamera) => void
 }
 
-export function CameraSettingsTable({ cameras, onToggleAi, onDeleteClick }: CameraSettingsTableProps) {
+export function CameraSettingsTable({ cameras, onToggleAi, onDeleteClick, onConfigureZones }: CameraSettingsTableProps) {
   return (
     <AdminTableContainer>
       <table className="w-full text-left border-collapse min-w-[900px]">
@@ -74,14 +75,24 @@ export function CameraSettingsTable({ cameras, onToggleAi, onDeleteClick }: Came
                   </div>
                 </td>
                 <td className="px-8 py-5 text-right">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onDeleteClick(camera)}
-                    className="h-8 border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 text-[10px] font-bold uppercase tracking-widest text-rose-600"
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onConfigureZones(camera)}
+                      className="h-8 border-brand/20 bg-brand/5 hover:bg-brand/10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand"
+                    >
+                      Zones
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onDeleteClick(camera)}
+                      className="h-8 border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 text-[10px] font-bold uppercase tracking-widest text-rose-600"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))

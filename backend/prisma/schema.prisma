@@ -261,6 +261,7 @@ model Camera {
   name            String
   location        String
   sourceUrl       String
+  zoneConfig      Json?
   isOnline        Boolean   @default(false)
   aiEnabled       Boolean   @default(false)
   lastPingAtUtc   DateTime? @db.Timestamptz(6)

@@ -6,6 +6,7 @@ import {
   getSnapshotCategory,
   getSnapshotConfidence,
   getSnapshotLocation,
+  getSnapshotReasonLabels,
 } from "./snapshotUtils"
 import type { AISnapshot } from "./types"
 
@@ -20,6 +21,7 @@ export function SnapshotGrid({ snapshots, variant = "active", onSelect }: Snapsh
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {snapshots.map((snapshot) => {
         const confidence = getSnapshotConfidence(snapshot)
+        const reasonLabels = getSnapshotReasonLabels(snapshot)
 
         return (
           <button
@@ -65,6 +67,15 @@ export function SnapshotGrid({ snapshots, variant = "active", onSelect }: Snapsh
                 <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
                 <span className="truncate">{getSnapshotLocation(snapshot)}</span>
               </div>
+              {reasonLabels.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {reasonLabels.slice(0, 2).map((label) => (
+                    <span key={label} className="rounded bg-brand/5 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-brand">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
               {variant === "dismissed" && snapshot.dismissedAt && (
                 <div className="flex items-center gap-1.5 mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                   <Trash2 className="w-3 h-3 flex-shrink-0" />

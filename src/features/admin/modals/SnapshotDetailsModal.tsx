@@ -1,12 +1,12 @@
 import { useState } from "react"
-import { Camera, MapPin, Clock, Check, Trash2 } from "lucide-react"
+import { Camera, MapPin, Clock, Check, Trash2, Sparkles } from "lucide-react"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/button"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { getImageUrl } from "@/lib/utils"
 import { formatDateTime } from "@/lib/formatters"
-import type { AISnapshot } from "@/features/admin/snapshots"
+import { getSnapshotReasonLabels, type AISnapshot } from "@/features/admin/snapshots"
 
 interface SnapshotDetailsModalProps {
   isOpen: boolean
@@ -24,6 +24,7 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
 
   const meta = snapshot.detectionMeta || {}
   const confidence = Math.round((meta.confidence || 0) * 100)
+  const reasonLabels = getSnapshotReasonLabels(snapshot)
   
   const badgeColor = confidence >= 90 ? 'bg-green-50 text-green-700 border-green-200' :
                      confidence >= 75 ? 'bg-blue-50 text-blue-700 border-blue-200' : 
@@ -103,6 +104,26 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
               {meta.location || snapshot.sourceCameraId}
             </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-brand/10 bg-brand/5 p-5">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand">
+            <Sparkles className="h-4 w-4" />
+            Why AI flagged this
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(reasonLabels.length > 0 ? reasonLabels : ["Manual review recommended"]).map((label) => (
+              <span key={label} className="rounded-full border border-brand/10 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                {label}
+              </span>
+            ))}
+          </div>
+          {meta.reason && (
+            <p className="mt-3 text-xs font-semibold text-slate-600">{meta.reason}</p>
+          )}
+          {meta.model && (
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Model: {meta.model}</p>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { api } from "@/lib/api"
-import type { CampusCamera, LiveMonitorViewMode, RecentSnapshot } from "./types"
+import type { AiServiceStatus, CampusCamera, LiveMonitorViewMode, RecentSnapshot } from "./types"
+import { useAiServiceStatus } from "./useAiServiceStatus"
 
 export function useLiveMonitor() {
   const [cameras, setCameras] = useState<CampusCamera[]>([])
@@ -8,6 +9,9 @@ export function useLiveMonitor() {
   const [viewMode, setViewMode] = useState<LiveMonitorViewMode>("grid")
   const [activeCamId, setActiveCamId] = useState<string | null>(null)
   const [recentSnapshots, setRecentSnapshots] = useState<RecentSnapshot[]>([])
+  const { aiService, setAiService } = useAiServiceStatus(5000)
+  const [isAiServiceUpdating, setIsAiServiceUpdating] = useState(false)
+  const [isStartAiConfirmOpen, setIsStartAiConfirmOpen] = useState(false)
   const [time, setTime] = useState(new Date().toLocaleTimeString())
 
   useEffect(() => {
@@ -62,6 +66,48 @@ export function useLiveMonitor() {
     setViewMode("focus")
   }
 
+  async function setAiServiceRunning(running: boolean) {
+    setIsAiServiceUpdating(true)
+    try {
+      const response = await api.post<{ aiService: AiServiceStatus }>(`/ai-service/${running ? "start" : "stop"}`)
+      setAiService(response.data.aiService)
+    } catch {
+      setAiService((current) => ({
+        running: false,
+        managed: false,
+        pid: null,
+        streamBaseUrl: current?.streamBaseUrl ?? "",
+        activeCameras: [],
+        model: null,
+        device: null,
+        cudaAvailable: null,
+        error: running ? "Unable to start AI service." : "Unable to stop AI service.",
+      }))
+    } finally {
+      setIsAiServiceUpdating(false)
+    }
+  }
+
+  function requestAiServiceToggle(running: boolean) {
+    if (running) {
+      setIsStartAiConfirmOpen(true)
+      return
+    }
+
+    void setAiServiceRunning(false)
+  }
+
+  async function confirmStartAiService() {
+    await setAiServiceRunning(true)
+    setIsStartAiConfirmOpen(false)
+  }
+
+  function closeStartAiConfirm() {
+    if (!isAiServiceUpdating) {
+      setIsStartAiConfirmOpen(false)
+    }
+  }
+
   return {
     cameras,
     filter,
@@ -74,7 +120,14 @@ export function useLiveMonitor() {
     filteredCameras,
     uniqueLocations,
     recentSnapshots,
+    aiService,
+    isAiServiceUpdating,
+    isStartAiConfirmOpen,
     time,
     focusCamera,
+    setAiServiceRunning,
+    requestAiServiceToggle,
+    confirmStartAiService,
+    closeStartAiConfirm,
   }
 }

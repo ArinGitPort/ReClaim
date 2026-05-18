@@ -1,4 +1,4 @@
-import { Camera, Clock, MapPin, RotateCcw, Trash2 } from "lucide-react"
+import { Camera, Clock, MapPin, RotateCcw, Sparkles, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/Modal"
 import { ModalHeader } from "@/components/ui/ModalHeader"
@@ -9,6 +9,7 @@ import {
   getSnapshotCategory,
   getSnapshotConfidence,
   getSnapshotLocation,
+  getSnapshotReasonLabels,
 } from "./snapshotUtils"
 import type { AISnapshot } from "./types"
 
@@ -28,6 +29,7 @@ export function DismissedSnapshotDetailsModal({
   if (!snapshot) return null
 
   const confidence = getSnapshotConfidence(snapshot)
+  const reasonLabels = getSnapshotReasonLabels(snapshot)
 
   return (
     <Modal isOpen={true} onClose={onClose} className="max-w-3xl flex flex-col max-h-[90vh]">
@@ -77,6 +79,22 @@ export function DismissedSnapshotDetailsModal({
             </div>
           </div>
         </div>
+
+        {reasonLabels.length > 0 && (
+          <div className="rounded-2xl border border-brand/10 bg-brand/5 p-5">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand">
+              <Sparkles className="h-4 w-4" />
+              Original AI reason
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {reasonLabels.map((label) => (
+                <span key={label} className="rounded-full border border-brand/10 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {snapshot.dismissedAt && (
           <div className="flex items-center gap-3 p-4 rounded-xl border border-rose-200 bg-rose-50">

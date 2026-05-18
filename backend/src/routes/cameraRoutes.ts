@@ -2,7 +2,7 @@ import { Router } from "express";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { requireAuth, requireRole } from "@/middlewares/auth.js";
 import { requireServiceToken } from "@/middlewares/serviceAuth.js";
-import { createCamera, deleteCamera, getCameras, pingCamera, updateCameraAi } from "@/controllers/cameraController.js";
+import { createCamera, deleteCamera, getCameras, pingCamera, updateCameraAi, updateCameraZones } from "@/controllers/cameraController.js";
 
 export const cameraRoutes = Router();
 
@@ -23,6 +23,13 @@ cameraRoutes.patch(
   requireAuth,
   requireRole(["ADMIN", "STAFF"]),
   asyncHandler(updateCameraAi)
+);
+
+cameraRoutes.patch(
+  "/:id/zones",
+  requireAuth,
+  requireRole(["ADMIN", "STAFF"]),
+  asyncHandler(updateCameraZones)
 );
 
 cameraRoutes.patch(
