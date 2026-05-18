@@ -87,7 +87,7 @@ export function LiveMonitorPage() {
   return (
     <div className="space-y-6 flex flex-col h-[calc(100vh-6rem)]">
       <AdminListHeader
-        title="Live AI Monitor"
+        title="Live Monitor"
         description="Real-time multi-camera detection feed and analysis."
         actions={(
           <div className="flex items-center gap-3">

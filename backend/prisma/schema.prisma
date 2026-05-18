@@ -70,6 +70,7 @@ enum AuditAction {
   USER_DISABLED
   USER_ENABLED
   USER_PASSWORD_RESET
+  SYSTEM_SETTINGS_UPDATED
 }
 
 model User {
@@ -77,6 +78,9 @@ model User {
   studentId      String?     @unique
   name           String
   email          String      @unique
+  phone          String?
+  department     String?
+  notificationPreferences Json?
   passwordHash   String
   role           UserRole
   status         UserStatus  @default(ACTIVE)
@@ -227,6 +231,13 @@ model AuditLog {
   @@index([actorUserId])
   @@index([action])
   @@index([targetType, targetId])
+}
+
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+  updatedById String?  @db.Uuid
 }
 
 model Notification {

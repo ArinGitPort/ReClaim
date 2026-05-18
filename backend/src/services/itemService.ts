@@ -1,6 +1,7 @@
 import { ClaimStatus, ItemStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma.js";
 import { createCode } from "@/utils/codes.js";
+import { getSystemSettings } from "@/services/settingsService.js";
 
 export async function createFoundItem(input: {
   actorUserId: string;
@@ -119,11 +120,13 @@ export async function listAdminItems(filters: {
 }) {
   const page = Math.max(filters.page ?? 1, 1);
   const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
+  const settings = filters.expired ? await getSystemSettings() : undefined;
+  const retentionDays = settings?.retentionPolicy.foundItemRetentionDays ?? 30;
 
   const where: Prisma.FoundItemWhereInput = {
     status: filters.status ?? { not: ItemStatus.RETURNED },
     ...(filters.expired ? {
-      foundAtUtc: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      foundAtUtc: { lt: new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000) },
       status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] }
     } : {}),
     category: filters.category,

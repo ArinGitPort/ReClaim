@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { 
   ChevronDown, ChevronUp, Mail, Users, 
   ShieldAlert, AlertCircle, PackageSearch, History, FileBadge
@@ -20,6 +20,7 @@ import {
 import type { ActiveModalState, UserDirUser } from "@/features/admin/types"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { Skeleton } from "@/components/ui/Skeleton"
+import type { UserDirectoryDetails } from "@/features/admin/types"
 
 type UserSortField = "name" | "createdAt"
 
@@ -51,6 +52,8 @@ export function UserDirectoryPage() {
 
   // Master-Detail selection & Modal state
   const [selectedUser, setSelectedUser] = useState<UserDirUser | null>(null)
+  const [selectedUserDetails, setSelectedUserDetails] = useState<UserDirectoryDetails | null>(null)
+  const [detailsLoading, setDetailsLoading] = useState(false)
   const [activeModal, setActiveModal] = useState<ActiveModalState>(null)
   const selectedUserId = selectedUser?.id
 
@@ -93,6 +96,37 @@ export function UserDirectoryPage() {
   }, [fetchUsers])
 
   useEffect(() => {
+    if (!selectedUserId) {
+      setSelectedUserDetails(null)
+      return
+    }
+
+    let cancelled = false
+    setDetailsLoading(true)
+    api.get<{ user: UserDirectoryDetails }>(`/user/${selectedUserId}`)
+      .then((response) => {
+        if (!cancelled) {
+          setSelectedUserDetails(response.data.user)
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Failed to load user history", error)
+          setSelectedUserDetails(null)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setDetailsLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedUserId])
+
+  useEffect(() => {
     setPage(1)
     setSelectedUser(null)
   }, [searchQuery, roleFilter, statusFilter, rowsPerPage, sortField, sortOrder])
@@ -104,7 +138,7 @@ export function UserDirectoryPage() {
   return (
     <div className="space-y-6">
       <AdminListHeader
-        title="User Account Management"
+        title="User Directory"
         description="Centralized account directory, role management, claim history, and verification desk."
         actions={(
           <>
@@ -160,7 +194,7 @@ export function UserDirectoryPage() {
               </div>
            </div>
 
-           <div className="flex-1 overflow-y-auto p-2 space-y-1">
+           <div className="flex-1 overflow-y-auto scrollbar-hide p-2 space-y-1">
              {loading ? (
                 <div className="p-4 space-y-3">
                   {Array.from({ length: 6 }).map((_, index) => (
@@ -238,7 +272,7 @@ export function UserDirectoryPage() {
                 <p className="font-bold uppercase tracking-widest text-sm">Select a user to view details</p>
              </div>
            ) : (
-             <div className="flex-1 overflow-y-auto">
+             <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col">
                
                {/* Detail Header Profile Component */}
                <div className="bg-white border-b border-slate-200 p-8 relative overflow-hidden flex-shrink-0">
@@ -284,7 +318,7 @@ export function UserDirectoryPage() {
                         <Button 
                           onClick={() => setActiveModal("edit")}
                           variant="outline" 
-                          className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50 font-bold shadow-sm h-10 w-full uppercase tracking-widest text-[11px]"
+                          className="bg-brand hover:bg-brand-active border-none text-white font-bold shadow-sm h-10 w-full uppercase tracking-widest text-[11px]"
                         >
                           Manage Profile
                         </Button>
@@ -293,7 +327,7 @@ export function UserDirectoryPage() {
                </div>
 
                {/* Central Detail Content */}
-               <div className="p-8 space-y-8 flex-shrink-0">
+               <div className="p-8 flex-1 min-h-0 flex flex-col gap-8">
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Directory Status</p>
@@ -365,10 +399,7 @@ export function UserDirectoryPage() {
                     </div>
                  </div>
 
-                 <div className="text-center p-12 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 mt-8">
-                     <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                     <p className="font-bold text-sm">Select metrics above to view details</p>
-                 </div>
+                 <UserActivityTimeline details={selectedUserDetails} isLoading={detailsLoading} selectedUser={selectedUser} />
                </div>
              </div>
            )}
@@ -414,4 +445,225 @@ export function UserDirectoryPage() {
 
     </div>
   )
+}
+
+type TimelineEntry = {
+  id: string
+  type: "claim" | "report" | "handover" | "audit"
+  title: string
+  subtitle: string
+  status: string
+  createdAt: string
+}
+
+function UserActivityTimeline({
+  details,
+  isLoading,
+  selectedUser,
+}: {
+  details: UserDirectoryDetails | null
+  isLoading: boolean
+  selectedUser: UserDirUser
+}) {
+  const [timelinePage, setTimelinePage] = useState(1)
+  const [timelineSearch, setTimelineSearch] = useState("")
+  const [timelineTypeFilter, setTimelineTypeFilter] = useState("")
+  const [timelineStatusFilter, setTimelineStatusFilter] = useState("")
+  const timelineRowsPerPage = 5
+  const entries = useMemo(() => buildTimelineEntries(details), [details])
+  const filteredEntries = useMemo(() => {
+    const query = timelineSearch.trim().toLowerCase()
+
+    return entries.filter((entry) => {
+      const matchesSearch = !query || [
+        entry.title,
+        entry.subtitle,
+        entry.status,
+        entry.type,
+        formatDirectoryDate(entry.createdAt),
+      ].some((value) => value.toLowerCase().includes(query))
+      const matchesType = !timelineTypeFilter || entry.type === timelineTypeFilter
+      const matchesStatus = !timelineStatusFilter || entry.status === timelineStatusFilter
+
+      return matchesSearch && matchesType && matchesStatus
+    })
+  }, [entries, timelineSearch, timelineTypeFilter, timelineStatusFilter])
+  const statusOptions = useMemo(() => Array.from(new Set(entries.map((entry) => entry.status))).sort(), [entries])
+  const timelinePageCount = Math.max(1, Math.ceil(filteredEntries.length / timelineRowsPerPage))
+  const safeTimelinePage = Math.min(timelinePage, timelinePageCount)
+  const visibleEntries = filteredEntries.slice((safeTimelinePage - 1) * timelineRowsPerPage, safeTimelinePage * timelineRowsPerPage)
+  const deniedOrClosedClaims = details?.claims.filter((claim) => ["DENIED", "CANCELLED", "EXPIRED"].includes(claim.status)).length ?? 0
+  const rejectedReports = details?.reports.filter((report) => report.status === "REJECTED").length ?? 0
+  const riskCount = deniedOrClosedClaims + rejectedReports
+
+  useEffect(() => {
+    setTimelinePage(1)
+  }, [details?.id])
+
+  useEffect(() => {
+    setTimelinePage(1)
+  }, [timelineSearch, timelineTypeFilter, timelineStatusFilter])
+
+  return (
+    <div className="border-t border-slate-200 pt-6 flex-1 min-h-0 flex flex-col">
+      <div className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Activity Timeline</h3>
+          <p className="text-xs font-medium text-slate-500 mt-1">
+            Recent claims, reports, handovers, and account actions for {selectedUser.name}.
+          </p>
+        </div>
+        <div className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest ${riskCount > 0 ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+          {riskCount > 0 ? `${riskCount} review signal${riskCount === 1 ? "" : "s"}` : "No review signals"}
+        </div>
+      </div>
+
+      <div className="pb-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_180px_180px] gap-3">
+        <AdminSearchInput
+          placeholder="Search activity..."
+          value={timelineSearch}
+          onChange={setTimelineSearch}
+        />
+        <Select
+          value={timelineTypeFilter}
+          onChange={(event) => setTimelineTypeFilter(event.target.value)}
+          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-bold"
+        >
+          <option value="">All Activity</option>
+          <option value="claim">Claims</option>
+          <option value="report">Reports</option>
+          <option value="handover">Handovers</option>
+          <option value="audit">Account Actions</option>
+        </Select>
+        <Select
+          value={timelineStatusFilter}
+          onChange={(event) => setTimelineStatusFilter(event.target.value)}
+          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm text-sm font-bold"
+        >
+          <option value="">All Status</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>
+              {formatTimelineStatus(status)}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className="flex-1 min-h-0 flex flex-col">
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={`timeline-skeleton-${index}`} className="flex items-center gap-3">
+                <Skeleton className="h-9 w-9 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-3 w-56" />
+                  <Skeleton className="h-2.5 w-36" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+            <History className="w-10 h-10 mx-auto text-slate-300 mb-3" />
+            <p className="text-sm font-bold text-slate-500">No activity recorded yet.</p>
+          </div>
+        ) : filteredEntries.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+            <History className="w-10 h-10 mx-auto text-slate-300 mb-3" />
+            <p className="text-sm font-bold text-slate-500">No activity matches those filters.</p>
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div className="space-y-3 flex-1 overflow-y-auto scrollbar-hide pr-1">
+              {visibleEntries.map((entry) => (
+                <div key={`${entry.type}-${entry.id}`} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                  <div className="mt-0.5 h-9 w-9 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                    {timelineIcon(entry.type)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <p className="text-sm font-bold text-slate-900 truncate">{entry.title}</p>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 shrink-0">
+                        {formatDirectoryDate(entry.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-500 mt-0.5">{entry.subtitle}</p>
+                  </div>
+                  <StatusBadge status={formatTimelineStatus(entry.status)} className="hidden lg:inline-flex px-2.5 py-1 text-[9px]" />
+                </div>
+              ))}
+            </div>
+            <PaginationControls
+              page={safeTimelinePage}
+              pageCount={timelinePageCount}
+              total={filteredEntries.length}
+              visibleCount={visibleEntries.length}
+              rowsPerPage={timelineRowsPerPage}
+              onPageChange={setTimelinePage}
+              onRowsPerPageChange={() => {}}
+              showRowsPerPage={false}
+              itemLabel="activities"
+              className="p-3 bg-white border-t border-slate-200 shrink-0"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function buildTimelineEntries(details: UserDirectoryDetails | null): TimelineEntry[] {
+  if (!details) return []
+
+  const entries: TimelineEntry[] = [
+    ...details.claims.map((claim) => ({
+      id: claim.id,
+      type: "claim" as const,
+      title: `${claim.claimCode} / ${claim.foundItem.title}`,
+      subtitle: `Claim for ${claim.foundItem.code} in ${claim.foundItem.foundLocation}`,
+      status: claim.status,
+      createdAt: claim.createdAt,
+    })),
+    ...details.reports.map((report) => ({
+      id: report.id,
+      type: "report" as const,
+      title: `${report.reportCode} / ${report.title}`,
+      subtitle: `Lost report from ${report.location}`,
+      status: report.status,
+      createdAt: report.createdAt,
+    })),
+    ...details.handovers.map((handover) => ({
+      id: handover.id,
+      type: "handover" as const,
+      title: `Returned ${handover.foundItem.code}`,
+      subtitle: `${handover.foundItem.title} released with pickup token ${handover.pickupTokenPresented}`,
+      status: "RETURNED",
+      createdAt: handover.releasedAtUtc,
+    })),
+    ...details.auditLogs.map((log) => ({
+      id: log.id,
+      type: "audit" as const,
+      title: log.action.replaceAll("_", " "),
+      subtitle: log.description ?? `${log.actorUser.name} performed this action`,
+      status: log.actorUser.role,
+      createdAt: log.createdAt,
+    })),
+  ]
+
+  return entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+function timelineIcon(type: TimelineEntry["type"]) {
+  if (type === "claim") return <AlertCircle className="w-4 h-4" />
+  if (type === "report") return <PackageSearch className="w-4 h-4" />
+  if (type === "handover") return <History className="w-4 h-4" />
+  return <ShieldAlert className="w-4 h-4" />
+}
+
+function formatTimelineStatus(status: string): string {
+  return status
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
 }

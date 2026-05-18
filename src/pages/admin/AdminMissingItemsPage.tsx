@@ -368,6 +368,9 @@ export function MissingItemsPage() {
                   </span>
                   <StatusBadge status={r.status} />
                 </div>
+                <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-brand">
+                  {reportNextAction(r.status)}
+                </div>
                 <h4 className="font-bold text-slate-800 text-[15px] mb-1 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
                   {r.item}
                 </h4>
@@ -430,6 +433,9 @@ export function MissingItemsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <span className="rounded-full border border-brand/20 bg-brand/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-brand">
+                    {reportNextAction(report.status)}
+                  </span>
                   <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg">
                     <MessageSquare className="w-4 h-4 mr-2 text-brand" /> Send Inquiry
                   </Button>
@@ -652,5 +658,13 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <div className="text-[15px] font-bold text-slate-800 tracking-tight">{value}</div>
     </div>
   )
+}
+
+function reportNextAction(status: ReportStatus): string {
+  if (status === "SUBMITTED" || status === "UNDER_REVIEW") return "Needs Review"
+  if (status === "ACTIVE_SEARCH") return "Search Active"
+  if (status === "MATCHED") return "Matched"
+  if (status === "RESOLVED") return "Resolved"
+  return "Rejected"
 }
 

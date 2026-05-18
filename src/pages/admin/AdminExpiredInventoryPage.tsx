@@ -6,6 +6,7 @@ import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContaine
 import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { Skeleton } from "@/components/ui/Skeleton"
+import { useSearchParams } from "react-router-dom"
 
 type ExpiredItem = {
   id: string
@@ -18,8 +19,11 @@ type ExpiredItem = {
 }
 
 export function ExpiredInventoryPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
   const [items, setItems] = useState<ExpiredItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [retentionDays, setRetentionDays] = useState(30)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDisposing, setIsDisposing] = useState(false)
@@ -28,8 +32,12 @@ export function ExpiredInventoryPage() {
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await api.get('/items/admin', { params: { expired: true, search: debouncedSearch || undefined } })
+      const [res, settingsRes] = await Promise.all([
+        api.get('/items/admin', { params: { expired: true, search: debouncedSearch || undefined } }),
+        api.get<{ settings: { retentionPolicy: { foundItemRetentionDays: number } } }>('/settings'),
+      ])
       setItems(res.data.items || [])
+      setRetentionDays(settingsRes.data.settings.retentionPolicy.foundItemRetentionDays)
     } catch (err) {
       console.error("Failed to load expired items", err)
     } finally {
@@ -78,7 +86,7 @@ export function ExpiredInventoryPage() {
     <div className="space-y-8">
       <AdminListHeader
         title="Expired Inventory"
-        description="Manage items that have exceeded their retention period."
+        description={`Manage items that have exceeded the ${retentionDays}-day retention period.`}
         actions={(
           <div className="flex gap-2">
             <Button
@@ -157,10 +165,10 @@ export function ExpiredInventoryPage() {
                 </tr>
               ) : items.map((item) => {
                 const foundDate = new Date(item.foundAtUtc);
-                const expiredDays = Math.floor((Date.now() - foundDate.getTime()) / (1000 * 3600 * 24)) - 30;
+                const expiredDays = Math.floor((Date.now() - foundDate.getTime()) / (1000 * 3600 * 24)) - retentionDays;
 
                 return (
-                  <tr key={item.id} className={`hover:bg-slate-50/80 transition-all group cursor-default ${selectedIds.has(item.id) ? 'bg-slate-50' : ''}`}>
+                  <tr key={item.id} className={`hover:bg-slate-50/80 transition-all group cursor-default ${selectedIds.has(item.id) ? 'bg-slate-50' : ''} ${item.code.toUpperCase() === focusCode ? 'bg-brand/5 ring-2 ring-brand/20' : ''}`}>
                     <td className="px-8 py-5">
                       <input 
                         type="checkbox" 

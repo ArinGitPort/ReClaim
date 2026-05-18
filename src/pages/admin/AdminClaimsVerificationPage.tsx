@@ -10,8 +10,9 @@ import { ClaimMessages } from "@/components/ui/ClaimMessagesModal"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { useSearchParams } from "react-router-dom"
 
-type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED"
+type ClaimStatus = "PENDING_VERIFICATION" | "INQUIRY_REQUIRED" | "APPROVED" | "DENIED" | "CANCELLED" | "EXPIRED"
 type ClaimDecision = "APPROVED" | "DENIED" | "INQUIRY_REQUIRED"
 
 type ClaimRow = {
@@ -37,6 +38,9 @@ type ClaimRow = {
 }
 
 export function ClaimsVerificationPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
+  const queryStatus = searchParams.get("status")
   const [claims, setClaims] = useState<ClaimRow[]>([])
   const [totalClaims, setTotalClaims] = useState(0)
   const [page, setPage] = useState(1)
@@ -52,6 +56,12 @@ export function ClaimsVerificationPage() {
   const [pendingDecision, setPendingDecision] = useState<ClaimDecision | null>(null)
   const debouncedSearch = useDebounce(search, 350)
   const debouncedStatus = useDebounce(statusFilter, 350)
+
+  useEffect(() => {
+    if (queryStatus === "PENDING_VERIFICATION" || queryStatus === "INQUIRY_REQUIRED") {
+      setStatusFilter(queryStatus)
+    }
+  }, [queryStatus])
 
   const loadClaims = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -79,6 +89,12 @@ export function ClaimsVerificationPage() {
       setTotalClaims(response.data.pagination?.total ?? response.data.claims.length)
       setPageCount(response.data.pagination?.pageCount ?? 1)
       setSelectedClaimId((previous) => {
+        if (focusCode) {
+          const focused = response.data.claims.find((claim) => claim.claimCode.toUpperCase() === focusCode)
+          if (focused) {
+            return focused.id
+          }
+        }
         if (previous && response.data.claims.some((claim) => claim.id === previous)) {
           return previous
         }
@@ -89,7 +105,7 @@ export function ClaimsVerificationPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [debouncedSearch, debouncedStatus, page, rowsPerPage])
+  }, [debouncedSearch, debouncedStatus, focusCode, page, rowsPerPage])
 
   useEffect(() => {
     void loadClaims()
@@ -483,11 +499,20 @@ function StatusPill({ status }: { status: ClaimStatus }) {
     APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
     DENIED: "bg-rose-50 text-rose-700 border-rose-200",
     CANCELLED: "bg-slate-100 text-slate-600 border-slate-300",
+    EXPIRED: "bg-rose-50 text-rose-700 border-rose-200",
+  }
+  const labels: Record<ClaimStatus, string> = {
+    PENDING_VERIFICATION: "Review",
+    INQUIRY_REQUIRED: "Waiting for Student",
+    APPROVED: "Ready for Pickup",
+    DENIED: "Denied",
+    CANCELLED: "Cancelled",
+    EXPIRED: "Expired Hold",
   }
 
   return (
     <span className={cn("px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest", styles[status])}>
-      {status.replaceAll("_", " ")}
+      {labels[status]}
     </span>
   )
 }

@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils"
 const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div className="relative">
+      <div className="relative min-w-0 flex-1">
         <select
           className={cn(
-            "flex h-9 w-full rounded-md border border-border-divider bg-white px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none",
+            "flex h-9 w-full rounded-md border border-border-divider bg-white pl-3 pr-10 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none",
             className
           )}
           ref={ref}

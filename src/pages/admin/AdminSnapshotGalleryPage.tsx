@@ -102,7 +102,7 @@ export function SnapshotGalleryPage() {
   return (
     <div className="space-y-8">
       <AdminListHeader
-        title="AI Camera Snapshots"
+        title="AI Snapshot Gallery"
         description="Review items automatically detected by campus security cameras."
         actions={(
           <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">

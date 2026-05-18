@@ -7,7 +7,16 @@ interface User {
   name: string
   studentId?: string | null
   email: string
+  phone?: string | null
+  department?: string | null
+  notificationPreferences?: {
+    claimUpdates: boolean
+    reportUpdates: boolean
+    pickupReminders: boolean
+  } | null
   role: "STUDENT" | "STAFF" | "ADMIN"
+  status?: string
+  passwordResetRequired?: boolean
 }
 
 interface AuthContextType {
@@ -15,6 +24,8 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (input: { name: string; email: string; password: string; studentId?: string }) => Promise<void>
+  refreshUser: () => Promise<void>
+  setCurrentUser: (user: User) => void
   logout: () => void
 }
 
@@ -23,6 +34,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const refreshUser = useCallback(async () => {
+    const response = await api.get<{ user: User }>("/auth/me")
+    setUser(response.data.user)
+  }, [])
 
   useEffect(() => {
     async function hydrateUser(): Promise<void> {
@@ -33,8 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const response = await api.get<{ user: User }>("/auth/me")
-        setUser(response.data.user)
+        await refreshUser()
       } catch {
         clearStoredToken()
         disconnectRealtimeSocket()
@@ -45,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     void hydrateUser()
-  }, [])
+  }, [refreshUser])
 
   const login = useCallback<AuthContextType["login"]>(async (email, password) => {
     const response = await api.post<{ token: string; user: User }>("/auth/login", {
@@ -72,15 +87,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const setCurrentUser = useCallback((nextUser: User) => {
+    setUser(nextUser)
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
       isLoading,
       login,
       register,
+      refreshUser,
+      setCurrentUser,
       logout,
     }),
-    [isLoading, login, logout, register, user]
+    [isLoading, login, logout, refreshUser, register, setCurrentUser, user]
   )
 
   return (

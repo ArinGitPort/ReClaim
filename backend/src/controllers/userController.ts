@@ -175,40 +175,61 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
 export async function getUserDetails(req: Request, res: Response): Promise<void> {
   const { id: userId } = idParamsSchema.parse(req.params)
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      studentId: true,
-      role: true,
-      status: true,
-      passwordResetRequired: true,
-      lastLoginAt: true,
-      disabledAt: true,
-      disabledReason: true,
-      createdAt: true,
-      claims: {
-        include: { foundItem: true },
-        orderBy: { createdAt: 'desc' }
-      },
-      reports: {
-        orderBy: { createdAt: 'desc' }
-      },
-      handovers: {
-        include: { foundItem: true },
-        orderBy: { createdAt: 'desc' }
+  const [user, auditLogs] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        studentId: true,
+        role: true,
+        status: true,
+        passwordResetRequired: true,
+        lastLoginAt: true,
+        disabledAt: true,
+        disabledReason: true,
+        createdAt: true,
+        claims: {
+          include: { foundItem: true },
+          orderBy: { createdAt: 'desc' }
+        },
+        reports: {
+          orderBy: { createdAt: 'desc' }
+        },
+        handovers: {
+          include: { foundItem: true },
+          orderBy: { createdAt: 'desc' }
+        }
       }
-    }
-  })
+    }),
+    prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { actorUserId: userId },
+          { targetType: "user", targetId: userId },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        actorUser: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+    }),
+  ])
 
   if (!user) {
     res.status(404).json({ error: "User not found" })
     return
   }
 
-  res.json({ user })
+  res.json({ user: { ...user, auditLogs } })
 }
 
 export async function postUser(req: Request, res: Response): Promise<void> {

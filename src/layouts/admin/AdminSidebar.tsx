@@ -63,11 +63,11 @@ export function AdminSidebar() {
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
         </div>
 
-        <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="Snapshot Gallery" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
@@ -87,7 +87,7 @@ export function AdminSidebar() {
 
         <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="Settings" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="System Settings" isCollapsed={isCollapsed} />
       </div>
 
       {/* Footer Area */}

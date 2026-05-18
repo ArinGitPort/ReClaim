@@ -33,7 +33,7 @@ The system operates on a decoupled client-server architecture with a secondary m
 - **Output:** Renders interactive maps, contact information, and quick-action navigation for the user based on their authentication state.
 
 ### Found Items Gallery
-- **Input:** `GET /api/items` (Filtered specifically by status `AVAILABLE`).
+- **Input:** `GET /api/items/public` (Filtered to active public inventory).
 - **Processing:** Fetches active inventory. Applies client-side sorting and category-based filtering.
 - **Output:** Visual grid representation of found items that users can initiate claims against.
 
@@ -49,8 +49,9 @@ The system operates on a decoupled client-server architecture with a secondary m
 - **Input:** `GET /api/user/claims` and form payloads for new claims (including proof of ownership descriptions or image uploads).
 - **Processing:** 
   - Links a new claim to a specific `FoundItem` ID and the `UserID`.
-  - Automatically locks the target item's status to `CLAIM_PENDING` if it is the first active claim, preventing parallel processing.
-- **Output:** Creates a `Claim` record with `PENDING` status. Renders the user's historical and active claims.
+  - Automatically locks the target item's status to `CLAIM_PENDING` for 48 hours if it is the first active claim, preventing parallel claims while the reservation is alive.
+  - Expired or cancelled claims start a 24-hour same-user cooldown before the same item can be claimed again.
+- **Output:** Creates a `Claim` record with `PENDING_VERIFICATION` status and a reservation expiry. Renders the user's historical and active claims.
 
 ### Ready to Claim / Pickup
 - **Input:** The active `Claim` ID.
@@ -93,7 +94,7 @@ The system operates on a decoupled client-server architecture with a secondary m
 
 ### Inventory Management & Expired Inventory
 - **Input:** CRUD payloads for `FoundItem`.
-- **Processing:** Enforces state machine rules: `AVAILABLE` -> `CLAIM_PENDING` -> `HANDED_OVER` or `ARCHIVED`. Calculates time-in-system to determine "Expired" status (items held past policy duration).
+- **Processing:** Enforces state machine rules: `AVAILABLE` -> `CLAIM_PENDING` -> `RETURNED` or `ARCHIVED`. Calculates time-in-system from the configured found-item retention policy to determine expired inventory requiring archive/disposal action.
 - **Output:** Updates database records.
 
 ### Missing Items Verification (Reports)
@@ -114,7 +115,12 @@ The system operates on a decoupled client-server architecture with a secondary m
 - **Processing:** 
   - Validates the token against the `APPROVED` claim.
   - Ensures the user presenting the token matches the original claimant.
-- **Output:** Creates a `HandoverLog` record and permanently updates the item status to `HANDED_OVER`. This action is immutable.
+- **Output:** Creates a `HandoverLog` record and updates the item status to `RETURNED`. Admins can restore a handover if it was recorded incorrectly, which releases the item and cancels the previous approved claim.
+
+### Operations Queue
+- **Input:** `GET /api/dashboard/operations`.
+- **Processing:** Aggregates next-action worklists across pending claims, inquiry-required claims, approved pickups, active reports, pending AI snapshots, and expired inventory. Applies urgency flags from reservation expiry, pickup token expiry, stale report age, stale snapshot age, and retention policy.
+- **Output:** Renders admin dashboard queue cards with counts, urgency indicators, and deep links to the relevant admin workflow.
 
 ### Audit Trail
 - **Input:** `GET /api/audit/logs`.
@@ -123,8 +129,8 @@ The system operates on a decoupled client-server architecture with a secondary m
 
 ### System & Camera Settings
 - **Input:** Configuration payloads.
-- **Processing:** Updates global platform configuration variables or camera endpoint definitions (RTSP URLs, AI toggles, Active Status).
-- **Output:** Re-initializes connections in the AI Daemon based on updated DB values.
+- **Processing:** Persists global settings through `/api/settings`, including institution details, staff permission toggles, campus zones, alert templates, and retention policy. Camera settings remain managed through `/api/cameras`.
+- **Output:** Settings changes are audit logged. Staff permission toggles immediately affect staff access to inventory, claim, and report actions.
 
 ### User Directory Management
 - **Input:** `GET /api/admin/users` and role mutation payloads.
@@ -137,12 +143,15 @@ The system operates on a decoupled client-server architecture with a secondary m
 
 ### Core Endpoints
 - **User Routes:**
-  - `GET /api/items` - Fetches active inventory.
+  - `GET /api/items/public` - Fetches active public inventory.
   - `POST /api/reports` - Submits a lost item report.
   - `POST /api/claims` - Submits a new claim (Requires User JWT).
 - **Admin Routes:**
-  - `PUT /api/admin/claims/:id` - Approves/Denies claim.
-  - `POST /api/admin/handover` - Completes physical handover.
+  - `GET /api/dashboard/operations` - Fetches operational queues and urgency counts.
+  - `PATCH /api/claims/:id/decision` - Approves, denies, or requests inquiry for a claim.
+  - `POST /api/handover` - Starts physical handover.
+  - `POST /api/handover/confirm` - Completes physical handover.
+  - `GET /api/settings` / `PATCH /api/settings` - Reads and updates persisted system settings.
 - **Service Routes:**
   - `POST /api/snapshots` - Uploads AI detection log (Requires Service API Key).
   - `GET /api/audit/logs` - Retrieves paginated audit trail (Requires Admin JWT).
@@ -153,7 +162,7 @@ The system operates on a decoupled client-server architecture with a secondary m
   - Fields: `email`, `role` (ENUM: `STUDENT`, `STAFF`, `ADMIN`), `passwordHash`.
 - **FoundItem:** 
   - PK: `id` (UUID). 
-  - Fields: `code` (Unique), `status` (ENUM: `AVAILABLE`, `CLAIM_PENDING`, `HANDED_OVER`, `ARCHIVED`). 
+  - Fields: `code` (Unique), `status` (ENUM: `AVAILABLE`, `CLAIM_PENDING`, `RETURNED`, `ARCHIVED`). 
   - FKs: `createdById` -> `User(id)`.
 - **LostReport:** 
   - PK: `id` (UUID). 
@@ -161,7 +170,7 @@ The system operates on a decoupled client-server architecture with a secondary m
   - FKs: `userId` -> `User(id)`, `matchedItemId` (Nullable) -> `FoundItem(id)`.
 - **Claim:** 
   - PK: `id` (UUID). 
-  - Fields: `proofDescription`, `status`, `pickupToken`. 
+  - Fields: `submittedProof`, `status`, `reservationExpiresAt`, `pickupToken`, `pickupTokenExpires`. 
   - FKs: `userId` -> `User(id)`, `itemId` -> `FoundItem(id)`.
 - **AIEvidenceLog:** 
   - PK: `id` (UUID). 
@@ -175,6 +184,9 @@ The system operates on a decoupled client-server architecture with a secondary m
   - PK: `id` (UUID). 
   - Fields: `action` (ENUM), `payload` (JSON). 
   - FKs: `actorUserId` -> `User(id)`.
+- **SystemSetting:**
+  - PK: `key`.
+  - Fields: `value` (JSON), `updatedById`, `updatedAt`.
 
 ---
 
@@ -231,7 +243,7 @@ The API adheres to standard HTTP status codes:
 - **500 Internal Server Error:** Unhandled exceptions caught by the global error middleware.
 
 ### Edge Cases & Known Limitations
-- **Concurrency in Claims:** Multiple users may submit claims for the exact same `FoundItem`. The system processes these; however, the moment an administrator approves *one* claim, the item is locked (`CLAIM_PENDING`). Subsequent approvals for competing claims will fail validation until the item is reverted.
+- **Concurrency in Claims:** The first active claim reserves the `FoundItem` immediately by setting it to `CLAIM_PENDING`. New claims are rejected while the active reservation or approved pickup is valid. Stale reservations are expired lazily on relevant claim API calls.
 - **AI Feed Disconnects:** If a camera stream goes offline, the frontend Live Monitor gracefully degrades to an `OFFLINE` state placeholder rather than crashing the UI loop or throwing consecutive errors.
 - **Orphaned Image Assets:** Soft-deleting records or dismissing snapshots does not purge the binary `.webp` or `.png` files from the disk automatically. A cron job or manual purge routine is required for long-term storage maintenance to prevent disk bloat.
 - **Soft Deletion Constraints:** Snapshots and items rely heavily on nullable relationships (e.g., `dismissedAt`, `archivedAt`) rather than hard deletion to preserve structural integrity for the `AuditLog` foreign keys. Hard deleting a user or item will cascade and corrupt the immutable audit trail.

@@ -25,6 +25,7 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import { ITEM_CATEGORIES } from "@/features/shared/constants"
+import { useSearchParams } from "react-router-dom"
 
 type InventoryRow = {
   id: string
@@ -50,6 +51,9 @@ type InventoryRow = {
 }
 
 export function InventoryPage() {
+  const [searchParams] = useSearchParams()
+  const focusCode = (searchParams.get("focus") ?? "").toUpperCase()
+  const queryStatus = searchParams.get("status")
   const [inventoryItems, setInventoryItems] = useState<InventoryRow[]>([])
   const [totalItems, setTotalItems] = useState(0)
   const [page, setPage] = useState(1)
@@ -67,6 +71,12 @@ export function InventoryPage() {
   const debouncedSearch = useDebounce(search, 350)
   const debouncedStatus = useDebounce(statusFilter, 350)
   const debouncedCategory = useDebounce(categoryFilter, 350)
+
+  useEffect(() => {
+    if (queryStatus === "AVAILABLE" || queryStatus === "CLAIM_PENDING" || queryStatus === "ARCHIVED") {
+      setStatusFilter(queryStatus)
+    }
+  }, [queryStatus])
 
   const loadItems = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -235,7 +245,7 @@ export function InventoryPage() {
       </Modal>
 
       <AdminListHeader
-        title="Inventory Control"
+        title="Inventory Management"
         description="Manage and audit all securely logged physical items."
         actions={(
           <>
@@ -312,7 +322,13 @@ export function InventoryPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {visibleItems.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
+              <tr
+                key={item.id}
+                className={cn(
+                  "hover:bg-slate-50/80 transition-all group cursor-default",
+                  item.code.toUpperCase() === focusCode && "bg-brand/5 ring-2 ring-brand/20"
+                )}
+              >
                 <td className="px-8 py-5 whitespace-nowrap">
                   <span className="text-[11px] font-bold text-slate-500 font-mono tracking-tighter bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all">
                     {item.code}
@@ -351,7 +367,14 @@ export function InventoryPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <StatusBadge status={item.status} />
+                    <div className="space-y-1.5">
+                      <StatusBadge status={item.status} />
+                      {inventoryNextAction(item) && (
+                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          {inventoryNextAction(item)}
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -469,6 +492,14 @@ function extractPhotoPath(privateData: unknown): string | undefined {
 
   const maybePhoto = (privateData as { photoUrl?: unknown }).photoUrl
   return typeof maybePhoto === "string" ? maybePhoto : undefined
+}
+
+function inventoryNextAction(item: InventoryRow): string | null {
+  if (item.status === "AVAILABLE") return null
+  if (item.isHandoverReady) return "Ready for Handover"
+  if (item.status === "CLAIM_PENDING") return "Reserved"
+  if (item.status === "ARCHIVED") return "Expired/Needs Archive"
+  return item.status.replaceAll("_", " ")
 }
 
 

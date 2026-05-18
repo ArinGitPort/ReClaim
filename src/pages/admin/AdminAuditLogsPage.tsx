@@ -28,6 +28,7 @@ type AuditAction =
   | "USER_DISABLED"
   | "USER_ENABLED"
   | "USER_PASSWORD_RESET"
+  | "SYSTEM_SETTINGS_UPDATED"
   | "SNAPSHOT_DISMISSED"
   | "SNAPSHOT_RESTORED"
 
@@ -75,6 +76,7 @@ const actionOptions: Array<{ label: string; value: AuditAction | "" }> = [
   { label: "User Disabled", value: "USER_DISABLED" },
   { label: "User Enabled", value: "USER_ENABLED" },
   { label: "User Password Reset", value: "USER_PASSWORD_RESET" },
+  { label: "System Settings Updated", value: "SYSTEM_SETTINGS_UPDATED" },
   { label: "Snapshot Dismissed", value: "SNAPSHOT_DISMISSED" },
   { label: "Snapshot Restored", value: "SNAPSHOT_RESTORED" },
 ]
@@ -208,7 +210,7 @@ export function AuditLogsPage() {
       </Modal>
 
       <AdminListHeader
-        title="Records & Accountability"
+        title="Audit Trail"
         description="Activity feed of verified system actions and administrative updates."
         actions={<AdminExportButton disabled={!logs.length} />}
       />

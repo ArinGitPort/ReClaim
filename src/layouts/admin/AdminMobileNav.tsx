@@ -54,11 +54,11 @@ export function AdminMobileNav() {
         <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 flex flex-col gap-1">
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Action Queue</h4>
-            <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" />
+            <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" />
             <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
-            <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory" />
+            <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" />
             <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" />
-            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="Snapshot Gallery" />
+            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" />
             <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
             
             <div className="h-px w-full bg-white/10 my-3" />
@@ -72,7 +72,7 @@ export function AdminMobileNav() {
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>
             <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" />
             <MobileNavItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" />
-            <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="Settings" />
+            <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="System Settings" />
             
             <div className="h-px w-full bg-white/10 my-3" />
             <button

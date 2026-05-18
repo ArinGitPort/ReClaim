@@ -74,6 +74,19 @@ export type UserDirectoryDetails = {
       status: string
     }
   }>
+  auditLogs: Array<{
+    id: string
+    action: string
+    targetType: string
+    targetId: string
+    description?: string | null
+    createdAt: string
+    actorUser: {
+      id: string
+      name: string
+      role: string
+    }
+  }>
 }
 
 export interface UserModalProps {

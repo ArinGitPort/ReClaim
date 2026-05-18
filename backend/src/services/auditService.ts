@@ -161,6 +161,7 @@ function toTargetLabel(targetType: string): string {
   if (targetType === "handover") return "Handover";
   if (targetType === "user") return "User";
   if (targetType === "snapshot") return "AI Snapshot";
+  if (targetType === "system_settings") return "System Settings";
   return targetType;
 }
 
@@ -184,5 +185,6 @@ function toActionVerb(action: AuditAction): string {
   if (action === AuditAction.USER_DISABLED) return "disabled";
   if (action === AuditAction.USER_ENABLED) return "enabled";
   if (action === AuditAction.USER_PASSWORD_RESET) return "reset password for";
+  if (action === AuditAction.SYSTEM_SETTINGS_UPDATED) return "updated";
   return "updated";
 }

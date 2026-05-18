@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { UserStatus } from "@prisma/client";
 import { env } from "@/config/env.js";
 import { prisma } from "@/lib/prisma.js";
+import { getSystemSettings, type SystemSettings } from "@/services/settingsService.js";
 import { HttpError } from "@/utils/errors.js";
 
 interface JwtPayload {
@@ -54,6 +55,30 @@ export function requireRole(roles: Array<"STUDENT" | "STAFF" | "ADMIN">) {
 
     if (!roles.includes(req.user.role)) {
       throw new HttpError(403, "Forbidden");
+    }
+
+    next();
+  };
+}
+
+export function requireStaffPermission(permission: keyof SystemSettings["roles"]) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      throw new HttpError(401, "Unauthenticated request");
+    }
+
+    if (req.user.role === "ADMIN") {
+      next();
+      return;
+    }
+
+    if (req.user.role !== "STAFF") {
+      throw new HttpError(403, "Forbidden");
+    }
+
+    const settings = await getSystemSettings();
+    if (!settings.roles[permission]) {
+      throw new HttpError(403, "Staff permission is disabled in system settings");
     }
 
     next();
