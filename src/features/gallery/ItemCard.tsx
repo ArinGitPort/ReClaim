@@ -12,6 +12,9 @@ export interface FoundItem {
   isHighValue: boolean
   imageUrl?: string
   status: string
+  claimProfile?: {
+    electronicItemType?: string | null
+  } | null
 }
 
 interface ItemCardProps {
@@ -321,6 +324,7 @@ export function ItemCard({ item, hasActiveClaim = false, cooldownAvailableAt }: 
         itemId={item.id}
         itemTitle={item.title}
         itemCategory={item.category}
+        itemClaimProfile={item.claimProfile}
         itemImageUrl={item.imageUrl}
         cooldownAvailableAt={cooldownAvailableAt}
       />

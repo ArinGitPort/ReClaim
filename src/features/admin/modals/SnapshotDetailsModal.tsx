@@ -5,18 +5,8 @@ import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/button"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { getImageUrl } from "@/lib/utils"
-
-type AISnapshot = {
-  id: string
-  sourceCameraId: string
-  snapshotPath: string
-  detectedAtUtc: string
-  detectionMeta: {
-    category?: string
-    confidence?: number
-    location?: string
-  }
-}
+import { formatDateTime } from "@/lib/formatters"
+import type { AISnapshot } from "@/features/admin/snapshots"
 
 interface SnapshotDetailsModalProps {
   isOpen: boolean
@@ -103,7 +93,7 @@ export function SnapshotDetailsModal({ isOpen, onClose, snapshot, onDismiss, onL
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-1">Time Logged</p>
             <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
               <Clock className="w-4 h-4 text-brand" />
-              {new Date(snapshot.detectedAtUtc).toLocaleString()}
+              {formatDateTime(snapshot.detectedAtUtc)}
             </div>
           </div>
           <div>

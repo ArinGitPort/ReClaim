@@ -132,7 +132,7 @@ export function ClaimMessages({ claimId, onMessageSent, isReadOnly = false }: Cl
         {isReadOnly ? (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-1">
             <p className="text-sm font-bold text-slate-500">Messaging is restricted</p>
-            <p className="text-xs font-semibold text-slate-400">You can only send messages when an inquiry is actively requested.</p>
+            <p className="text-xs font-semibold text-slate-400">Messages are available while the claim is still under review.</p>
           </div>
         ) : (
           <>

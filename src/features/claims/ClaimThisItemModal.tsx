@@ -13,18 +13,24 @@ interface ClaimThisItemModalProps {
   itemId: string
   itemTitle: string
   itemCategory: string
+  itemClaimProfile?: {
+    electronicItemType?: string | null
+  } | null
   itemImageUrl?: string
   cooldownAvailableAt?: string
 }
 
-export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemImageUrl, cooldownAvailableAt }: ClaimThisItemModalProps) {
+export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemClaimProfile, itemImageUrl, cooldownAvailableAt }: ClaimThisItemModalProps) {
   const [proofValues, setProofValues] = useState<Record<string, string>>({})
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isImageExpanded, setIsImageExpanded] = useState(false)
 
-  const fieldGroup = getClaimFieldGroup(itemCategory)
+  const fieldGroup = getClaimFieldGroup(itemCategory, {
+    electronicItemType: itemClaimProfile?.electronicItemType,
+    collectElectronicItemType: !itemClaimProfile?.electronicItemType,
+  })
   const isCooldownActive = Boolean(cooldownAvailableAt && new Date(cooldownAvailableAt).getTime() > Date.now())
 
   useEffect(() => {

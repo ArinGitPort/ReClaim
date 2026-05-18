@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { asyncHandler } from "@/utils/asyncHandler.js";
-import { getAdminItems, getPublicItems, patchItem, postAiItem, postItem, postItemPhoto, batchDisposeItems } from "@/controllers/itemController.js";
+import { getAdminItems, getPublicItems, patchItem, postAiItem, postItem, postItemPhoto, batchDisposeItems, deleteItem } from "@/controllers/itemController.js";
 import { requireAuth, requireRole, requireStaffPermission } from "@/middlewares/auth.js";
 import { itemPhotoUpload } from "@/middlewares/itemPhotoUpload.js";
 import { requireServiceToken } from "@/middlewares/serviceAuth.js";
@@ -18,6 +18,7 @@ itemRoutes.post(
 	asyncHandler(postItemPhoto)
 );
 itemRoutes.patch("/:id", requireAuth, requireRole(["ADMIN", "STAFF"]), requireStaffPermission("allowStaffManageInventory"), asyncHandler(patchItem));
+itemRoutes.delete("/:id", requireAuth, requireRole(["ADMIN", "STAFF"]), requireStaffPermission("allowStaffManageInventory"), asyncHandler(deleteItem));
 itemRoutes.post("/", requireAuth, requireRole(["ADMIN", "STAFF"]), requireStaffPermission("allowStaffManageInventory"), asyncHandler(postItem));
 itemRoutes.post("/ai-ingest", requireServiceToken, asyncHandler(postAiItem));
 

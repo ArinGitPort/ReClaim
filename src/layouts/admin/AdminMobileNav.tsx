@@ -53,20 +53,23 @@ export function AdminMobileNav() {
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 flex flex-col gap-1">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Action Queue</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Operations</h4>
             <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" />
-            <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
             <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" />
             <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" />
-            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" />
             <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
+            <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
+
+            <div className="h-px w-full bg-white/10 my-3" />
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">AI Intake</h4>
+            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" />
+            <MobileNavItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" />
             
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Records & Accountability</h4>
             <MobileNavItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" />
             <MobileNavItem to="/admin/user-directory" icon={<FileSearch className="w-5 h-5" />} label="User Directory" />
-            <MobileNavItem to="/admin/expired-inventory" icon={<Package className="w-5 h-5" />} label="Expired Inventory" />
-            <MobileNavItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" />
+            <MobileNavItem to="/admin/deleted-items" icon={<Package className="w-5 h-5" />} label="Deleted Items" />
 
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>

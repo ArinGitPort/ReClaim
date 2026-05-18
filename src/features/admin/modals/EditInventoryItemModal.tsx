@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { Save, Package, MapPin, Archive, ShieldAlert } from "lucide-react"
+import { Save, Package, MapPin, Archive, ShieldAlert, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
@@ -15,6 +16,7 @@ import {
   ITEM_COLORS,
   STORAGE_LOCATIONS,
 } from "@/features/shared/constants"
+import { ELECTRONIC_ITEM_TYPES } from "@/features/shared/itemCategoryRules"
 
 type EditableItem = {
   id: string
@@ -28,6 +30,9 @@ type EditableItem = {
   status: string
   privateDiscoveryNote?: string
   isHighValue?: boolean
+  claimProfile?: {
+    electronicItemType?: string | null
+  } | null
 }
 
 const ITEM_STATUSES = ["AVAILABLE", "CLAIM_PENDING", "RETURNED", "ARCHIVED"] as const
@@ -43,6 +48,7 @@ export function EditInventoryItemModal({
 }) {
   const [title, setTitle] = useState(item.title)
   const [category, setCategory] = useState(item.category)
+  const [electronicItemType, setElectronicItemType] = useState(item.claimProfile?.electronicItemType ?? "")
   const [color, setColor] = useState(item.color)
   const [foundLocation, setFoundLocation] = useState(item.foundLocation)
   const [foundAtLocal, setFoundAtLocal] = useState(() => toLocalDatetimeInputValue(new Date(item.foundAtUtc)))
@@ -51,7 +57,10 @@ export function EditInventoryItemModal({
   const [privateDiscoveryNote, setPrivateDiscoveryNote] = useState(item.privateDiscoveryNote ?? "")
   const [isHighValue, setIsHighValue] = useState(item.isHighValue ?? false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isElectronics = category === "Electronics"
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault()
@@ -62,6 +71,9 @@ export function EditInventoryItemModal({
       const foundAtDate = new Date(foundAtLocal)
       if (Number.isNaN(foundAtDate.getTime())) {
         throw new Error("Invalid found date/time")
+      }
+      if (isElectronics && !electronicItemType) {
+        throw new Error("Please select the electronics type.")
       }
 
       await api.patch(`/items/${item.id}`, {
@@ -74,6 +86,7 @@ export function EditInventoryItemModal({
         status,
         privateDiscoveryNote: privateDiscoveryNote || undefined,
         isHighValue,
+        claimProfile: isElectronics ? { electronicItemType } : null,
       })
 
       onSaved?.()
@@ -81,10 +94,31 @@ export function EditInventoryItemModal({
     } catch (err) {
       const message = err instanceof AxiosError
         ? (err.response?.data as { message?: string } | undefined)?.message
+        : err instanceof Error
+          ? err.message
         : undefined
       setError(message ?? "Failed to update item.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleDelete(): Promise<void> {
+    setError(null)
+    setIsDeleting(true)
+
+    try {
+      await api.delete(`/items/${item.id}`)
+      onSaved?.()
+      onClose()
+    } catch (err) {
+      const message = err instanceof AxiosError
+        ? (err.response?.data as { message?: string } | undefined)?.message
+        : undefined
+      setError(message ?? "Failed to delete item.")
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -112,12 +146,38 @@ export function EditInventoryItemModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="category" className="text-xs uppercase tracking-wider font-bold text-slate-500">Category</Label>
-              <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200" required>
+              <Select
+                id="category"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value)
+                  if (e.target.value !== "Electronics") setElectronicItemType("")
+                }}
+                className="h-11 bg-slate-50/50 border-slate-200"
+                required
+              >
                 {ITEM_CATEGORIES.map((option) => (
                   <option key={option} value={option}>{option}</option>
                 ))}
               </Select>
             </div>
+            {isElectronics && (
+              <div className="space-y-1.5">
+                <Label htmlFor="electronicItemType" className="text-xs uppercase tracking-wider font-bold text-slate-500">Electronics Type</Label>
+                <Select
+                  id="electronicItemType"
+                  value={electronicItemType}
+                  onChange={(e) => setElectronicItemType(e.target.value)}
+                  className="h-11 bg-slate-50/50 border-slate-200"
+                  required
+                >
+                  <option value="">Select Electronics Type</option>
+                  {ELECTRONIC_ITEM_TYPES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </Select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="color" className="text-xs uppercase tracking-wider font-bold text-slate-500">Primary Color (Optional)</Label>
               <Select id="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-11 bg-slate-50/50 border-slate-200">
@@ -210,6 +270,16 @@ export function EditInventoryItemModal({
       </form>
 
       <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowDeleteConfirm(true)}
+          disabled={isSubmitting || isDeleting}
+          className="h-12 px-4 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold uppercase tracking-widest text-xs"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
+        </Button>
         <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs">
           Cancel
         </Button>
@@ -217,6 +287,18 @@ export function EditInventoryItemModal({
           {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => !isDeleting && setShowDeleteConfirm(false)}
+        onConfirm={() => void handleDelete()}
+        title="Delete Item"
+        message="Delete this item from inventory? If it has claim, report, or handover history, it will be archived instead so records stay intact."
+        confirmText="Delete Item"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

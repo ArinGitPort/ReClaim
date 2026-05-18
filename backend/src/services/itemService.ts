@@ -124,7 +124,7 @@ export async function listAdminItems(filters: {
   const retentionDays = settings?.retentionPolicy.foundItemRetentionDays ?? 30;
 
   const where: Prisma.FoundItemWhereInput = {
-    status: filters.status ?? { not: ItemStatus.RETURNED },
+    status: filters.status ?? { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] },
     ...(filters.expired ? {
       foundAtUtc: { lt: new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000) },
       status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] }
@@ -200,6 +200,7 @@ export async function updateFoundItem(input: {
   privateDiscoveryNote?: string | null;
   status?: ItemStatus;
   isHighValue?: boolean;
+  privateData?: Prisma.InputJsonValue;
 }) {
   return prisma.foundItem.update({
     where: { id: input.itemId },
@@ -213,6 +214,7 @@ export async function updateFoundItem(input: {
       privateDiscoveryNote: input.privateDiscoveryNote,
       status: input.status,
       isHighValue: input.isHighValue,
+      privateData: input.privateData,
     },
   });
 }

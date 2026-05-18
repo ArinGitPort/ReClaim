@@ -57,6 +57,9 @@ export function GalleryGrid({
           isHighValue: boolean
           imageUrl?: string
           status: string
+          claimProfile?: {
+            electronicItemType?: string | null
+          } | null
         }>
         pagination: {
           page: number
@@ -84,6 +87,7 @@ export function GalleryGrid({
         isHighValue: item.isHighValue,
         imageUrl: item.imageUrl,
         status: item.status,
+        claimProfile: item.claimProfile,
       }))
 
       setItems(nextItems)

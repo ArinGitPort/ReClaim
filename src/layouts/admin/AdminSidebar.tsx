@@ -59,16 +59,23 @@ export function AdminSidebar() {
       {/* Navigation Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1">
         <div className="mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Action Queue</h4>}
+          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Operations</h4>}
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
         </div>
 
         <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
+
+        <div className="mt-6 mb-2 px-3">
+          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">AI Intake</h4>}
+          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
+        </div>
+
+        <AdminSidebarItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
           {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Records & Accountability</h4>}
@@ -77,8 +84,7 @@ export function AdminSidebar() {
 
         <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/expired-inventory" icon={<Archive className="w-5 h-5" />} label="Expired Inventory" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/deleted-items" icon={<Archive className="w-5 h-5" />} label="Deleted Items" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
           {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Administration</h4>}

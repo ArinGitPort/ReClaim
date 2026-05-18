@@ -24,7 +24,6 @@ export function ReportLostForm() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const needsColor = requiresColorSelection(category)
-  const fieldGroup = category ? getClaimFieldGroup(category) : null
   const [categoryProofValues, setCategoryProofValues] = useState<Record<string, string>>({})
 
   const maxFiles = MAX_REPORT_EVIDENCE_FILES
@@ -48,6 +47,7 @@ export function ReportLostForm() {
     marks: "",
     privateNote: ""
   })
+  const fieldGroup = category ? getClaimFieldGroup(category, { collectElectronicItemType: true }) : null
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target

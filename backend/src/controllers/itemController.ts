@@ -41,6 +41,12 @@ const updateItemSchema = z.object({
   privateDiscoveryNote: z.string().optional(),
   status: z.nativeEnum(ItemStatus).optional(),
   isHighValue: z.boolean().optional(),
+  claimProfile: z
+    .object({
+      electronicItemType: z.string().min(1).optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 const idParamsSchema = z.object({
@@ -99,6 +105,7 @@ export async function getPublicItems(req: Request, res: Response): Promise<void>
       status: item.status,
       isHighValue: item.isHighValue,
       imageUrl,
+      claimProfile: extractClaimProfile(item.privateData),
     };
   });
 
@@ -238,6 +245,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
       status: true,
       isHighValue: true,
       code: true,
+      privateData: true,
     },
   });
 
@@ -256,6 +264,9 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
     privateDiscoveryNote: body.privateDiscoveryNote,
     status: body.status,
     isHighValue: body.isHighValue,
+    privateData: body.claimProfile !== undefined
+      ? mergeClaimProfile(beforeItem.privateData, body.claimProfile)
+      : undefined,
   });
 
   await logAudit({
@@ -394,6 +405,112 @@ function buildChangePayload(
       oldValue: field[1],
       newValue: field[2],
     }));
+}
+
+export async function deleteItem(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+
+  const item = await prisma.foundItem.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          claims: true,
+          handoverLogs: true,
+          matchedReports: true,
+        },
+      },
+    },
+  });
+
+  if (!item) {
+    throw new HttpError(404, "Item not found");
+  }
+
+  const hasHistory = item._count.claims > 0 || item._count.handoverLogs > 0 || item._count.matchedReports > 0;
+
+  if (hasHistory) {
+    const archived = await updateFoundItem({
+      itemId: id,
+      status: ItemStatus.ARCHIVED,
+    });
+
+    await logAudit({
+      actorUserId: req.user!.id,
+      action: AuditAction.ITEM_UPDATED,
+      targetType: "found_item",
+      targetId: archived.id,
+      description: "Admin archived item instead of deleting because it has linked history",
+      targetReferenceCode: archived.code,
+      payload: {
+        targetReferenceCode: archived.code,
+        deleteMode: "archived",
+        linkedHistory: item._count,
+      },
+    });
+
+    emitItemUpdated({ itemId: archived.id, status: archived.status });
+    res.json({ mode: "archived", item: archived });
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.aIEvidenceLog.deleteMany({ where: { foundItemId: id } }),
+    prisma.foundItem.delete({ where: { id } }),
+  ]);
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.ITEM_UPDATED,
+    targetType: "found_item",
+    targetId: item.id,
+    description: "Admin deleted an unused found item",
+    targetReferenceCode: item.code,
+    payload: {
+      targetReferenceCode: item.code,
+      deleteMode: "deleted",
+      title: item.title,
+      category: item.category,
+    },
+  });
+
+  emitItemUpdated({ itemId: item.id, status: ItemStatus.ARCHIVED });
+  res.json({ mode: "deleted" });
+}
+
+function extractClaimProfile(privateData: unknown): { electronicItemType?: string } | undefined {
+  if (!privateData || typeof privateData !== "object") {
+    return undefined;
+  }
+
+  const claimProfile = (privateData as { claimProfile?: unknown }).claimProfile;
+  if (!claimProfile || typeof claimProfile !== "object") {
+    return undefined;
+  }
+
+  const electronicItemType = (claimProfile as { electronicItemType?: unknown }).electronicItemType;
+  if (typeof electronicItemType !== "string" || !electronicItemType.trim()) {
+    return undefined;
+  }
+
+  return { electronicItemType };
+}
+
+function mergeClaimProfile(
+  privateData: unknown,
+  claimProfile: { electronicItemType?: string } | null
+): Prisma.InputJsonValue | undefined {
+  const nextData: Record<string, unknown> = privateData && typeof privateData === "object" && !Array.isArray(privateData)
+    ? { ...(privateData as Record<string, unknown>) }
+    : {};
+
+  if (claimProfile?.electronicItemType) {
+    nextData.claimProfile = { electronicItemType: claimProfile.electronicItemType };
+  } else {
+    delete nextData.claimProfile;
+  }
+
+  return Object.keys(nextData).length > 0 ? (nextData as Prisma.InputJsonValue) : undefined;
 }
 
 export async function batchDisposeItems(req: Request, res: Response): Promise<void> {

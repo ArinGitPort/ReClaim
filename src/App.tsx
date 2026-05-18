@@ -23,6 +23,7 @@ import { AdminLayout } from "@/layouts/admin/AdminLayout"
 import { ThemeProvider } from "@/contexts/ThemeProvider"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
+import { Toaster } from "@/components/ui/sonner"
 
 // Admin pages
 import { DashboardPage } from "@/pages/admin/AdminDashboardPage"
@@ -32,7 +33,7 @@ import { ClaimsVerificationPage } from "@/pages/admin/AdminClaimsVerificationPag
 import { AuditLogsPage } from "@/pages/admin/AdminAuditLogsPage"
 import { HandoverLogPage } from "@/pages/admin/AdminHandoverLogPage"
 import { UserDirectoryPage } from "@/pages/admin/AdminUserDirectoryPage"
-import { ExpiredInventoryPage } from "@/pages/admin/AdminExpiredInventoryPage"
+import { DeletedItemsPage } from "@/pages/admin/AdminDeletedItemsPage"
 import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
 import { SnapshotGalleryPage } from "@/pages/admin/AdminSnapshotGalleryPage"
@@ -101,6 +102,7 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="reclaim-theme">
       <AuthProvider>
         <NotificationProvider>
+          <Toaster />
           <Router>
             <Routes>
             {/* Public / Unauthenticated Routes */}
@@ -136,7 +138,8 @@ function App() {
               <Route path="claims" element={<ClaimsVerificationPage />} />
               <Route path="handover-log" element={<HandoverLogPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />
-              <Route path="expired-inventory" element={<ExpiredInventoryPage />} />
+              <Route path="deleted-items" element={<DeletedItemsPage />} />
+              <Route path="expired-inventory" element={<Navigate to="/admin/deleted-items" replace />} />
               <Route path="logs" element={<AuditLogsPage />} />
               <Route path="camera-settings" element={<CameraSettingsPage />} />
               <Route path="notifications" element={<AdminNotificationsPage />} />

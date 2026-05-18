@@ -24,7 +24,7 @@ import {
   ITEM_COLORS,
   STORAGE_LOCATIONS,
 } from "@/features/shared/constants"
-import { requiresColorSelection } from "@/features/shared/itemCategoryRules"
+import { ELECTRONIC_ITEM_TYPES, requiresColorSelection } from "@/features/shared/itemCategoryRules"
 import { MAX_UPLOAD_SIZE_BYTES } from "@/lib/constants"
 
 
@@ -35,6 +35,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState("")
+  const [electronicItemType, setElectronicItemType] = useState("")
   const [color, setColor] = useState("")
   const [foundLocation, setFoundLocation] = useState("")
   const [foundAtLocal, setFoundAtLocal] = useState(() => toLocalDatetimeInputValue(new Date()))
@@ -44,6 +45,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const needsColor = requiresColorSelection(category)
+  const isElectronics = category === "Electronics"
 
   useEffect(() => {
     if (!needsColor && color !== "" && color !== "Not Specified") {
@@ -51,9 +53,16 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
     }
   }, [needsColor, color])
 
+  useEffect(() => {
+    if (!isElectronics && electronicItemType) {
+      setElectronicItemType("")
+    }
+  }, [isElectronics, electronicItemType])
+
   const resetForm = () => {
     setTitle("")
     setCategory("")
+    setElectronicItemType("")
     setColor("")
     setFoundLocation("")
     setFoundAtLocal(toLocalDatetimeInputValue(new Date()))
@@ -98,7 +107,18 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
         }
       }
 
+      if (isElectronics && !electronicItemType) {
+        throw new Error("Please select the electronics type.")
+      }
+
       const photoUrl = photoFile ? await uploadPhoto(photoFile) : undefined
+      const privateData: Record<string, unknown> = {}
+      if (photoUrl) {
+        privateData.photoUrl = photoUrl
+      }
+      if (isElectronics && electronicItemType) {
+        privateData.claimProfile = { electronicItemType }
+      }
 
       const response = await api.post<{ item: { code: string } }>("/items", {
         title,
@@ -109,7 +129,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
         photoUrl,
         publicDescription: `${title} reported by admin inventory intake`,
         privateDiscoveryNote: notes || undefined,
-        privateData: photoUrl ? { photoUrl } : undefined,
+        privateData: Object.keys(privateData).length > 0 ? privateData : undefined,
         isHighValue,
         storageLocation,
       })
@@ -121,6 +141,8 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
     } catch (err) {
       const message = err instanceof AxiosError
         ? (err.response?.data as { message?: string } | undefined)?.message
+        : err instanceof Error
+          ? err.message
         : undefined
       setError(message ?? "Failed to log item. Please check required fields and try again.")
       setIsSubmitting(false)
@@ -180,7 +202,10 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-xs uppercase tracking-wider font-bold text-slate-500">Item Title/Name</Label>
-              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Silver Ring with Blue Stone" required className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm" />
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. ROG Keyboard, Silver Ring with Blue Stone" required className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm" />
+              <p className="text-[11px] text-slate-400 font-medium">
+                Use the most specific public name you can. The claim form uses this with the category to ask better verification questions.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -198,6 +223,11 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </Select>
+                {category === "Electronics" && (
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    Select the electronics type below so the student sees the right claim questions.
+                  </p>
+                )}
               </div>
               {needsColor ? (
                 <div className="space-y-1.5">
@@ -218,6 +248,24 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
                 </div>
               )}
             </div>
+
+            {isElectronics && (
+              <div className="space-y-1.5">
+                <Label htmlFor="electronicItemType" className="text-xs uppercase tracking-wider font-bold text-slate-500">Electronics Type</Label>
+                <Select
+                  id="electronicItemType"
+                  value={electronicItemType}
+                  onChange={(e) => setElectronicItemType(e.target.value)}
+                  className="h-11 bg-slate-50/50 border-slate-200 shadow-sm"
+                  required
+                >
+                  <option value="">Select Electronics Type</option>
+                  {ELECTRONIC_ITEM_TYPES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
