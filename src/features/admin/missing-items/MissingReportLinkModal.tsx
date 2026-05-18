@@ -27,6 +27,10 @@ export function MissingReportLinkModal({ isOpen, report, selectedReportId, onClo
             category: report.category,
             color: report.color,
             dateFrom: report.reportedLostAtUtcRaw,
+            location: report.location,
+            brand: report.brand,
+            marks: report.marks,
+            privateNote: report.privateNote,
           } : undefined}
           onClose={onClose}
         />

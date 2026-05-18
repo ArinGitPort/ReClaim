@@ -13,10 +13,10 @@ export type ReportRow = {
   location: string
   timeWindow: string
   status: ReportStatus
+  privateNote: string
   deviceName?: string
   nameOnDoc?: string
   marks: string
-  privateNote: string
   reportedLostAtUtcRaw: string
   linkedItem?: {
     id: string
