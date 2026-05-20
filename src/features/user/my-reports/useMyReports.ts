@@ -22,7 +22,7 @@ export function useMyReports() {
   const loadReports = useCallback(async (): Promise<void> => {
     try {
       const response = await api.get<{ reports: ApiReport[] }>("/reports", {
-        params: { statusIn: "UNDER_REVIEW,ACTIVE_SEARCH,MATCHED,RESOLVED" },
+        params: { statusIn: "SUBMITTED,UNDER_REVIEW,ACTIVE_SEARCH,MATCHED,RESOLVED,REJECTED" },
       })
 
       setReports(response.data.reports.map(mapReportView).sort(sortReportViews))
@@ -113,7 +113,18 @@ export function useMyReports() {
     return filteredReports.slice(start, start + rowsPerPage)
   }, [filteredReports, page, rowsPerPage])
   const statusOptions = useMemo(() => {
-    return Array.from(new Set(reports.map((report) => report.status))).map((status) => ({ label: status, value: status }))
+    const orderedStatuses = [
+      "Active Search",
+      "Under Review",
+      "Submitted",
+      "Match Found",
+      "Closed",
+      "Rejected",
+    ]
+    const availableStatuses = new Set(reports.map((report) => report.status))
+    return orderedStatuses
+      .filter((status) => availableStatuses.has(status))
+      .map((status) => ({ label: status, value: status }))
   }, [reports])
 
   function hasUnreadMessage(report: ReportView) {
@@ -188,6 +199,7 @@ function mapReportView(report: ApiReport): ReportView {
     color: report.color,
     location: report.location,
     dateFiled: new Date(report.createdAt).toLocaleDateString(),
+    filedAtRaw: report.createdAt,
     dateLost: new Date(report.reportedLostAtUtc).toLocaleDateString(),
     timeWindow: report.timeWindow ?? "Not specified",
     brand: String(proof.brand ?? "Not specified"),
@@ -203,9 +215,16 @@ function mapReportView(report: ApiReport): ReportView {
 }
 
 function sortReportViews(a: ReportView, b: ReportView): number {
-  const order: Record<string, number> = { MATCHED: 1, ACTIVE_SEARCH: 2, UNDER_REVIEW: 3, RESOLVED: 4 }
+  const order: Record<string, number> = {
+    MATCHED: 1,
+    ACTIVE_SEARCH: 2,
+    UNDER_REVIEW: 3,
+    SUBMITTED: 4,
+    REJECTED: 5,
+    RESOLVED: 6,
+  }
   const rankA = order[a.rawStatus] || 99
   const rankB = order[b.rawStatus] || 99
   if (rankA !== rankB) return rankA - rankB
-  return new Date(b.dateFiled).getTime() - new Date(a.dateFiled).getTime()
+  return new Date(b.filedAtRaw).getTime() - new Date(a.filedAtRaw).getTime()
 }

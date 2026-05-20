@@ -22,6 +22,7 @@ export function StatusBadge({ status, className }: BadgeProps) {
       case "AVAILABLE":
       case "ACTIVE":
       case "Approved":
+      case "Completed":
       case "Resolved":
         return "bg-emerald-50 text-emerald-700 border-emerald-100"
       case "CLAIM_PENDING":

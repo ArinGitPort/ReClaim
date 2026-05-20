@@ -18,8 +18,6 @@ export function RecordsStatusChips({
   resultCount: number
   className?: string
 }) {
-  const quickStatusOptions = statusOptions.slice(0, 5)
-
   return (
     <div className={cn("mb-6", className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -35,7 +33,7 @@ export function RecordsStatusChips({
             >
               All
             </button>
-            {quickStatusOptions.map((option) => {
+            {statusOptions.map((option) => {
               const isActive = statusValue === option.value
               return (
                 <button

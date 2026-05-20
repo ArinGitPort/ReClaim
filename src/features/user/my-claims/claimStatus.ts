@@ -1,6 +1,8 @@
 import type { ClaimView } from "./types"
 
-export function formatClaimStatus(rawStatus: string): string {
+export function formatClaimStatus(rawStatus: string, itemStatus?: string): string {
+  if (rawStatus === "APPROVED" && itemStatus === "RETURNED") return "Completed"
+
   const map: Record<string, string> = {
     PENDING_VERIFICATION: "Pending Verification",
     INQUIRY_REQUIRED: "Inquiry Required",

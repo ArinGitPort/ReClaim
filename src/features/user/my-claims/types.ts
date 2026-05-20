@@ -7,6 +7,7 @@ export interface ClaimView {
   category: string
   location: string
   submittedDate: string
+  submittedAtRaw: string
   rawStatus: string
   status: string
   reviewerNote?: string | null

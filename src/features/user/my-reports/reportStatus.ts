@@ -1,6 +1,10 @@
 export function toStudentStatusLabel(status: string): string {
+  if (status === "SUBMITTED") return "Submitted"
+  if (status === "UNDER_REVIEW") return "Under Review"
+  if (status === "ACTIVE_SEARCH") return "Active Search"
   if (status === "RESOLVED") return "Closed"
   if (status === "MATCHED") return "Match Found"
+  if (status === "REJECTED") return "Rejected"
   return status.replaceAll("_", " ")
 }
 

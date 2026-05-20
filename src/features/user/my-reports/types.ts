@@ -13,6 +13,7 @@ export interface ReportView {
   category: string
   color: string
   dateFiled: string
+  filedAtRaw: string
   dateLost: string
   location: string
   timeWindow: string

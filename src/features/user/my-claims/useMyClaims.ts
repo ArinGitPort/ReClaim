@@ -121,12 +121,17 @@ export function useMyClaims() {
   }
 
   const statusOptions = useMemo(() => {
-    const baseOptions = Array.from(new Set(claims.map((claim) => claim.status))).map((status) => ({
-      label: status,
-      value: status,
-    }))
-
-    return [{ label: "Active", value: "ACTIVE" }, ...baseOptions]
+    const orderedStatuses = [
+      { label: "Active", value: "ACTIVE" },
+      { label: "Pending Verification", value: "Pending Verification" },
+      { label: "Approved", value: "Approved" },
+      { label: "Completed", value: "Completed" },
+      { label: "Denied", value: "Denied" },
+      { label: "Cancelled", value: "Cancelled" },
+      { label: "Expired", value: "Expired" },
+    ]
+    const availableStatuses = new Set(claims.map((claim) => claim.status))
+    return orderedStatuses.filter((option) => option.value === "ACTIVE" || availableStatuses.has(option.value))
   }, [claims])
 
   return {
@@ -194,8 +199,9 @@ function mapClaimView(claim: ApiClaim): ClaimView {
     category: claim.foundItem.category,
     location: claim.foundItem.foundLocation,
     submittedDate: new Date(claim.createdAt).toLocaleDateString(),
+    submittedAtRaw: claim.createdAt,
     rawStatus: claim.status,
-    status: formatClaimStatus(claim.status),
+    status: formatClaimStatus(claim.status, claim.foundItem.status),
     reviewerNote: claim.reviewerNote,
     reservationExpiresAt: claim.reservationExpiresAt ?? null,
     pickupToken: claim.pickupToken ?? null,
@@ -206,20 +212,23 @@ function mapClaimView(claim: ApiClaim): ClaimView {
 }
 
 function sortClaimViews(a: ClaimView, b: ClaimView): number {
-  const order: Record<string, number> = {
-    INQUIRY_REQUIRED: 1,
-    PENDING_VERIFICATION: 2,
-    APPROVED: 3,
-    DENIED: 4,
-    CANCELLED: 5,
-    EXPIRED: 6,
-  }
-  let rankA = order[a.rawStatus] || 99
-  let rankB = order[b.rawStatus] || 99
+  const rank = (claim: ClaimView): number => {
+    if (claim.rawStatus === "APPROVED" && claim.itemStatus === "RETURNED") return 7
 
-  if (a.rawStatus === "APPROVED" && a.itemStatus === "RETURNED") rankA = 6
-  if (b.rawStatus === "APPROVED" && b.itemStatus === "RETURNED") rankB = 6
+    const order: Record<string, number> = {
+      INQUIRY_REQUIRED: 1,
+      PENDING_VERIFICATION: 2,
+      APPROVED: 3,
+      DENIED: 4,
+      CANCELLED: 5,
+      EXPIRED: 6,
+    }
+    return order[claim.rawStatus] || 99
+  }
+
+  const rankA = rank(a)
+  const rankB = rank(b)
 
   if (rankA !== rankB) return rankA - rankB
-  return new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime()
+  return new Date(b.submittedAtRaw).getTime() - new Date(a.submittedAtRaw).getTime()
 }
