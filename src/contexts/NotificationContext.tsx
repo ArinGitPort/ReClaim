@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 type RealtimeNotificationEvent = {
   id: string
+  type?: NotificationType
   title: string
   message: string
   route?: string | null
@@ -12,8 +13,11 @@ type RealtimeNotificationEvent = {
   readAt?: string | null
 }
 
+export type NotificationType = "SYSTEM" | "CLAIM_MESSAGE" | "REPORT_MESSAGE"
+
 export type AppNotification = {
   id: string
+  type: NotificationType
   title: string
   message: string
   route: string
@@ -25,6 +29,7 @@ type NotificationContextValue = {
   notifications: AppNotification[]
   unreadCount: number
   markAllRead: () => void
+  markAllReadByType: (type: NotificationType) => void
   markRead: (id: string) => void
 }
 
@@ -32,6 +37,7 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 
 function mapNotification(input: {
   id: string
+  type?: NotificationType | null
   title: string
   message: string
   route?: string | null
@@ -40,6 +46,7 @@ function mapNotification(input: {
 }): AppNotification {
   return {
     id: input.id,
+    type: input.type ?? "SYSTEM",
     title: input.title,
     message: input.message,
     route: input.route ?? "/notifications",
@@ -63,6 +70,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         const response = await api.get<{
           notifications: Array<{
             id: string
+            type?: NotificationType | null
             title: string
             message: string
             route?: string | null
@@ -112,6 +120,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markAllRead: () => {
         void api.patch("/notifications/read-all")
         setNotifications((prev) => prev.map((item) => ({ ...item, read: true })))
+      },
+      markAllReadByType: (type: NotificationType) => {
+        void api.patch("/notifications/read-all", undefined, { params: { type } })
+        setNotifications((prev) => prev.map((item) => (item.type === type ? { ...item, read: true } : item)))
       },
       markRead: (id: string) => {
         void api.patch(`/notifications/${id}/read`)

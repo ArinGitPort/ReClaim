@@ -122,6 +122,7 @@ export function emitNotificationCreated(payload: {
     title: string;
     message: string;
     route?: string | null;
+    type?: "SYSTEM" | "CLAIM_MESSAGE" | "REPORT_MESSAGE";
     createdAt: Date | string;
     readAt?: Date | null;
   };
@@ -135,6 +136,7 @@ export function emitNotificationCreated(payload: {
     title: payload.notification.title,
     message: payload.notification.message,
     route: payload.notification.route ?? null,
+    type: payload.notification.type ?? "SYSTEM",
     createdAt: payload.notification.createdAt,
     readAt: payload.notification.readAt ?? null,
   });
@@ -168,6 +170,9 @@ export function emitClaimStatusUpdated(payload: {
 export function emitClaimMessageCreated(payload: {
   claimId: string;
   claimantUserId: string;
+  sender: "STUDENT" | "STAFF" | "ADMIN";
+  messageId?: string;
+  createdAt?: Date | string;
 }): void {
   if (!ioInstance) {
     return;
@@ -178,4 +183,19 @@ export function emitClaimMessageCreated(payload: {
   
   // Notifying the admins
   ioInstance.to("role:admin").to("role:staff").emit("claim.message.created", payload);
+}
+
+export function emitReportMessageCreated(payload: {
+  reportId: string;
+  reporterUserId: string;
+  sender: "STUDENT" | "STAFF" | "ADMIN";
+  messageId?: string;
+  createdAt?: Date | string;
+}): void {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance.to(`user:${payload.reporterUserId}`).emit("report.message.created", payload);
+  ioInstance.to("role:admin").to("role:staff").emit("report.message.created", payload);
 }

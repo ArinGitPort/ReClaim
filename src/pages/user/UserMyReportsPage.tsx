@@ -1,6 +1,8 @@
 import { ArrowRight, SlidersHorizontal } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { PaginationControls } from "@/components/ui/PaginationControls"
+import { ReportMessagesModal } from "@/components/ui/ReportMessagesModal"
 import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
 import { RecordsStatusChips } from "@/features/user/RecordsStatusChips"
 import { MyReportCard, useMyReports } from "@/features/user/my-reports"
@@ -69,7 +71,9 @@ export function MyReportsPage() {
               report={report}
               focusCode={focusCode}
               closingTicketId={myReports.closingTicketId}
-              onCloseTicket={(targetReport) => void myReports.closeTicket(targetReport)}
+              onCloseTicket={myReports.setCloseConfirmReport}
+              onOpenChat={myReports.setChatReportId}
+              hasUnreadMessage={myReports.hasUnreadMessage(report)}
             />
           ))}
           {myReports.visibleReports.length === 0 && (
@@ -93,6 +97,33 @@ export function MyReportsPage() {
           itemLabel="reports"
         />
       </div>
+
+      {myReports.chatReportId && (
+        <ReportMessagesModal
+          reportId={myReports.chatReportId}
+          isOpen={true}
+          onClose={() => myReports.setChatReportId(null)}
+          onViewed={() => myReports.markMessagesViewed(myReports.chatReportId!)}
+          onMessageSent={myReports.loadReports}
+          isReadOnly={!["ACTIVE_SEARCH", "MATCHED"].includes(myReports.filteredReports.find((report) => report.ticketId === myReports.chatReportId)?.rawStatus ?? "")}
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={Boolean(myReports.closeConfirmReport)}
+        onClose={() => {
+          if (!myReports.closingTicketId) myReports.setCloseConfirmReport(null)
+        }}
+        onConfirm={() => {
+          if (myReports.closeConfirmReport) void myReports.closeTicket(myReports.closeConfirmReport)
+        }}
+        title="Close Report"
+        message={`Close ${myReports.closeConfirmReport?.id ?? "this report"}? This will stop the active search and notify campus staff that you no longer need help with this lost item.`}
+        confirmText="Yes, Close Ticket"
+        cancelText="Keep Report Open"
+        isDestructive={true}
+        isLoading={Boolean(myReports.closingTicketId)}
+      />
     </div>
   )
 }

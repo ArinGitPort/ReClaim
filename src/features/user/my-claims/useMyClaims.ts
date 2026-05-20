@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { api } from "@/lib/api"
+import { hasUnreadClaimMessage, markClaimMessagesViewed } from "@/lib/claimMessageReadState"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { getImageUrl } from "@/lib/utils"
 import { formatClaimStatus, isClosableClaimStatus } from "./claimStatus"
@@ -10,12 +11,14 @@ export function useMyClaims() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("ACTIVE")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
+  const [closeConfirmClaim, setCloseConfirmClaim] = useState<ClaimView | null>(null)
   const [chatTicketId, setChatTicketId] = useState<string | null>(null)
   const [rerollingItemId, setRerollingItemId] = useState<string | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(25)
   const [now, setNow] = useState(() => Date.now())
+  const [, setMessageReadVersion] = useState(0)
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000)
@@ -43,10 +46,16 @@ export function useMyClaims() {
     const handleClaimUpdated = () => {
       void loadClaims()
     }
+    const handleClaimMessage = () => {
+      setMessageReadVersion((version) => version + 1)
+      void loadClaims()
+    }
 
     socket.on("claim.status.updated", handleClaimUpdated)
+    socket.on("claim.message.created", handleClaimMessage)
     return () => {
       socket.off("claim.status.updated", handleClaimUpdated)
+      socket.off("claim.message.created", handleClaimMessage)
     }
   }, [loadClaims])
 
@@ -88,6 +97,7 @@ export function useMyClaims() {
       await loadClaims()
     } finally {
       setClosingTicketId(null)
+      setCloseConfirmClaim(null)
     }
   }
 
@@ -99,6 +109,15 @@ export function useMyClaims() {
     } finally {
       setRerollingItemId(null)
     }
+  }
+
+  function hasUnreadMessage(claim: ClaimView) {
+    return hasUnreadClaimMessage(claim.ticketId, claim.latestMessage, "STUDENT")
+  }
+
+  function markMessagesViewed(claimId: string) {
+    markClaimMessagesViewed(claimId)
+    setMessageReadVersion((version) => version + 1)
   }
 
   const statusOptions = useMemo(() => {
@@ -117,6 +136,8 @@ export function useMyClaims() {
     statusFilter,
     setStatusFilter,
     closingTicketId,
+    closeConfirmClaim,
+    setCloseConfirmClaim,
     chatTicketId,
     setChatTicketId,
     rerollingItemId,
@@ -134,6 +155,8 @@ export function useMyClaims() {
     loadClaims,
     closeTicket,
     rerollToken,
+    hasUnreadMessage,
+    markMessagesViewed,
   }
 }
 
@@ -143,6 +166,10 @@ type ApiClaim = {
   status: string
   createdAt: string
   reviewerNote?: string | null
+  messages?: Array<{
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  }>
   reservationExpiresAt?: string | null
   pickupToken?: string | null
   pickupTokenExpires?: string | null
@@ -174,6 +201,7 @@ function mapClaimView(claim: ApiClaim): ClaimView {
     pickupToken: claim.pickupToken ?? null,
     pickupTokenExpires: claim.pickupTokenExpires ?? null,
     itemStatus: claim.foundItem.status,
+    latestMessage: claim.messages?.[0] ?? null,
   }
 }
 

@@ -14,6 +14,11 @@ export type ReportRow = {
   timeWindow: string
   status: ReportStatus
   privateNote: string
+  attachmentUrls: string[]
+  latestMessage: {
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  } | null
   deviceName?: string
   nameOnDoc?: string
   marks: string

@@ -1,4 +1,4 @@
-import { Calendar, FileSearch, User } from "lucide-react"
+import { Calendar, FileSearch, MessageSquare, User } from "lucide-react"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,7 @@ type ClaimsQueueProps = {
   onStatusFilterChange: (value: string) => void
   onSelectClaim: (id: string) => void
   onPageChange: (page: number) => void
+  hasUnreadMessage: (claim: ClaimRow) => boolean
   onRowsPerPageChange: (rows: number) => void
 }
 
@@ -37,6 +38,7 @@ export function ClaimsQueue({
   onStatusFilterChange,
   onSelectClaim,
   onPageChange,
+  hasUnreadMessage,
   onRowsPerPageChange,
 }: ClaimsQueueProps) {
   return (
@@ -75,42 +77,56 @@ export function ClaimsQueue({
         {isLoading && <ClaimsQueueSkeleton />}
         {!isLoading && claims.length === 0 && <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm font-semibold text-slate-500">No pending claims in queue.</div>}
 
-        {claims.map((claim) => (
-          <button
-            key={claim.id}
-            type="button"
-            onClick={() => onSelectClaim(claim.id)}
-            className={cn(
-              "w-full text-left bg-white rounded-2xl border p-5 transition-all cursor-pointer group shadow-sm relative overflow-hidden",
-              selectedClaimId === claim.id
-                ? "border-brand ring-2 ring-brand/10 scale-[1.01]"
-                : "border-slate-100 hover:border-brand/20"
-            )}
-          >
-            {selectedClaimId === claim.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
+        {claims.map((claim) => {
+          const hasUnread = hasUnreadMessage(claim)
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                {claim.claimCode}
-              </span>
-              <ClaimStatusPill status={claim.status} />
-            </div>
-            <h3 className="mt-2 font-bold text-slate-800 text-[15px] whitespace-nowrap overflow-hidden text-ellipsis">
-              {claim.foundItem.title}
-            </h3>
-            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mt-1.5">
-              <User className="w-3 h-3 text-slate-300" />
-              {claim.claimantUser.name}
-            </div>
-            <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-4">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3 h-3" />
-                {formatShortDate(claim.createdAt)}
+          return (
+            <button
+              key={claim.id}
+              type="button"
+              onClick={() => onSelectClaim(claim.id)}
+              className={cn(
+                "w-full text-left bg-white rounded-2xl border p-5 transition-all cursor-pointer group shadow-sm relative overflow-hidden",
+                selectedClaimId === claim.id
+                  ? "border-brand ring-2 ring-brand/10 scale-[1.01]"
+                  : hasUnread
+                    ? "border-amber-200 ring-2 ring-amber-100"
+                    : "border-slate-100 hover:border-brand/20"
+              )}
+            >
+              {selectedClaimId === claim.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                  {claim.claimCode}
+                </span>
+                <div className="flex items-center gap-2">
+                  {hasUnread && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-700">
+                      <MessageSquare className="h-3 w-3" />
+                      New
+                    </span>
+                  )}
+                  <ClaimStatusPill status={claim.status} />
+                </div>
               </div>
-              <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{claim.foundItem.category}</span>
-            </div>
-          </button>
-        ))}
+              <h3 className="mt-2 font-bold text-slate-800 text-[15px] whitespace-nowrap overflow-hidden text-ellipsis">
+                {claim.foundItem.title}
+              </h3>
+              <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 mt-1.5">
+                <User className="w-3 h-3 text-slate-300" />
+                {claim.claimantUser.name}
+              </div>
+              <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-brand/60 bg-brand/5 -mx-5 -mb-5 px-5 py-2.5 mt-4">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" />
+                  {formatShortDate(claim.createdAt)}
+                </div>
+                <span className="bg-white px-2 py-0.5 rounded shadow-sm border border-brand/10">{claim.foundItem.category}</span>
+              </div>
+            </button>
+          )
+        })}
 
         <PaginationControls
           page={page}

@@ -19,8 +19,13 @@ export interface ReportView {
   brand: string
   marks: string
   privateNote: string
+  attachmentUrls: string[]
   rawStatus: string
   status: string
   pickupToken: string | null
   pickupTokenExpires: string | null
+  latestMessage: {
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  } | null
 }

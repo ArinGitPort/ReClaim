@@ -89,6 +89,14 @@ export async function listReports(filters: {
             },
           },
         },
+        messages: {
+          select: {
+            sender: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" as const },
+          take: 1,
+        },
       },
       orderBy: { createdAt: "desc" },
       ...(typeof skip === "number" && typeof limit === "number" ? { skip, take: limit } : {}),

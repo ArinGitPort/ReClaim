@@ -1,27 +1,27 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { Loader2, MessageSquare, SendHorizonal, ShieldAlert, User } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
-import { markClaimMessagesViewed } from "@/lib/claimMessageReadState"
-import { Modal } from "./Modal"
+import { markReportMessagesViewed } from "@/lib/reportMessageReadState"
 import { Button } from "./button"
+import { Modal } from "./Modal"
 import { ModalHeader } from "./ModalHeader"
-import { SendHorizonal, User, ShieldAlert, Loader2, MessageSquare } from "lucide-react"
 
-interface Message {
+type Message = {
   id: string
   sender: "STUDENT" | "STAFF" | "ADMIN"
   message: string
   createdAt: string
 }
 
-export interface ClaimMessagesProps {
-  claimId: string
+type ReportMessagesProps = {
+  reportId: string
   onMessageSent?: () => void
   onViewed?: () => void
-  isReadOnly?: boolean;
+  isReadOnly?: boolean
 }
 
-export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = false }: ClaimMessagesProps) {
+export function ReportMessages({ reportId, onMessageSent, onViewed, isReadOnly = false }: ReportMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [text, setText] = useState("")
@@ -34,40 +34,39 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
   }, [onViewed])
 
   useEffect(() => {
-    if (claimId) {
-      setLoading(true)
-      api.get<{ messages: Message[] }>(`/claims/${claimId}/messages`)
-        .then((res) => {
-          setMessages(res.data.messages)
-          markClaimMessagesViewed(claimId)
-          onViewedRef.current?.()
-        })
-        .finally(() => setLoading(false))
-    }
-  }, [claimId])
+    if (!reportId) return
+
+    setLoading(true)
+    api.get<{ messages: Message[] }>(`/reports/${reportId}/messages`)
+      .then((res) => {
+        setMessages(res.data.messages)
+        markReportMessagesViewed(reportId)
+        onViewedRef.current?.()
+      })
+      .finally(() => setLoading(false))
+  }, [reportId])
 
   useEffect(() => {
     const socket = getRealtimeSocket()
-    if (!socket || !claimId) return
+    if (!socket || !reportId) return
 
-    const handleMessage = (data: { claimId: string; messageId: string }) => {
-      if (data.claimId === claimId) {
-        // Fetch the latest messages instead of trying to reconstruct the message object ourselves
-        api.get<{ messages: Message[] }>(`/claims/${claimId}/messages`)
-          .then((res) => {
-            setMessages(res.data.messages)
-            markClaimMessagesViewed(claimId)
-            onViewedRef.current?.()
-          })
-          .catch(() => {})
-      }
+    const handleMessage = (data: { reportId: string }) => {
+      if (data.reportId !== reportId) return
+
+      api.get<{ messages: Message[] }>(`/reports/${reportId}/messages`)
+        .then((res) => {
+          setMessages(res.data.messages)
+          markReportMessagesViewed(reportId)
+          onViewedRef.current?.()
+        })
+        .catch(() => {})
     }
 
-    socket.on("claim.message.created", handleMessage)
+    socket.on("report.message.created", handleMessage)
     return () => {
-      socket.off("claim.message.created", handleMessage)
+      socket.off("report.message.created", handleMessage)
     }
-  }, [claimId])
+  }, [reportId])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -80,16 +79,12 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
 
     setSending(true)
     try {
-      const res = await api.post<{ message: Message }>(`/claims/${claimId}/messages`, {
+      const res = await api.post<{ message: Message }>(`/reports/${reportId}/messages`, {
         message: text.trim(),
       })
       setMessages((prev) => [...prev, res.data.message])
       setText("")
-      if (onMessageSent) {
-        onMessageSent()
-      }
-    } catch {
-      // ignore
+      onMessageSent?.()
     } finally {
       setSending(false)
     }
@@ -97,7 +92,6 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl overflow-hidden">
-      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-5 bg-slate-50/50 min-h-[250px] max-h-[400px]" ref={scrollRef}>
         {loading ? (
           <div className="flex justify-center items-center h-full min-h-[150px]">
@@ -110,25 +104,25 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-600">No messages yet</p>
-              <p className="text-xs font-medium text-slate-400 mt-1 max-w-xs">Messages sent between you and the admin will appear here.</p>
+              <p className="text-xs font-medium text-slate-400 mt-1 max-w-xs">Messages between the student and campus office will appear here.</p>
             </div>
           </div>
         ) : (
           <div className="space-y-5">
-            {messages.map((m) => {
-              const isAdmin = m.sender === "ADMIN" || m.sender === "STAFF"
+            {messages.map((message) => {
+              const isAdmin = message.sender === "ADMIN" || message.sender === "STAFF"
               return (
-                <div key={m.id} className={`flex gap-3 max-w-[85%] ${isAdmin ? "mr-auto" : "ml-auto flex-row-reverse"}`}>
+                <div key={message.id} className={`flex gap-3 max-w-[85%] ${isAdmin ? "mr-auto" : "ml-auto flex-row-reverse"}`}>
                   <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center mt-1 shadow-sm ${isAdmin ? "bg-amber-100" : "bg-brand/10 border border-brand/20"}`}>
                     {isAdmin ? <ShieldAlert className="w-4 h-4 text-amber-600" /> : <User className="w-4 h-4 text-brand" />}
                   </div>
                   <div className={`flex flex-col gap-1.5 ${isAdmin ? "items-start" : "items-end"}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400">{isAdmin ? 'Admin' : 'You'}</span>
-                      <span className="text-[10px] font-semibold text-slate-400">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400">{isAdmin ? "Admin" : "Student"}</span>
+                      <span className="text-[10px] font-semibold text-slate-400">{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
                     <div className={`text-sm px-4 py-3 rounded-2xl ${isAdmin ? "bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm" : "bg-brand text-white rounded-tr-sm shadow-md"}`}>
-                      {m.message}
+                      {message.message}
                     </div>
                   </div>
                 </div>
@@ -138,32 +132,31 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
         )}
       </div>
 
-      {/* Input Area */}
       <div className="p-4 border-t border-slate-100 bg-white shrink-0">
         {isReadOnly ? (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-1">
-            <p className="text-sm font-bold text-slate-500">Messaging is restricted</p>
-            <p className="text-xs font-semibold text-slate-400">Messages are available while the claim is still under review.</p>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+            <p className="text-sm font-bold text-slate-500">Messaging is unavailable</p>
+            <p className="text-xs font-semibold text-slate-400">Report messages open after the report is authorized.</p>
           </div>
         ) : (
           <>
             <form
-              onSubmit={(e) => {
-                e.preventDefault()
+              onSubmit={(event) => {
+                event.preventDefault()
                 void handleSend()
               }}
               className="flex gap-3 relative"
             >
               <textarea
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(event) => setText(event.target.value)}
                 disabled={sending}
                 placeholder="Type your message..."
                 className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 pr-12 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white resize-none transition-all placeholder:text-slate-400"
                 rows={2}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault()
                     void handleSend()
                   }
                 }}
@@ -176,7 +169,7 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <SendHorizonal className="w-4 h-4" />}
               </Button>
             </form>
-            <p className="text-[10px] text-center font-semibold text-slate-400 mt-3 flex items-center justify-center gap-1">
+            <p className="text-[10px] text-center font-semibold text-slate-400 mt-3">
               Press <span className="px-1 py-0.5 rounded border border-slate-200 bg-slate-50 shadow-sm">Enter</span> to send.
             </p>
           </>
@@ -186,31 +179,30 @@ export function ClaimMessages({ claimId, onMessageSent, onViewed, isReadOnly = f
   )
 }
 
-interface ClaimMessagesModalProps {
-  claimId: string
+type ReportMessagesModalProps = {
+  reportId: string
   isOpen: boolean
   onClose: () => void
   onMessageSent?: () => void
   onViewed?: () => void
-  isReadOnly?: boolean;
+  isReadOnly?: boolean
 }
 
-export function ClaimMessagesModal({ claimId, isOpen, onClose, onMessageSent, onViewed, isReadOnly = false }: ClaimMessagesModalProps) {
-  if (!isOpen) return null;
+export function ReportMessagesModal({ reportId, isOpen, onClose, onMessageSent, onViewed, isReadOnly = false }: ReportMessagesModalProps) {
+  if (!isOpen) return null
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl flex flex-col pt-0 pb-0 overflow-hidden h-[600px] bg-slate-50 p-0">
       <ModalHeader
-        title="Claim Communication"
-        subtitle="Discuss details or provide proof"
+        title="Report Messages"
+        subtitle="Coordinate report details and matching follow-up"
         icon={<MessageSquare className="w-5 h-5 text-white" />}
         onClose={onClose}
         containerClassName="p-5 bg-white shrink-0"
         titleClassName="text-slate-900"
       />
-
       <div className="flex-1 overflow-hidden">
-        <ClaimMessages claimId={claimId} onMessageSent={onMessageSent} onViewed={onViewed} isReadOnly={isReadOnly} />
+        <ReportMessages reportId={reportId} onMessageSent={onMessageSent} onViewed={onViewed} isReadOnly={isReadOnly} />
       </div>
     </Modal>
   )

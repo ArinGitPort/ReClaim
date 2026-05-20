@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { ArrowRight, ClipboardCheck, FileCheck, Hourglass, ImageIcon, MessageSquareWarning, Search } from "lucide-react"
+import { ArrowRight, ClipboardCheck, FileCheck, Hourglass, ImageIcon, MessageSquare, Search, Video } from "lucide-react"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import type { OperationsData, OperationsQueueKey } from "./types"
@@ -12,10 +12,11 @@ const operationsSections: Array<{
   route: string
 }> = [
   { key: "pendingClaims", title: "Claim Reviews", description: "Proof waiting for staff decision", icon: <ClipboardCheck className="w-4 h-4" />, route: "/admin/claims" },
-  { key: "inquiryClaims", title: "Student Follow-Up", description: "Claims waiting on more details", icon: <MessageSquareWarning className="w-4 h-4" />, route: "/admin/claims?status=INQUIRY_REQUIRED" },
-  { key: "approvedPickups", title: "Ready for Pickup", description: "Approved claims awaiting handover", icon: <FileCheck className="w-4 h-4" />, route: "/admin/inventory?status=CLAIM_PENDING" },
   { key: "activeReports", title: "Lost Reports", description: "Reports needing review or matching", icon: <Search className="w-4 h-4" />, route: "/admin/reports" },
+  { key: "approvedPickups", title: "Ready for Pickup", description: "Approved claims awaiting handover", icon: <FileCheck className="w-4 h-4" />, route: "/admin/inventory?status=CLAIM_PENDING" },
   { key: "pendingSnapshots", title: "AI Snapshots", description: "Detected items awaiting review", icon: <ImageIcon className="w-4 h-4" />, route: "/admin/snapshots" },
+  { key: "cameraHealth", title: "Camera Health", description: "Offline or errored cameras", icon: <Video className="w-4 h-4" />, route: "/admin/camera-settings" },
+  { key: "messageFollowUps", title: "Message Follow-Ups", description: "Unread claim and report chats", icon: <MessageSquare className="w-4 h-4" />, route: "/admin/claims" },
 ]
 
 export function OperationsQueue({ operations }: { operations: OperationsData }) {

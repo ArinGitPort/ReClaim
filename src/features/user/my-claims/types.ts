@@ -14,4 +14,8 @@ export interface ClaimView {
   pickupToken: string | null
   pickupTokenExpires: string | null
   itemStatus: string
+  latestMessage?: {
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  } | null
 }

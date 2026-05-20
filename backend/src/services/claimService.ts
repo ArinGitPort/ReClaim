@@ -177,6 +177,14 @@ export async function listClaims(filters: { status?: ClaimStatus; statusIn?: Cla
           email: true,
         },
       },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          sender: true,
+          createdAt: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -233,6 +241,14 @@ export async function listClaimsPaginated(filters: {
             id: true,
             name: true,
             email: true,
+          },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            sender: true,
+            createdAt: true,
           },
         },
       },

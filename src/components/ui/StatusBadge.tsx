@@ -11,6 +11,10 @@ export function StatusBadge({ status, className }: BadgeProps) {
       ? "CLAIM PENDING"
       : status === "PASSWORD_RESET_REQUIRED"
         ? "PASSWORD RESET REQUIRED"
+        : status === "ACTIVE_SEARCH"
+          ? "ACTIVE SEARCH"
+          : status === "UNDER_REVIEW"
+            ? "UNDER REVIEW"
         : status.replaceAll("_", " ")
 
   const getStyles = () => {
@@ -23,17 +27,22 @@ export function StatusBadge({ status, className }: BadgeProps) {
       case "CLAIM_PENDING":
       case "Ready for Pickup":
       case "Match Found":
+      case "MATCHED":
         return "bg-emerald-100 text-emerald-800 border-emerald-200"
       case "Active Search":
+      case "ACTIVE_SEARCH":
+      case "ACTIVE SEARCH":
         return "bg-brand/10 text-brand border-brand/20"
       case "RETURNED":
       case "Closed":
+      case "RESOLVED":
         return "bg-slate-50 text-slate-500 border-slate-100"
       case "ARCHIVED":
       case "DISABLED":
       case "Denied":
       case "Rejected":
       case "Expired":
+      case "REJECTED":
         return "bg-rose-50 text-rose-700 border-rose-100"
       case "SUSPENDED":
       case "PASSWORD_RESET_REQUIRED":
@@ -43,6 +52,8 @@ export function StatusBadge({ status, className }: BadgeProps) {
       case "Pending Verification":
       case "Open":
       case "Under Review":
+      case "UNDER_REVIEW":
+      case "SUBMITTED":
         return "bg-amber-50 text-amber-700 border-amber-100"
       case "Inquiry Required":
       case "Missing":

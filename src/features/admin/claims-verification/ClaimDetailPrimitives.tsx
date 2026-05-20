@@ -1,8 +1,8 @@
 export function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</div>
-      <div className="text-sm font-semibold text-slate-800">{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 leading-none">{label}</div>
+      <div className="text-[15px] font-bold text-slate-800 tracking-tight">{value}</div>
     </div>
   )
 }

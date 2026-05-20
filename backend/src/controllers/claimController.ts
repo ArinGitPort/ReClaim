@@ -8,6 +8,7 @@ import { HttpError } from "@/utils/errors.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated, emitClaimStatusUpdated, emitClaimMessageCreated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
+import { getSystemSettings } from "@/services/settingsService.js";
 
 type NotificationPayload = {
   id: string;
@@ -222,7 +223,7 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
   const claimantNotification = await createNotificationForUser({
     userId: claim.claimantUserId,
     title: "Claim Status Updated",
-    message: `${claim.claimCode} is now ${claim.status.replaceAll("_", " ")}.`,
+    message: await getClaimDecisionNotificationMessage(claim.status),
     route: claim.status === "APPROVED" ? "/ready-to-claim" : "/my-claims",
   });
 
@@ -245,6 +246,22 @@ export async function patchClaimDecision(req: Request, res: Response): Promise<v
   });
 
   res.json({ claim });
+}
+
+async function getClaimDecisionNotificationMessage(status: ClaimStatus): Promise<string> {
+  const settings = await getSystemSettings();
+
+  if (status === ClaimStatus.APPROVED) {
+    return settings.alertTemplates.claimApproved;
+  }
+  if (status === ClaimStatus.DENIED) {
+    return settings.alertTemplates.claimDenied;
+  }
+  if (status === ClaimStatus.INQUIRY_REQUIRED) {
+    return settings.alertTemplates.inquiryRequired;
+  }
+
+  return `Claim is now ${status.replaceAll("_", " ")}.`;
 }
 
 export async function patchClaimProof(req: Request, res: Response): Promise<void> {
@@ -461,9 +478,48 @@ export async function postClaimMessage(req: Request, res: Response): Promise<voi
     }
   });
 
+  const senderIsStudent = req.user!.role === "STUDENT";
+  const notificationTitle = senderIsStudent ? "Student Message Received" : "Admin Message Received";
+  const notificationMessage = senderIsStudent
+    ? `${claim.claimCode} has a new student message.`
+    : `${claim.claimCode} has a new staff message.`;
+
+  if (senderIsStudent) {
+    const adminNotifications = await createNotificationsForRoles({
+      roles: ["ADMIN", "STAFF"],
+      title: notificationTitle,
+      message: notificationMessage,
+      route: `/admin/claims?focus=${claim.claimCode}`,
+      type: "CLAIM_MESSAGE",
+    });
+
+    adminNotifications.forEach((notification: NotificationPayload) => {
+      emitNotificationCreated({
+        userId: notification.userId,
+        notification,
+      });
+    });
+  } else {
+    const claimantNotification = await createNotificationForUser({
+      userId: claim.claimantUserId,
+      title: notificationTitle,
+      message: notificationMessage,
+      route: `/my-claims?focus=${claim.claimCode}`,
+      type: "CLAIM_MESSAGE",
+    });
+
+    emitNotificationCreated({
+      userId: claimantNotification.userId,
+      notification: claimantNotification,
+    });
+  }
+
   emitClaimMessageCreated({
     claimId: id,
     claimantUserId: claim.claimantUserId,
+    sender: message.sender,
+    messageId: message.id,
+    createdAt: message.createdAt,
   });
 
   res.status(201).json({ message });

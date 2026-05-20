@@ -45,11 +45,11 @@ export type DashboardData = {
 
 export type OperationsQueueKey =
   | "pendingClaims"
-  | "inquiryClaims"
   | "approvedPickups"
   | "activeReports"
   | "pendingSnapshots"
-  | "expiredInventory"
+  | "cameraHealth"
+  | "messageFollowUps"
 
 export type OperationsQueueItem = {
   id: string
@@ -67,12 +67,11 @@ export type OperationsQueueItem = {
 export type OperationsData = {
   counts: {
     pendingClaims: number
-    inquiryClaims: number
     approvedPickups: number
     activeReports: number
     pendingSnapshots: number
-    expiredInventory: number
-    nearRetentionInventory: number
+    cameraHealth: number
+    messageFollowUps: number
   }
   retentionPolicy: {
     foundItemRetentionDays: number

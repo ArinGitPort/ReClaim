@@ -1,5 +1,6 @@
 import { ArrowRight, SlidersHorizontal } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { Modal } from "@/components/ui/Modal"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { UniversalFilterBar } from "@/components/ui/UniversalFilterBar"
@@ -73,9 +74,10 @@ export function MyClaimsPage() {
               rerollingItemId={myClaims.rerollingItemId}
               onPreviewImage={myClaims.setPreviewImageUrl}
               onOpenChat={myClaims.setChatTicketId}
-              onCloseTicket={(targetClaim) => void myClaims.closeTicket(targetClaim)}
+              onCloseTicket={myClaims.setCloseConfirmClaim}
               onRerollToken={(itemId) => void myClaims.rerollToken(itemId)}
               onMessageSent={myClaims.loadClaims}
+              hasUnreadMessage={myClaims.hasUnreadMessage(claim)}
             />
           ))}
           {myClaims.visibleClaims.length === 0 && (
@@ -105,9 +107,26 @@ export function MyClaimsPage() {
           claimId={myClaims.chatTicketId}
           isOpen={true}
           onClose={() => myClaims.setChatTicketId(null)}
+          onViewed={() => myClaims.markMessagesViewed(myClaims.chatTicketId!)}
           isReadOnly={!["PENDING_VERIFICATION", "INQUIRY_REQUIRED"].includes(myClaims.filteredClaims.find((claim) => claim.ticketId === myClaims.chatTicketId)?.rawStatus ?? "")}
         />
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(myClaims.closeConfirmClaim)}
+        onClose={() => {
+          if (!myClaims.closingTicketId) myClaims.setCloseConfirmClaim(null)
+        }}
+        onConfirm={() => {
+          if (myClaims.closeConfirmClaim) void myClaims.closeTicket(myClaims.closeConfirmClaim)
+        }}
+        title="Close Claim"
+        message={`Close ${myClaims.closeConfirmClaim?.id ?? "this claim"}? This will cancel your active claim ticket, release the item for others if it is still reserved, and start a 24-hour cooldown before you can claim the same item again.`}
+        confirmText="Yes, Close Ticket"
+        cancelText="Keep Claim Open"
+        isDestructive={true}
+        isLoading={Boolean(myClaims.closingTicketId)}
+      />
 
       {myClaims.previewImageUrl && (
         <Modal

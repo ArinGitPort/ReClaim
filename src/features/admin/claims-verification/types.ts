@@ -8,6 +8,10 @@ export type ClaimRow = {
   createdAt: string
   reviewerNote?: string | null
   submittedProof: Record<string, unknown>
+  messages?: Array<{
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  }>
   claimantUser: {
     name: string
     studentId?: string | null

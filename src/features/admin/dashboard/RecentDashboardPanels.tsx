@@ -49,43 +49,49 @@ export function RecentDashboardPanels({ data }: { data: DashboardData }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-[400px]">
-        <div className="flex items-center justify-between mb-6 shrink-0">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-brand" />
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Recent Activity</h3>
-          </div>
-          <Link to="/admin/logs" className="p-1 text-slate-400 hover:text-brand transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </Link>
+      <RecentActivityPanel data={data} />
+    </div>
+  )
+}
+
+export function RecentActivityPanel({ data, className = "" }: { data: DashboardData; className?: string }) {
+  return (
+    <div className={`bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-[400px] ${className}`}>
+      <div className="flex items-center justify-between mb-6 shrink-0">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-brand" />
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Recent Activity</h3>
         </div>
-        <div className="flex-1 overflow-y-auto scrollbar-hide pl-2 pr-2 space-y-4">
-          {data.recentActivity.length > 0 ? (
-            data.recentActivity.map((log) => (
-              <div key={log.id} className="relative pl-4 border-l-2 border-slate-100 pb-4 last:pb-0 last:border-transparent">
-                <div className="absolute top-0 -left-[5px] w-2 h-2 rounded-full bg-brand ring-4 ring-white" />
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-3 h-3 text-slate-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
-                <p className="text-xs font-bold text-slate-800 truncate mb-0.5">{log.action.replaceAll("_", " ")}</p>
-                <div className="flex items-center gap-1.5 overflow-hidden">
-                  <User className="w-3 h-3 text-slate-400 shrink-0" />
-                  <span className="text-xs font-medium text-slate-500 truncate">
-                    {log.actorUser.name}{" "}
-                    <span className="uppercase text-[9px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded ml-1">
-                      {log.actorUser.role}
-                    </span>
-                  </span>
-                </div>
+        <Link to="/admin/logs" className="p-1 text-slate-400 hover:text-brand transition-colors">
+          <MoreHorizontal className="w-4 h-4" />
+        </Link>
+      </div>
+      <div className="flex-1 overflow-y-auto scrollbar-hide pl-2 pr-2 space-y-4">
+        {data.recentActivity.length > 0 ? (
+          data.recentActivity.map((log) => (
+            <div key={log.id} className="relative pl-4 border-l-2 border-slate-100 pb-4 last:pb-0 last:border-transparent">
+              <div className="absolute top-0 -left-[5px] w-2 h-2 rounded-full bg-brand ring-4 ring-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-3 h-3 text-slate-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
               </div>
-            ))
-          ) : (
-            <div className="text-slate-500 text-sm font-semibold text-center mt-10">No recent system activity.</div>
-          )}
-        </div>
+              <p className="text-xs font-bold text-slate-800 truncate mb-0.5">{log.action.replaceAll("_", " ")}</p>
+              <div className="flex items-center gap-1.5 overflow-hidden">
+                <User className="w-3 h-3 text-slate-400 shrink-0" />
+                <span className="text-xs font-medium text-slate-500 truncate">
+                  {log.actorUser.name}{" "}
+                  <span className="uppercase text-[9px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded ml-1">
+                    {log.actorUser.role}
+                  </span>
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-slate-500 text-sm font-semibold text-center mt-10">No recent system activity.</div>
+        )}
       </div>
     </div>
   )

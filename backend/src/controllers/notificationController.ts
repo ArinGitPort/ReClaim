@@ -4,6 +4,7 @@ import {
   listNotificationsForUser,
   markAllNotificationsRead,
   markNotificationRead,
+  type NotificationTypeValue,
 } from "@/services/notificationService.js";
 
 const idParamsSchema = z.object({
@@ -29,6 +30,10 @@ export async function patchNotificationRead(req: Request, res: Response): Promis
 }
 
 export async function patchNotificationsReadAll(req: Request, res: Response): Promise<void> {
-  await markAllNotificationsRead({ userId: req.user!.id });
+  const type = req.query.type === "CLAIM_MESSAGE" || req.query.type === "REPORT_MESSAGE" || req.query.type === "SYSTEM"
+    ? (req.query.type as NotificationTypeValue)
+    : undefined;
+
+  await markAllNotificationsRead({ userId: req.user!.id, type });
   res.status(204).send();
 }

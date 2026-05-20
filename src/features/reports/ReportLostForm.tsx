@@ -20,6 +20,7 @@ export function ReportLostForm() {
   const [category, setCategory] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [submittedReportCode, setSubmittedReportCode] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -144,7 +145,7 @@ export function ReportLostForm() {
         proofData.attachments = evidenceUrls
       }
 
-      await api.post("/reports", {
+      const response = await api.post<{ report: { reportCode: string } }>("/reports", {
         title: formData.itemName.trim(),
         category: formData.category,
         color: formData.color || "Not Specified",
@@ -154,6 +155,7 @@ export function ReportLostForm() {
         proofData,
       })
 
+      setSubmittedReportCode(response.data.report.reportCode)
       setShowConfirmation(true)
     } catch {
       setError("Failed to submit report. Please review required fields and try again.")
@@ -502,7 +504,8 @@ export function ReportLostForm() {
 
       <ReportConfirmationModal 
         isOpen={showConfirmation} 
-        onClose={() => setShowConfirmation(false)} 
+        onClose={() => setShowConfirmation(false)}
+        reportCode={submittedReportCode}
       />
     </>
   )

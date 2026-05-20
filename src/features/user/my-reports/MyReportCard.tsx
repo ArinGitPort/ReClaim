@@ -1,4 +1,6 @@
-import { Calendar, Clock, FileText, MapPin, ShieldCheck, Ticket } from "lucide-react"
+import { useState } from "react"
+import { Calendar, Clock, Images, MapPin, MessageSquare, ShieldCheck, Ticket, X } from "lucide-react"
+import { Modal } from "@/components/ui/Modal"
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { cn } from "@/lib/utils"
 import { isClosableReportStatus, reportStatusMessage } from "./reportStatus"
@@ -9,9 +11,13 @@ type MyReportCardProps = {
   focusCode: string
   closingTicketId: string | null
   onCloseTicket: (report: ReportView) => void
+  onOpenChat: (reportId: string) => void
+  hasUnreadMessage: boolean
 }
 
-export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket }: MyReportCardProps) {
+export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket, onOpenChat, hasUnreadMessage }: MyReportCardProps) {
+  const canMessage = report.rawStatus === "ACTIVE_SEARCH" || report.rawStatus === "MATCHED"
+
   return (
     <div
       className={cn(
@@ -20,10 +26,6 @@ export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket
       )}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-        <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shrink-0">
-          <FileText className="w-7 h-7 text-slate-400" />
-        </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">{report.id}</span>
@@ -46,6 +48,22 @@ export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket
         <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
           <StatusBadge status={report.status} />
           <ReportStatusMessage status={report.status} />
+          {canMessage && (
+            <button
+              type="button"
+              onClick={() => onOpenChat(report.ticketId)}
+              className={cn(
+                "mt-1 flex items-center gap-1.5 text-xs font-bold transition-colors px-2.5 py-1.5 rounded-lg border relative",
+                hasUnreadMessage
+                  ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                  : "text-brand hover:text-brand/80 bg-brand/5 border-brand/10"
+              )}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              {hasUnreadMessage ? "New Message" : "Messages"}
+              {hasUnreadMessage && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -60,6 +78,7 @@ export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket
             {report.privateNote}
           </div>
         </div>
+        {report.attachmentUrls.length > 0 && <ReferenceAttachments report={report} />}
         {report.rawStatus === "MATCHED" && report.pickupToken && <PickupTokenPanel report={report} />}
         {isClosableReportStatus(report.rawStatus) && (
           <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
@@ -92,6 +111,72 @@ function DetailField({ label, value }: { label: string; value: string }) {
       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</div>
       <div className="text-sm font-semibold text-slate-700">{value}</div>
     </div>
+  )
+}
+
+function ReferenceAttachments({ report }: { report: ReportView }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  return (
+    <div className="sm:col-span-2 lg:col-span-3">
+      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Reference Attachment</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {report.attachmentUrls.map((url, index) => (
+          <button
+            type="button"
+            key={url}
+            onClick={() => setPreviewUrl(url)}
+            className="group overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm transition hover:border-brand/40"
+          >
+            <div className="aspect-video overflow-hidden bg-slate-100">
+              <img src={url} alt={`${report.item} reference attachment ${index + 1}`} className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-left">
+              <Images className="h-3.5 w-3.5 text-brand" />
+              Attachment {index + 1}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <ReportAttachmentPreviewModal
+        report={report}
+        imageUrl={previewUrl}
+        onClose={() => setPreviewUrl(null)}
+      />
+    </div>
+  )
+}
+
+function ReportAttachmentPreviewModal({
+  report,
+  imageUrl,
+  onClose,
+}: {
+  report: ReportView
+  imageUrl: string | null
+  onClose: () => void
+}) {
+  return (
+    <Modal isOpen={Boolean(imageUrl)} onClose={onClose} className="max-w-5xl bg-transparent border-0 shadow-none overflow-visible">
+      <div className="relative p-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -right-2 -top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-500 shadow-lg transition hover:text-slate-900"
+          aria-label="Close reference attachment preview"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={`${report.item} reference attachment preview`}
+            className="mx-auto max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl"
+          />
+        )}
+      </div>
+    </Modal>
   )
 }
 

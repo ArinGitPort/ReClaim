@@ -19,7 +19,7 @@ function timeAgo(dateString: string) {
 }
 
 export function NotificationDropdown({ adminMode = false }: { adminMode?: boolean }) {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
+  const { notifications, markRead, markAllReadByType } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -61,7 +61,8 @@ export function NotificationDropdown({ adminMode = false }: { adminMode?: boolea
   }, [isOpen])
 
   // Filter to only show unread (new) notifications
-  const unreadNotifications = notifications.filter(n => !n.read)
+  const unreadNotifications = notifications.filter(n => !n.read && n.type !== "CLAIM_MESSAGE" && n.type !== "REPORT_MESSAGE")
+  const unreadCount = unreadNotifications.length
 
   const handleToggle = () => {
     // If mobile screen, redirect directly rather than opening dropdown
@@ -180,7 +181,7 @@ export function NotificationDropdown({ adminMode = false }: { adminMode?: boolea
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  markAllRead();
+                  markAllReadByType("SYSTEM");
                   setIsOpen(false);
                 }}
                 className="px-4 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-md transition-colors flex items-center gap-2 hover:bg-background-subtle"

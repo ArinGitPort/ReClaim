@@ -1,5 +1,5 @@
 export function proofEntries(proof: Record<string, unknown>): Array<{ label: string; value: string }> {
-  const entries = Object.entries(proof)
+  const entries = Object.entries(proof).filter(([key]) => key !== "categoryGroup")
   if (entries.length === 0) {
     return [{ label: "Details", value: "No proof fields were submitted." }]
   }

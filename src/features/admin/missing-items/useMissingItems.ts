@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { api } from "@/lib/api"
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 import { formatShortDate } from "@/lib/formatters"
+import { hasUnreadReportMessage, markReportMessagesViewed } from "@/lib/reportMessageReadState"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { extractReportAttachmentUrls } from "@/features/reports/reportAttachments"
 import type { ReportRow, ReportStatus } from "./types"
 
 export function useMissingItems(focusCode: string) {
@@ -15,7 +17,9 @@ export function useMissingItems(focusCode: string) {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [revealedPrivateNotes, setRevealedPrivateNotes] = useState<Record<string, boolean>>({})
   const [showLinker, setShowLinker] = useState(false)
+  const [chatReportId, setChatReportId] = useState<string | null>(null)
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false)
+  const [isAuthorizeConfirmOpen, setIsAuthorizeConfirmOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [pageCount, setPageCount] = useState(1)
@@ -89,9 +93,11 @@ export function useMissingItems(focusCode: string) {
     }
 
     socket.on("report.status.updated", handleStatusUpdated)
+    socket.on("report.message.created", handleStatusUpdated)
 
     return () => {
       socket.off("report.status.updated", handleStatusUpdated)
+      socket.off("report.message.created", handleStatusUpdated)
     }
   }, [loadReports])
 
@@ -135,6 +141,11 @@ export function useMissingItems(focusCode: string) {
     await updateReportStatus("REJECTED")
   }
 
+  async function authorizeSelectedReport() {
+    setIsAuthorizeConfirmOpen(false)
+    await updateReportStatus("ACTIVE_SEARCH")
+  }
+
   function markLinked(reportId: string) {
     setReports((prev) => prev.map((row) => (
       row.id === reportId ? { ...row, status: "MATCHED" } : row
@@ -143,6 +154,14 @@ export function useMissingItems(focusCode: string) {
 
   function setPrivateNoteVisibility(reportId: string, visible: boolean) {
     setRevealedPrivateNotes((prev) => ({ ...prev, [reportId]: visible }))
+  }
+
+  function hasUnreadMessage(targetReport: ReportRow) {
+    return hasUnreadReportMessage(targetReport.id, targetReport.latestMessage, "ADMIN")
+  }
+
+  function markMessagesViewed(reportId: string) {
+    markReportMessagesViewed(reportId)
   }
 
   return {
@@ -161,8 +180,12 @@ export function useMissingItems(focusCode: string) {
     isPrivateNoteVisible,
     showLinker,
     setShowLinker,
+    chatReportId,
+    setChatReportId,
     isRejectConfirmOpen,
     setIsRejectConfirmOpen,
+    isAuthorizeConfirmOpen,
+    setIsAuthorizeConfirmOpen,
     page,
     setPage,
     rowsPerPage,
@@ -171,8 +194,12 @@ export function useMissingItems(focusCode: string) {
     totalReports,
     updateReportStatus,
     rejectSelectedReport,
+    authorizeSelectedReport,
     markLinked,
     setPrivateNoteVisibility,
+    loadReports,
+    hasUnreadMessage,
+    markMessagesViewed,
   }
 }
 
@@ -187,6 +214,10 @@ type ApiReportRow = {
   timeWindow?: string
   status: ReportStatus
   proofData?: Record<string, unknown>
+  messages?: Array<{
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  }>
   reporterUser?: { name: string; studentId?: string | null }
   matchedItem?: {
     id: string
@@ -219,6 +250,8 @@ function mapReportRow(entry: ApiReportRow): ReportRow {
     nameOnDoc: typeof proof.nameOnDoc === "string" ? proof.nameOnDoc : undefined,
     marks: String(proof.marks ?? "Not provided"),
     privateNote: String(proof.privateNote ?? "Not provided"),
+    attachmentUrls: extractReportAttachmentUrls(proof),
+    latestMessage: entry.messages?.[0] ?? null,
     reportedLostAtUtcRaw: entry.reportedLostAtUtc,
     linkedItem: entry.matchedItem
       ? {

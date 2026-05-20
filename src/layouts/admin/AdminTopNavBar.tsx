@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Link, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { NotificationDropdown } from "@/layouts/NotificationDropdown"
+import { MessageNotificationsDropdown } from "@/layouts/MessageNotificationsDropdown"
 import { AdminAiStatusIndicator } from "@/layouts/admin/AdminAiStatusIndicator"
 
 export function AdminTopNavBar() {
@@ -51,6 +52,7 @@ export function AdminTopNavBar() {
           <AdminAiStatusIndicator />
 
           <div className="flex items-center gap-2 mr-2">
+            <MessageNotificationsDropdown />
             <NotificationDropdown adminMode={true} />
           </div>
 

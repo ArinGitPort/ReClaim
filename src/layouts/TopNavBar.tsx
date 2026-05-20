@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { NotificationDropdown } from "./NotificationDropdown"
+import { MessageNotificationsDropdown } from "./MessageNotificationsDropdown"
 import { ProfileDropdown } from "./ProfileDropdown"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -78,6 +79,7 @@ export function TopNavBar() {
 
             {user && (
               <>
+                <MessageNotificationsDropdown />
                 <NotificationDropdown />
 
                 <div className="h-6 w-px bg-border-divider hidden sm:block"></div>

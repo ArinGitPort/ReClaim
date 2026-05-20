@@ -1,15 +1,19 @@
+import { useState } from "react"
 import {
   CheckCircle2,
   Eye,
   EyeOff,
   FileText,
   HelpCircle,
+  Images,
   Link2,
   MessageSquare,
   ShieldAlert,
+  X,
   XCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Modal } from "@/components/ui/Modal"
 import { cn } from "@/lib/utils"
 import { DetailItem, DetailSection } from "./ReportDetailPrimitives"
 import { isAuthorizedReport, isReviewableReport, reportNextAction } from "./reportStatus"
@@ -22,8 +26,10 @@ type MissingReportWorkspaceProps = {
   isPrivateNoteVisible: boolean
   onRevealPrivateNote: (reportId: string, visible: boolean) => void
   onOpenLinker: () => void
+  onOpenMessages: () => void
   onReject: () => void
   onUpdateStatus: (status: ReportStatus) => void
+  hasUnreadMessage: boolean
 }
 
 export function MissingReportWorkspace({
@@ -33,8 +39,10 @@ export function MissingReportWorkspace({
   isPrivateNoteVisible,
   onRevealPrivateNote,
   onOpenLinker,
+  onOpenMessages,
   onReject,
   onUpdateStatus,
+  hasUnreadMessage,
 }: MissingReportWorkspaceProps) {
   if (!report) {
     return (
@@ -75,8 +83,19 @@ export function MissingReportWorkspace({
             <span className="rounded-full border border-brand/20 bg-brand/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-brand">
               {reportNextAction(report.status)}
             </span>
-            <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg">
-              <MessageSquare className="w-4 h-4 mr-2 text-brand" /> Send Inquiry
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!isAuthorized}
+              onClick={onOpenMessages}
+              className={cn(
+                "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg relative",
+                !isAuthorized && "opacity-50 cursor-not-allowed",
+                hasUnreadMessage && "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+              )}
+            >
+              <MessageSquare className={cn("w-4 h-4 mr-2", hasUnreadMessage ? "text-amber-600" : "text-brand")} /> {hasUnreadMessage ? "New Message" : "Messages"}
+              {hasUnreadMessage && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />}
             </Button>
             <Button
               disabled={!isAuthorized}
@@ -271,12 +290,86 @@ function PrivacyGuardedData({
 
         <div className="p-6 bg-white rounded-xl border border-slate-100 shadow-inner">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">Reference Attachment</label>
-          <div className="w-full aspect-video bg-slate-50 rounded-xl flex flex-col items-center justify-center border border-slate-100 border-dashed">
-            <HelpCircle className="w-8 h-8 text-slate-200 mb-2" />
-            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">No media attached to report</span>
-          </div>
+          <ReferenceAttachments report={report} />
         </div>
       </div>
     </DetailSection>
+  )
+}
+
+function ReferenceAttachments({ report }: { report: ReportRow }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  if (report.attachmentUrls.length === 0) {
+    return (
+      <div className="w-full aspect-video bg-slate-50 rounded-xl flex flex-col items-center justify-center border border-slate-100 border-dashed">
+        <HelpCircle className="w-8 h-8 text-slate-200 mb-2" />
+        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">No media attached to report</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <button
+        type="button"
+        onClick={() => setPreviewUrl(report.attachmentUrls[0])}
+        className="block w-full aspect-video overflow-hidden rounded-xl bg-slate-50"
+      >
+        <img src={report.attachmentUrls[0]} alt={`${report.item} reference attachment`} className="h-full w-full object-cover" />
+      </button>
+      {report.attachmentUrls.length > 1 && (
+        <div className="grid grid-cols-2 gap-2">
+          {report.attachmentUrls.slice(1).map((url, index) => (
+            <button
+              type="button"
+              key={url}
+              onClick={() => setPreviewUrl(url)}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:border-brand/40 hover:text-brand"
+            >
+              <Images className="h-3.5 w-3.5" />
+              Attachment {index + 2}
+            </button>
+          ))}
+        </div>
+      )}
+      <ReportAttachmentPreviewModal
+        report={report}
+        imageUrl={previewUrl}
+        onClose={() => setPreviewUrl(null)}
+      />
+    </div>
+  )
+}
+
+function ReportAttachmentPreviewModal({
+  report,
+  imageUrl,
+  onClose,
+}: {
+  report: ReportRow
+  imageUrl: string | null
+  onClose: () => void
+}) {
+  return (
+    <Modal isOpen={Boolean(imageUrl)} onClose={onClose} className="max-w-5xl bg-transparent border-0 shadow-none overflow-visible">
+      <div className="relative p-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -right-2 -top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-500 shadow-lg transition hover:text-slate-900"
+          aria-label="Close reference attachment preview"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={`${report.item} reference attachment preview`}
+            className="mx-auto max-h-[82vh] w-auto max-w-full rounded-lg object-contain shadow-2xl"
+          />
+        )}
+      </div>
+    </Modal>
   )
 }

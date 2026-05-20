@@ -21,6 +21,7 @@ interface ItemCardProps {
   item: FoundItem
   hasActiveClaim?: boolean
   cooldownAvailableAt?: string
+  onClaimSubmitted?: (claimCode: string) => void
 }
 
 const getRelativeTime = (dateString: string) => {
@@ -31,7 +32,7 @@ const getRelativeTime = (dateString: string) => {
   return `${Math.round(diffHours / 24)}d ago`;
 }
 
-export function ItemCard({ item, hasActiveClaim = false, cooldownAvailableAt }: ItemCardProps) {
+export function ItemCard({ item, hasActiveClaim = false, cooldownAvailableAt, onClaimSubmitted }: ItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -327,6 +328,7 @@ export function ItemCard({ item, hasActiveClaim = false, cooldownAvailableAt }: 
         itemClaimProfile={item.claimProfile}
         itemImageUrl={item.imageUrl}
         cooldownAvailableAt={cooldownAvailableAt}
+        onSubmitted={onClaimSubmitted}
       />
     </>
   )

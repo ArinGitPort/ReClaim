@@ -16,6 +16,7 @@ type MyClaimCardProps = {
   onCloseTicket: (claim: ClaimView) => void
   onRerollToken: (itemId: string) => void
   onMessageSent: () => void
+  hasUnreadMessage: boolean
 }
 
 export function MyClaimCard({
@@ -29,6 +30,7 @@ export function MyClaimCard({
   onCloseTicket,
   onRerollToken,
   onMessageSent,
+  hasUnreadMessage,
 }: MyClaimCardProps) {
   return (
     <div
@@ -80,10 +82,16 @@ export function MyClaimCard({
               event.stopPropagation()
               onOpenChat(claim.ticketId)
             }}
-            className="mt-1 flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand/80 transition-colors bg-brand/5 px-2.5 py-1.5 rounded-lg border border-brand/10"
+            className={cn(
+              "mt-1 flex items-center gap-1.5 text-xs font-bold transition-colors px-2.5 py-1.5 rounded-lg border relative",
+              hasUnreadMessage
+                ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                : "text-brand hover:text-brand/80 bg-brand/5 border-brand/10"
+            )}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            Messages
+            {hasUnreadMessage ? "New Message" : "Messages"}
+            {hasUnreadMessage && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />}
           </button>
         </div>
       </div>

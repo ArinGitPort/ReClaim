@@ -81,6 +81,12 @@ enum CameraStreamStatus {
   ERROR
 }
 
+enum NotificationType {
+  SYSTEM
+  CLAIM_MESSAGE
+  REPORT_MESSAGE
+}
+
 model User {
   id             String      @id @default(uuid()) @db.Uuid
   studentId      String?     @unique
@@ -184,6 +190,7 @@ model LostReport {
   status            ReportStatus @default(SUBMITTED)
   matchedItemId     String?      @db.Uuid
   matchedItem       FoundItem?   @relation("ReportMatchedItem", fields: [matchedItemId], references: [id])
+  messages          ReportMessage[]
   createdAt         DateTime     @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime     @updatedAt @db.Timestamptz(6)
 
@@ -241,6 +248,17 @@ model AuditLog {
   @@index([targetType, targetId])
 }
 
+model ReportMessage {
+  id        String     @id @default(uuid()) @db.Uuid
+  reportId  String     @db.Uuid
+  report    LostReport @relation(fields: [reportId], references: [id])
+  sender    UserRole
+  message   String
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+
+  @@index([reportId])
+}
+
 model SystemSetting {
   key         String   @id
   value       Json
@@ -252,6 +270,7 @@ model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id])
+  type      NotificationType @default(SYSTEM)
   title     String
   message   String
   route     String?
@@ -260,6 +279,7 @@ model Notification {
 
   @@index([userId])
   @@index([userId, readAt])
+  @@index([userId, type, readAt])
   @@index([createdAt])
 }
 

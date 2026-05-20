@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
-import { ClaimWorkspace, ClaimsQueue, useClaimsVerification } from "@/features/admin/claims-verification"
+import { ClaimWorkspace, ClaimsQueue, DenyClaimModal, useClaimsVerification } from "@/features/admin/claims-verification"
 
 export function ClaimsVerificationPage() {
   const [searchParams] = useSearchParams()
@@ -38,6 +38,7 @@ export function ClaimsVerificationPage() {
           onStatusFilterChange={claimsVerification.setStatusFilter}
           onSelectClaim={claimsVerification.setSelectedClaimId}
           onPageChange={claimsVerification.setPage}
+          hasUnreadMessage={claimsVerification.claimHasUnreadMessage}
           onRowsPerPageChange={(nextRows) => {
             claimsVerification.setRowsPerPage(nextRows)
             claimsVerification.setPage(1)
@@ -48,14 +49,14 @@ export function ClaimsVerificationPage() {
           claim={claimsVerification.selectedClaim}
           isLoading={claimsVerification.isLoading}
           isSubmitting={claimsVerification.isSubmitting}
-          note={claimsVerification.note}
-          onNoteChange={claimsVerification.setNote}
+          hasUnreadMessage={claimsVerification.selectedClaimHasUnreadMessage}
+          onMessagesViewed={claimsVerification.markSelectedClaimMessagesViewed}
           onRequestDecision={claimsVerification.requestDecision}
         />
       </div>
 
       <ConfirmModal
-        isOpen={Boolean(claimsVerification.pendingDecision)}
+        isOpen={claimsVerification.pendingDecision === "APPROVED"}
         onClose={() => !claimsVerification.isSubmitting && claimsVerification.setPendingDecision(null)}
         onConfirm={() => void claimsVerification.confirmDecision()}
         title={claimsVerification.decisionConfig?.title ?? ""}
@@ -64,6 +65,16 @@ export function ClaimsVerificationPage() {
         cancelText="Cancel"
         isDestructive={claimsVerification.decisionConfig?.isDestructive ?? false}
         isLoading={claimsVerification.isSubmitting}
+      />
+
+      <DenyClaimModal
+        isOpen={claimsVerification.pendingDecision === "DENIED"}
+        claim={claimsVerification.selectedClaim}
+        reviewerNote={claimsVerification.denialNote}
+        isLoading={claimsVerification.isSubmitting}
+        onReviewerNoteChange={claimsVerification.setDenialNote}
+        onClose={() => !claimsVerification.isSubmitting && claimsVerification.setPendingDecision(null)}
+        onConfirm={() => void claimsVerification.confirmDecision()}
       />
     </div>
   )

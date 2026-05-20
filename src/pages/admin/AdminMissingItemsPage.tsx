@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router-dom"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
+import { ReportMessagesModal } from "@/components/ui/ReportMessagesModal"
 import {
   MissingReportLinkModal,
   MissingReportsQueue,
@@ -62,10 +63,23 @@ export function MissingItemsPage() {
           isPrivateNoteVisible={missingItems.isPrivateNoteVisible}
           onRevealPrivateNote={missingItems.setPrivateNoteVisibility}
           onOpenLinker={() => missingItems.setShowLinker(true)}
+          onOpenMessages={() => missingItems.report && missingItems.setChatReportId(missingItems.report.id)}
           onReject={() => missingItems.setIsRejectConfirmOpen(true)}
-          onUpdateStatus={(status) => void missingItems.updateReportStatus(status)}
+          onUpdateStatus={() => missingItems.setIsAuthorizeConfirmOpen(true)}
+          hasUnreadMessage={missingItems.report ? missingItems.hasUnreadMessage(missingItems.report) : false}
         />
       </div>
+
+      {missingItems.chatReportId && (
+        <ReportMessagesModal
+          reportId={missingItems.chatReportId}
+          isOpen={true}
+          onClose={() => missingItems.setChatReportId(null)}
+          onViewed={() => missingItems.markMessagesViewed(missingItems.chatReportId!)}
+          onMessageSent={() => void missingItems.loadReports(true)}
+          isReadOnly={!["ACTIVE_SEARCH", "MATCHED"].includes(missingItems.report?.status ?? "")}
+        />
+      )}
 
       <ConfirmModal
         isOpen={missingItems.isRejectConfirmOpen}
@@ -77,6 +91,18 @@ export function MissingItemsPage() {
         cancelText="Cancel"
         isDestructive={true}
         isLoading={missingItems.isUpdating}
+      />
+
+      <ConfirmModal
+        isOpen={missingItems.isAuthorizeConfirmOpen}
+        onClose={() => !missingItems.isUpdating && missingItems.setIsAuthorizeConfirmOpen(false)}
+        onConfirm={() => void missingItems.authorizeSelectedReport()}
+        title="Authorize Report"
+        message={`Authorize report ${missingItems.report?.code ?? ""} for active inventory matching? Staff will be able to link it to found inventory after this step.`}
+        confirmText="Yes, Authorize"
+        cancelText="Cancel"
+        isLoading={missingItems.isUpdating}
+        confirmButtonClassName="bg-emerald-600 hover:bg-emerald-700"
       />
     </div>
   )

@@ -4,6 +4,9 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { notify } from "@/lib/notify"
+import { hasUnreadClaimMessage, markClaimMessagesViewed } from "@/lib/claimMessageReadState"
+import { fallbackSettings } from "@/features/admin/settings/settingsConfig"
+import type { SettingsResponse } from "@/features/admin/settings/types"
 import type { ClaimDecision, ClaimRow } from "./types"
 
 export function useClaimsVerification(focusCode: string, queryStatus: string | null) {
@@ -17,9 +20,11 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
-  const [note, setNote] = useState("")
+  const [denialNote, setDenialNote] = useState("")
+  const [alertTemplates, setAlertTemplates] = useState(fallbackSettings.alertTemplates)
   const [error, setError] = useState<string | null>(null)
   const [pendingDecision, setPendingDecision] = useState<ClaimDecision | null>(null)
+  const [, setMessageReadVersion] = useState(0)
   const debouncedSearch = useDebounce(search, 350)
   const debouncedStatus = useDebounce(statusFilter, 350)
 
@@ -74,6 +79,19 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
   }, [loadClaims])
 
   useEffect(() => {
+    async function loadAlertTemplates() {
+      try {
+        const response = await api.get<SettingsResponse>("/settings")
+        setAlertTemplates(response.data.settings.alertTemplates)
+      } catch {
+        setAlertTemplates(fallbackSettings.alertTemplates)
+      }
+    }
+
+    void loadAlertTemplates()
+  }, [])
+
+  useEffect(() => {
     setPage(1)
   }, [statusFilter, rowsPerPage])
 
@@ -81,13 +99,20 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
     const socket = getRealtimeSocket()
     if (!socket) return
 
+    const refreshMessageIndicators = () => {
+      setMessageReadVersion((version) => version + 1)
+      void loadClaims()
+    }
+
     const handleClaimUpdated = () => {
       void loadClaims()
     }
 
     socket.on("claim.status.updated", handleClaimUpdated)
+    socket.on("claim.message.created", refreshMessageIndicators)
     return () => {
       socket.off("claim.status.updated", handleClaimUpdated)
+      socket.off("claim.message.created", refreshMessageIndicators)
     }
   }, [loadClaims])
 
@@ -96,6 +121,9 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
     () => filteredClaims.find((claim) => claim.id === selectedClaimId) ?? claims.find((claim) => claim.id === selectedClaimId) ?? null,
     [claims, filteredClaims, selectedClaimId]
   )
+  const selectedClaimHasUnreadMessage = selectedClaim
+    ? hasUnreadClaimMessage(selectedClaim.id, selectedClaim.messages?.[0], "ADMIN")
+    : false
 
   useEffect(() => {
     if (!selectedClaimId && filteredClaims.length > 0) {
@@ -103,16 +131,13 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
     }
   }, [filteredClaims, selectedClaimId])
 
-  useEffect(() => {
-    setNote(selectedClaim?.reviewerNote ?? "")
-  }, [selectedClaim?.id, selectedClaim?.reviewerNote])
+  async function decide(status: ClaimDecision, reviewerNote?: string): Promise<boolean> {
+    if (!selectedClaim) return false
 
-  async function decide(status: ClaimDecision): Promise<void> {
-    if (!selectedClaim) return
-
-    if (status === "DENIED" && !note.trim()) {
+    const trimmedReviewerNote = reviewerNote?.trim()
+    if (status === "DENIED" && !trimmedReviewerNote) {
       notify.error("Reviewer note required", "Add a reason before denying this claim.")
-      return
+      return false
     }
 
     setIsSubmitting(true)
@@ -120,11 +145,13 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
     try {
       await api.patch(`/claims/${selectedClaim.id}/decision`, {
         status,
-        reviewerNote: note.trim() || undefined,
+        reviewerNote: trimmedReviewerNote || undefined,
       })
       await loadClaims()
+      return true
     } catch {
       setError("Failed to update claim decision.")
+      return false
     } finally {
       setIsSubmitting(false)
     }
@@ -154,9 +181,8 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
   }, [pendingDecision, selectedClaim])
 
   function requestDecision(status: ClaimDecision) {
-    if (status === "DENIED" && !note.trim()) {
-      notify.error("Reviewer note required", "Add a reason before denying this claim.")
-      return
+    if (status === "DENIED") {
+      setDenialNote(selectedClaim?.reviewerNote?.trim() || alertTemplates.claimDenied)
     }
 
     setPendingDecision(status)
@@ -165,8 +191,22 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
   async function confirmDecision() {
     if (!pendingDecision) return
 
-    await decide(pendingDecision)
-    setPendingDecision(null)
+    const reviewerNote = pendingDecision === "DENIED" ? denialNote : undefined
+    const succeeded = await decide(pendingDecision, reviewerNote)
+    if (succeeded) {
+      setPendingDecision(null)
+      setDenialNote("")
+    }
+  }
+
+  function markSelectedClaimMessagesViewed() {
+    if (!selectedClaim) return
+    markClaimMessagesViewed(selectedClaim.id)
+    setMessageReadVersion((version) => version + 1)
+  }
+
+  function claimHasUnreadMessage(claim: ClaimRow) {
+    return hasUnreadClaimMessage(claim.id, claim.messages?.[0], "ADMIN")
   }
 
   return {
@@ -181,14 +221,17 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
     selectedClaimId,
     setSelectedClaimId,
     selectedClaim,
+    selectedClaimHasUnreadMessage,
+    claimHasUnreadMessage,
     isLoading,
     isSubmitting,
     search,
     setSearch,
     statusFilter,
     setStatusFilter,
-    note,
-    setNote,
+    denialNote,
+    setDenialNote,
+    markSelectedClaimMessagesViewed,
     error,
     pendingDecision,
     setPendingDecision,

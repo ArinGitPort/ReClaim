@@ -18,9 +18,10 @@ interface ClaimThisItemModalProps {
   } | null
   itemImageUrl?: string
   cooldownAvailableAt?: string
+  onSubmitted?: (claimCode: string) => void
 }
 
-export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemClaimProfile, itemImageUrl, cooldownAvailableAt }: ClaimThisItemModalProps) {
+export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCategory, itemClaimProfile, itemImageUrl, cooldownAvailableAt, onSubmitted }: ClaimThisItemModalProps) {
   const [proofValues, setProofValues] = useState<Record<string, string>>({})
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -67,7 +68,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
 
     setIsSubmitting(true)
     try {
-      await api.post("/claims", {
+      const response = await api.post<{ claim: { claimCode: string } }>("/claims", {
         foundItemId: itemId,
         proof: {
           categoryGroup: fieldGroup.heading,
@@ -76,6 +77,7 @@ export function ClaimThisItemModal({ isOpen, onClose, itemId, itemTitle, itemCat
         },
       })
       onClose()
+      onSubmitted?.(response.data.claim.claimCode)
     } catch (err) {
       const userMessage = typeof err === "object" && err && "userMessage" in err
         ? (err as { userMessage?: unknown }).userMessage

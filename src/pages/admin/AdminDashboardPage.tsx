@@ -37,7 +37,7 @@ export function DashboardPage() {
         view === "operations" ? (
           <>
             {operations && <OperationsQueue operations={operations} />}
-            <OperationalHealthPanels data={data} />
+            {operations && <OperationalHealthPanels data={data} operations={operations} />}
           </>
         ) : (
           <>

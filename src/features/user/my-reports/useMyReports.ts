@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { api } from "@/lib/api"
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
+import { hasUnreadReportMessage, markReportMessagesViewed } from "@/lib/reportMessageReadState"
 import { getRealtimeSocket } from "@/lib/realtime"
+import { extractReportAttachmentUrls } from "@/features/reports/reportAttachments"
 import { isClosableReportStatus, toStudentStatusLabel } from "./reportStatus"
 import type { ReportRealtimeEvent, ReportView } from "./types"
 
@@ -11,8 +13,11 @@ export function useMyReports() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
+  const [closeConfirmReport, setCloseConfirmReport] = useState<ReportView | null>(null)
+  const [chatReportId, setChatReportId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
+  const [, setMessageReadVersion] = useState(0)
 
   const loadReports = useCallback(async (): Promise<void> => {
     try {
@@ -63,9 +68,11 @@ export function useMyReports() {
     }
 
     socket.on("report.status.updated", handleStatusUpdated)
+    socket.on("report.message.created", loadReports)
 
     return () => {
       socket.off("report.status.updated", handleStatusUpdated)
+      socket.off("report.message.created", loadReports)
     }
   }, [loadReports])
 
@@ -78,6 +85,7 @@ export function useMyReports() {
       await loadReports()
     } finally {
       setClosingTicketId(null)
+      setCloseConfirmReport(null)
     }
   }
 
@@ -108,6 +116,15 @@ export function useMyReports() {
     return Array.from(new Set(reports.map((report) => report.status))).map((status) => ({ label: status, value: status }))
   }, [reports])
 
+  function hasUnreadMessage(report: ReportView) {
+    return hasUnreadReportMessage(report.ticketId, report.latestMessage, "STUDENT")
+  }
+
+  function markMessagesViewed(reportId: string) {
+    markReportMessagesViewed(reportId)
+    setMessageReadVersion((version) => version + 1)
+  }
+
   return {
     liveNotice,
     search,
@@ -115,6 +132,10 @@ export function useMyReports() {
     statusFilter,
     setStatusFilter,
     closingTicketId,
+    closeConfirmReport,
+    setCloseConfirmReport,
+    chatReportId,
+    setChatReportId,
     page,
     setPage,
     rowsPerPage,
@@ -123,7 +144,10 @@ export function useMyReports() {
     visibleReports,
     pageCount,
     statusOptions,
+    loadReports,
     closeTicket,
+    hasUnreadMessage,
+    markMessagesViewed,
   }
 }
 
@@ -137,6 +161,10 @@ type ApiReport = {
   reportedLostAtUtc: string
   timeWindow?: string
   proofData?: Record<string, unknown>
+  messages?: Array<{
+    sender: "STUDENT" | "STAFF" | "ADMIN"
+    createdAt: string
+  }>
   createdAt: string
   status: string
   matchedItem?: {
@@ -165,10 +193,12 @@ function mapReportView(report: ApiReport): ReportView {
     brand: String(proof.brand ?? "Not specified"),
     marks: String(proof.marks ?? "Not provided"),
     privateNote: String(proof.privateNote ?? "Not provided"),
+    attachmentUrls: extractReportAttachmentUrls(proof),
     rawStatus: report.status,
     status: toStudentStatusLabel(report.status),
     pickupToken: matchedClaim?.pickupToken ?? null,
     pickupTokenExpires: matchedClaim?.pickupTokenExpires ?? null,
+    latestMessage: report.messages?.[0] ?? null,
   }
 }
 

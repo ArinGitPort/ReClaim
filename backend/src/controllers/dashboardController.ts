@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { ClaimStatus, ItemStatus, ReportStatus } from "@prisma/client";
+import { CameraStreamStatus, ClaimStatus, ItemStatus, NotificationType, ReportStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma.js";
 import { getSystemSettings } from "@/services/settingsService.js";
 
@@ -129,27 +129,25 @@ export const getOperationsSummary = async (
     const now = new Date();
     const settings = await getSystemSettings();
     const retentionDays = settings.retentionPolicy.foundItemRetentionDays;
-    const expiredCutoff = new Date(now.getTime() - retentionDays * DAY_MS);
-    const nearExpiryCutoff = new Date(now.getTime() - Math.max(retentionDays - 7, 1) * DAY_MS);
     const reservationWarningCutoff = new Date(now.getTime() + 12 * HOUR_MS);
     const pickupWarningCutoff = new Date(now.getTime() + 24 * HOUR_MS);
     const staleReportCutoff = new Date(now.getTime() - 7 * DAY_MS);
     const staleSnapshotCutoff = new Date(now.getTime() - 24 * HOUR_MS);
+    const cameraFrameStaleCutoff = new Date(now.getTime() - 2 * 60 * 1000);
 
     const [
       pendingClaims,
       pendingClaimsCount,
-      inquiryClaims,
-      inquiryClaimsCount,
       approvedPickups,
       approvedPickupsCount,
       activeReports,
       activeReportsCount,
       pendingSnapshots,
       pendingSnapshotsCount,
-      expiredInventory,
-      expiredInventoryCount,
-      nearRetentionCount,
+      cameraIssues,
+      cameraIssuesCount,
+      messageFollowUps,
+      messageFollowUpsCount,
     ] = await Promise.all([
       prisma.claim.findMany({
         where: { status: ClaimStatus.PENDING_VERIFICATION },
@@ -161,16 +159,6 @@ export const getOperationsSummary = async (
         },
       }),
       prisma.claim.count({ where: { status: ClaimStatus.PENDING_VERIFICATION } }),
-      prisma.claim.findMany({
-        where: { status: ClaimStatus.INQUIRY_REQUIRED },
-        orderBy: [{ reservationExpiresAt: "asc" }, { updatedAt: "asc" }],
-        take: 6,
-        include: {
-          claimantUser: { select: { name: true, email: true } },
-          foundItem: { select: { code: true, title: true, category: true } },
-        },
-      }),
-      prisma.claim.count({ where: { status: ClaimStatus.INQUIRY_REQUIRED } }),
       prisma.claim.findMany({
         where: {
           status: ClaimStatus.APPROVED,
@@ -215,27 +203,42 @@ export const getOperationsSummary = async (
           foundItemId: null,
         },
       }),
-      prisma.foundItem.findMany({
+      prisma.camera.findMany({
         where: {
-          foundAtUtc: { lt: expiredCutoff },
-          status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] },
+          OR: [
+            { streamEnabled: false },
+            { isOnline: false },
+            { streamStatus: { in: [CameraStreamStatus.ERROR, CameraStreamStatus.SOURCE_IN_USE, CameraStreamStatus.OFFLINE] } },
+            { lastError: { not: null } },
+            { lastFrameAtUtc: { lt: cameraFrameStaleCutoff } },
+          ],
         },
-        orderBy: { foundAtUtc: "asc" },
+        orderBy: [{ streamStatus: "asc" }, { updatedAt: "desc" }],
         take: 6,
       }),
-      prisma.foundItem.count({
+      prisma.camera.count({
         where: {
-          foundAtUtc: { lt: expiredCutoff },
-          status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] },
+          OR: [
+            { streamEnabled: false },
+            { isOnline: false },
+            { streamStatus: { in: [CameraStreamStatus.ERROR, CameraStreamStatus.SOURCE_IN_USE, CameraStreamStatus.OFFLINE] } },
+            { lastError: { not: null } },
+            { lastFrameAtUtc: { lt: cameraFrameStaleCutoff } },
+          ],
         },
       }),
-      prisma.foundItem.count({
+      prisma.notification.findMany({
         where: {
-          foundAtUtc: {
-            lt: nearExpiryCutoff,
-            gte: expiredCutoff,
-          },
-          status: { notIn: [ItemStatus.RETURNED, ItemStatus.ARCHIVED] },
+          type: { in: [NotificationType.CLAIM_MESSAGE, NotificationType.REPORT_MESSAGE] },
+          readAt: null,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      prisma.notification.count({
+        where: {
+          type: { in: [NotificationType.CLAIM_MESSAGE, NotificationType.REPORT_MESSAGE] },
+          readAt: null,
         },
       }),
     ]);
@@ -247,12 +250,11 @@ export const getOperationsSummary = async (
       },
       counts: {
         pendingClaims: pendingClaimsCount,
-        inquiryClaims: inquiryClaimsCount,
         approvedPickups: approvedPickupsCount,
         activeReports: activeReportsCount,
         pendingSnapshots: pendingSnapshotsCount,
-        expiredInventory: expiredInventoryCount,
-        nearRetentionInventory: nearRetentionCount,
+        cameraHealth: cameraIssuesCount,
+        messageFollowUps: messageFollowUpsCount,
       },
       queues: {
         pendingClaims: pendingClaims.map((claim) => ({
@@ -266,18 +268,6 @@ export const getOperationsSummary = async (
           dueAt: claim.reservationExpiresAt,
           urgency: claim.reservationExpiresAt && claim.reservationExpiresAt <= reservationWarningCutoff ? "high" : "normal",
           nextAction: claim.reservationExpiresAt && claim.reservationExpiresAt <= reservationWarningCutoff ? "Review before hold expires" : "Review proof",
-        })),
-        inquiryClaims: inquiryClaims.map((claim) => ({
-          id: claim.id,
-          code: claim.claimCode,
-          title: claim.foundItem.title,
-          subjectCode: claim.foundItem.code,
-          status: claim.status,
-          ownerName: claim.claimantUser.name,
-          route: `/admin/claims?focus=${claim.claimCode}&status=INQUIRY_REQUIRED`,
-          dueAt: claim.reservationExpiresAt,
-          urgency: claim.reservationExpiresAt && claim.reservationExpiresAt <= reservationWarningCutoff ? "high" : "normal",
-          nextAction: "Waiting for student response",
         })),
         approvedPickups: approvedPickups.map((claim) => ({
           id: claim.id,
@@ -321,17 +311,29 @@ export const getOperationsSummary = async (
           urgency: snapshot.detectedAtUtc <= staleSnapshotCutoff ? "high" : "normal",
           nextAction: snapshot.detectedAtUtc <= staleSnapshotCutoff ? "Review stale snapshot" : "Review AI snapshot",
         })),
-        expiredInventory: expiredInventory.map((item) => ({
-          id: item.id,
-          code: item.code,
-          title: item.title,
-          subjectCode: item.category,
-          status: item.status,
-          ownerName: item.foundLocation,
-          route: `/admin/expired-inventory?focus=${item.code}`,
-          dueAt: item.foundAtUtc,
-          urgency: "high",
-          nextAction: "Expired, archive or dispose",
+        cameraHealth: cameraIssues.map((camera) => ({
+          id: camera.id,
+          code: camera.code,
+          title: camera.name,
+          subjectCode: camera.sourceUrl,
+          status: camera.streamStatus,
+          ownerName: camera.location,
+          route: "/admin/camera-settings",
+          dueAt: camera.lastFrameAtUtc ?? camera.lastPingAtUtc ?? camera.updatedAt,
+          urgency: camera.streamStatus === CameraStreamStatus.ONLINE ? "normal" : "high",
+          nextAction: camera.lastError ?? (!camera.streamEnabled ? "Camera stream is off" : "Check camera health"),
+        })),
+        messageFollowUps: messageFollowUps.map((notification) => ({
+          id: notification.id,
+          code: readReferenceCode(notification.message) ?? notification.id.slice(0, 8).toUpperCase(),
+          title: notification.title,
+          subjectCode: null,
+          status: "UNREAD",
+          ownerName: notification.message,
+          route: notification.route ?? "/admin/claims",
+          dueAt: notification.createdAt,
+          urgency: "normal",
+          nextAction: "Unread claim message",
         })),
       },
     });
@@ -347,4 +349,9 @@ function readSnapshotCategory(value: unknown): string {
 
   const category = (value as { category?: unknown }).category;
   return typeof category === "string" && category.trim() ? category : "AI detected item";
+}
+
+function readReferenceCode(value: string): string | null {
+  const match = value.match(/\b[A-Z]{3}-\d+\b/);
+  return match?.[0] ?? null;
 }

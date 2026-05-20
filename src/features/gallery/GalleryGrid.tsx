@@ -5,6 +5,7 @@ import { SearchX } from "lucide-react"
 import { api } from "@/lib/api"
 import { getRealtimeSocket } from "@/lib/realtime"
 import { useAuth } from "@/contexts/AuthContext"
+import { ClaimRequestSuccessModal } from "@/features/claims/ClaimRequestSuccessModal"
 
 export function GalleryGrid({
   page,
@@ -29,6 +30,7 @@ export function GalleryGrid({
   const { user } = useAuth()
   const [activeClaimItemIds, setActiveClaimItemIds] = useState<Set<string>>(new Set())
   const [cooldownByItemId, setCooldownByItemId] = useState<Map<string, string>>(new Map())
+  const [submittedClaimCode, setSubmittedClaimCode] = useState<string | null>(null)
 
   function getColumns() {
     if (typeof window === 'undefined') return 1
@@ -165,37 +167,57 @@ export function GalleryGrid({
     }
   }, [loadItems, loadActiveClaims])
 
+  const successModal = (
+    <ClaimRequestSuccessModal
+      isOpen={Boolean(submittedClaimCode)}
+      onClose={() => setSubmittedClaimCode(null)}
+      claimCode={submittedClaimCode}
+    />
+  )
+
   if (isLoading) {
-    return <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>
+    return (
+      <>
+        <div className="p-12 text-center text-slate-500 font-semibold">Loading items...</div>
+        {successModal}
+      </>
+    )
   }
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 lg:p-24 border-2 border-dashed border-border-divider/50 rounded-xl bg-background-subtle/30">
-        <SearchX className="w-12 h-12 text-text-secondary mb-4 opacity-50" />   
-        <h3 className="text-xl font-bold text-text-primary mb-2">No items found</h3>
-        <p className="text-text-secondary text-center max-w-sm">
-          We couldn't find any items matching your current filters. Try adjusting your search criteria.
-        </p>
-      </div>
+      <>
+        <div className="flex flex-col items-center justify-center p-12 lg:p-24 border-2 border-dashed border-border-divider/50 rounded-xl bg-background-subtle/30">
+          <SearchX className="w-12 h-12 text-text-secondary mb-4 opacity-50" />
+          <h3 className="text-xl font-bold text-text-primary mb-2">No items found</h3>
+          <p className="text-text-secondary text-center max-w-sm">
+            We couldn't find any items matching your current filters. Try adjusting your search criteria.
+          </p>
+        </div>
+        {successModal}
+      </>
     )
   }
 
   return (
-    <div style={{
-      columnCount: columns,
-      columnGap: '16px',
-      width: '100%',
-      margin: '0 auto'
-    }}>      
-      {items.map(item => (
-        <ItemCard
-          key={item.id}
-          item={item}
-          hasActiveClaim={activeClaimItemIds.has(item.id)}
-          cooldownAvailableAt={cooldownByItemId.get(item.id)}
-        />
-      ))}
-    </div>
+    <>
+      <div style={{
+        columnCount: columns,
+        columnGap: '16px',
+        width: '100%',
+        margin: '0 auto'
+      }}>
+        {items.map(item => (
+          <ItemCard
+            key={item.id}
+            item={item}
+            hasActiveClaim={activeClaimItemIds.has(item.id)}
+            cooldownAvailableAt={cooldownByItemId.get(item.id)}
+            onClaimSubmitted={setSubmittedClaimCode}
+          />
+        ))}
+      </div>
+      {successModal}
+    </>
   )
 }

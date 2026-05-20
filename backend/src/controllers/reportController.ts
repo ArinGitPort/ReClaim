@@ -9,6 +9,7 @@ import { emitReportStatusUpdated } from "@/realtime/socket.js";
 import { createNotificationForUser, createNotificationsForRoles } from "@/services/notificationService.js";
 import { emitNotificationCreated } from "@/realtime/socket.js";
 import { emitItemUpdated } from "@/realtime/socket.js";
+import { emitReportMessageCreated } from "@/realtime/socket.js";
 
 type NotificationPayload = {
   id: string;
@@ -37,6 +38,10 @@ const updateReportSchema = z.object({
 
 const idParamsSchema = z.object({
   id: z.string().uuid(),
+});
+
+const postReportMessageSchema = z.object({
+  message: z.string().min(1),
 });
 
 export async function postReport(req: Request, res: Response): Promise<void> {
@@ -323,4 +328,108 @@ export async function patchReportClose(req: Request, res: Response): Promise<voi
   });
 
   res.json({ report });
+}
+
+export async function getReportMessages(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+
+  const report = await prisma.lostReport.findUnique({ where: { id } });
+  if (!report) {
+    throw new HttpError(404, "Report not found");
+  }
+
+  if (req.user!.role === "STUDENT" && report.reporterUserId !== req.user!.id) {
+    throw new HttpError(403, "You can only view your own report messages");
+  }
+
+  const messages = await prisma.reportMessage.findMany({
+    where: { reportId: id },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      sender: true,
+      message: true,
+      createdAt: true,
+    },
+  });
+
+  res.json({ messages });
+}
+
+export async function postReportMessage(req: Request, res: Response): Promise<void> {
+  const { id } = idParamsSchema.parse(req.params);
+  const body = postReportMessageSchema.parse(req.body);
+
+  const report = await prisma.lostReport.findUnique({ where: { id } });
+  if (!report) {
+    throw new HttpError(404, "Report not found");
+  }
+
+  if (req.user!.role === "STUDENT" && report.reporterUserId !== req.user!.id) {
+    throw new HttpError(403, "You can only message on your own report");
+  }
+
+  if (report.status !== ReportStatus.ACTIVE_SEARCH && report.status !== ReportStatus.MATCHED) {
+    throw new HttpError(400, "Messages are available after the report is authorized");
+  }
+
+  const message = await prisma.reportMessage.create({
+    data: {
+      reportId: id,
+      sender: req.user!.role === "STUDENT" ? "STUDENT" : "ADMIN",
+      message: body.message,
+    },
+    select: {
+      id: true,
+      sender: true,
+      message: true,
+      createdAt: true,
+    },
+  });
+
+  const senderIsStudent = req.user!.role === "STUDENT";
+  const notificationTitle = senderIsStudent ? "Student Report Message" : "Admin Report Message";
+  const notificationMessage = senderIsStudent
+    ? `${report.reportCode} has a new student message.`
+    : `${report.reportCode} has a new staff message.`;
+
+  if (senderIsStudent) {
+    const adminNotifications = await createNotificationsForRoles({
+      roles: ["ADMIN", "STAFF"],
+      title: notificationTitle,
+      message: notificationMessage,
+      route: `/admin/reports?focus=${report.reportCode}`,
+      type: "REPORT_MESSAGE",
+    });
+
+    adminNotifications.forEach((notification: NotificationPayload) => {
+      emitNotificationCreated({
+        userId: notification.userId,
+        notification,
+      });
+    });
+  } else {
+    const reporterNotification = await createNotificationForUser({
+      userId: report.reporterUserId,
+      title: notificationTitle,
+      message: notificationMessage,
+      route: `/my-reports?focus=${report.reportCode}`,
+      type: "REPORT_MESSAGE",
+    });
+
+    emitNotificationCreated({
+      userId: reporterNotification.userId,
+      notification: reporterNotification,
+    });
+  }
+
+  emitReportMessageCreated({
+    reportId: id,
+    reporterUserId: report.reporterUserId,
+    sender: message.sender,
+    messageId: message.id,
+    createdAt: message.createdAt,
+  });
+
+  res.status(201).json({ message });
 }
