@@ -7,18 +7,20 @@ type CameraFeedProps = {
   cam: CampusCamera
   idx: number
   time: string
+  serviceRunning?: boolean
   isFocus?: boolean
   onClick?: () => void
 }
 
-export function CameraFeed({ cam, idx: _idx, time, isFocus, onClick }: CameraFeedProps) {
+export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, isFocus, onClick }: CameraFeedProps) {
   const [imageError, setImageError] = useState(false)
-  const isStreaming = cam.isOnline
+  const isCameraEnabled = cam.streamEnabled !== false
+  const isStreaming = serviceRunning && isCameraEnabled && cam.isOnline
   const isAiActive = cam.isOnline && cam.aiEnabled
 
   useEffect(() => {
     setImageError(!isStreaming)
-  }, [isStreaming])
+  }, [cam.id, isStreaming])
 
   return (
     <div
@@ -36,11 +38,19 @@ export function CameraFeed({ cam, idx: _idx, time, isFocus, onClick }: CameraFee
         <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-800 font-mono text-sm">
           <Radio className="w-8 h-8 mb-2 opacity-20" />
           <span className={isFocus ? "text-lg text-slate-700" : "text-xs text-slate-700"}>
-            {!cam.isOnline ? "OFFLINE" : "STREAM_UNAVAILABLE"}
+            {!serviceRunning ? "CAMERA SERVICE OFF" : !isCameraEnabled ? "CAMERA PAUSED" : !cam.isOnline ? (cam.streamStatus ?? "OFFLINE") : "STREAM_UNAVAILABLE"}
           </span>
-          {cam.isOnline && (
+          {!serviceRunning ? (
             <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
-              Start AI Service to enable live stream
+              Start Camera Service to view live feeds
+            </span>
+          ) : !isCameraEnabled ? (
+            <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+              Turn this camera on in Camera Settings
+            </span>
+          ) : cam.isOnline && (
+            <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+              Waiting for camera stream
             </span>
           )}
         </div>

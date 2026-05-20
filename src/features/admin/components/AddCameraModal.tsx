@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/Modal"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { Select } from "@/components/ui/Select"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { addCameraSchema, type AddCameraFormData } from "@/lib/validations/adminSchemas"
 
@@ -12,34 +12,48 @@ interface AddCameraModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: { name: string; location: string; sourceUrl: string }) => Promise<void>
+  initialValues?: {
+    name: string
+    location: string
+    sourceUrl: string
+  } | null
+  title?: string
+  submitText?: string
 }
 
-export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProps) {
+export function AddCameraModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialValues,
+  title = "Add New Camera",
+  submitText = "Add Camera",
+}: AddCameraModalProps) {
+  const defaultValues = useMemo(() => getDefaultValues(initialValues), [initialValues])
   const {
     register,
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<AddCameraFormData>({
     resolver: zodResolver(addCameraSchema),
-    defaultValues: {
-      name: "",
-      location: "",
-      sourceType: "webcam",
-      webcamIndex: "0",
-      rtspUrl: "",
-    },
+    defaultValues,
   })
 
-  const sourceType = watch("sourceType")
-  const webcamIndex = watch("webcamIndex") || "0"
+  const sourceType = useWatch({ control, name: "sourceType" })
+  const webcamIndex = useWatch({ control, name: "webcamIndex" }) || "0"
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const [submitError, setSubmitError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    reset(defaultValues)
+    setSubmitError(null)
+  }, [defaultValues, isOpen, reset])
 
   // Fetch available cameras when modal opens
   useEffect(() => {
@@ -107,6 +121,7 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
 
     try {
       setSubmitError(null)
+      stopStream()
       await onSubmit({ name: data.name, location: data.location, sourceUrl: finalSourceUrl })
       reset()
       onClose()
@@ -121,7 +136,7 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="w-[800px] max-w-[90vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
       <ModalHeader
-        title="Add New Camera"
+        title={title}
         icon={<Camera className="w-5 h-5 text-white" />}
         onClose={onClose}
         containerClassName="p-6 pb-4"
@@ -230,7 +245,7 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
               ) : (
                 <div className="text-center px-6">
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">RTSP Preview Unavailable</div>
-                  <div className="text-[10px] text-slate-400 font-medium">Browser security restricts direct RTSP playback. Connection will be verified by the AI daemon upon saving.</div>
+                  <div className="text-[10px] text-slate-400 font-medium">Browser security restricts direct RTSP playback. Connection will be verified by the camera service upon saving.</div>
                 </div>
               )}
             </div>
@@ -249,10 +264,23 @@ export function AddCameraModal({ isOpen, onClose, onSubmit }: AddCameraModalProp
             type="submit" 
             className="h-11 px-8 bg-brand hover:bg-brand-active text-white font-bold rounded-xl border-none shadow-sm transition-all"
           >
-            {isSubmitting ? "Saving..." : "Add Camera"}
+            {isSubmitting ? "Saving..." : submitText}
           </Button>
         </div>
       </form>
     </Modal>
   )
+}
+
+function getDefaultValues(initialValues?: AddCameraModalProps["initialValues"]): AddCameraFormData {
+  const sourceUrl = initialValues?.sourceUrl ?? "0"
+  const isRtsp = sourceUrl.startsWith("rtsp://")
+
+  return {
+    name: initialValues?.name ?? "",
+    location: initialValues?.location ?? "",
+    sourceType: isRtsp ? "rtsp" : "webcam",
+    webcamIndex: isRtsp ? "0" : sourceUrl,
+    rtspUrl: isRtsp ? sourceUrl : "",
+  }
 }

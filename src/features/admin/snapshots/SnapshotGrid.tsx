@@ -1,6 +1,6 @@
 import { Camera, Clock, MapPin, Trash2 } from "lucide-react"
 import { getImageUrl } from "@/lib/utils"
-import { formatShortDate } from "@/lib/formatters"
+import { formatCompactDateTime, formatShortDate } from "@/lib/formatters"
 import {
   getConfidenceBadgeClass,
   getSnapshotCategory,
@@ -60,7 +60,7 @@ export function SnapshotGrid({ snapshots, variant = "active", onSelect }: Snapsh
               <div className="flex items-center gap-1.5 mt-1 text-[10px] font-semibold text-slate-500">
                 <Clock className="w-3 h-3 text-slate-400 flex-shrink-0" />
                 <span className="truncate">
-                  {new Date(snapshot.detectedAtUtc).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {formatCompactDateTime(snapshot.detectedAtUtc)}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-semibold text-slate-500">

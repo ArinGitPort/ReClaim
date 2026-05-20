@@ -1,38 +1,20 @@
 import type { Request, Response } from "express";
-import { Prisma } from "@prisma/client";
+import { CameraStreamStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma.js";
 import { HttpError } from "@/utils/errors.js";
-
-const zonePointSchema = z.object({
-  x: z.number().min(0).max(1),
-  y: z.number().min(0).max(1),
-});
-
-const cameraZoneSchema = z.object({
-  label: z.string().min(1).max(80),
-  type: z.enum(["monitor", "ignore"]).optional(),
-  points: z.array(zonePointSchema).min(3).optional(),
-  x: z.number().min(0).max(1).optional(),
-  y: z.number().min(0).max(1).optional(),
-  width: z.number().min(0).max(1).optional(),
-  height: z.number().min(0).max(1).optional(),
-}).refine((zone) => {
-  const hasPolygon = Boolean(zone.points?.length);
-  const hasRectangle = [zone.x, zone.y, zone.width, zone.height].every((value) => typeof value === "number");
-  return hasPolygon || hasRectangle;
-}, "Zone must include either polygon points or rectangle x/y/width/height values");
-
-const cameraZoneConfigSchema = z.object({
-  monitoredZones: z.array(cameraZoneSchema).default([]),
-  ignoredZones: z.array(cameraZoneSchema).default([]),
-}).nullable();
+import { env } from "@/config/env.js";
 
 const createCameraSchema = z.object({
   name: z.string().min(1),
   location: z.string().min(1),
   sourceUrl: z.string().min(1),
-  zoneConfig: cameraZoneConfigSchema.optional(),
+});
+
+const updateCameraSchema = z.object({
+  name: z.string().min(1),
+  location: z.string().min(1),
+  sourceUrl: z.string().min(1),
 });
 
 export async function getCameras(req: Request, res: Response): Promise<void> {
@@ -64,8 +46,9 @@ export async function createCamera(req: Request, res: Response): Promise<void> {
       name: body.name,
       location: body.location,
       sourceUrl: normalizedSourceUrl,
-      zoneConfig: body.zoneConfig ?? undefined,
-      isOnline: true,
+      isOnline: false,
+      streamStatus: CameraStreamStatus.CONNECTING,
+      lastError: null,
       aiEnabled: false,
     },
   });
@@ -75,6 +58,10 @@ export async function createCamera(req: Request, res: Response): Promise<void> {
 
 const updateAiSchema = z.object({
   aiEnabled: z.boolean(),
+});
+
+const updateStreamSchema = z.object({
+  streamEnabled: z.boolean(),
 });
 
 export async function updateCameraAi(req: Request, res: Response): Promise<void> {
@@ -89,17 +76,80 @@ export async function updateCameraAi(req: Request, res: Response): Promise<void>
   res.json({ camera });
 }
 
-const updateZoneConfigSchema = z.object({
-  zoneConfig: cameraZoneConfigSchema,
-});
-
-export async function updateCameraZones(req: Request, res: Response): Promise<void> {
+export async function updateCameraStream(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
-  const { zoneConfig } = updateZoneConfigSchema.parse(req.body);
+  const { streamEnabled } = updateStreamSchema.parse(req.body);
 
   const camera = await prisma.camera.update({
     where: { id },
-    data: { zoneConfig: zoneConfig ?? Prisma.JsonNull },
+    data: streamEnabled
+      ? {
+          streamEnabled: true,
+          streamStatus: CameraStreamStatus.CONNECTING,
+          lastError: null,
+        }
+      : {
+          streamEnabled: false,
+          isOnline: false,
+          streamStatus: CameraStreamStatus.OFFLINE,
+          lastError: "Camera stream is paused by staff",
+        },
+  });
+
+  if (!streamEnabled) {
+    try {
+      await fetch(`${env.aiServiceBaseUrl}/cameras/${id}/restart`, {
+        method: "POST",
+        headers: { "x-service-token": env.serviceToken },
+        signal: AbortSignal.timeout(1500),
+      });
+    } catch {
+      // Service may be offline; persisted state is enough.
+    }
+  }
+
+  res.json({ camera });
+}
+
+export async function updateCamera(req: Request, res: Response): Promise<void> {
+  const { id } = req.params as { id: string };
+  const body = updateCameraSchema.parse(req.body);
+  const normalizedSourceUrl = body.sourceUrl.trim();
+
+  const existingSource = await prisma.camera.findFirst({
+    where: {
+      sourceUrl: normalizedSourceUrl,
+      id: { not: id },
+    },
+    select: { name: true },
+  });
+  if (existingSource) {
+    throw new HttpError(409, `Camera source is already used by ${existingSource.name}. Use a different webcam index or stream URL.`);
+  }
+
+  const currentCamera = await prisma.camera.findUnique({ where: { id } });
+  if (!currentCamera) {
+    throw new HttpError(404, "Camera not found");
+  }
+
+  const sourceChanged = currentCamera.sourceUrl !== normalizedSourceUrl;
+
+  const camera = await prisma.camera.update({
+    where: { id },
+    data: {
+      name: body.name,
+      location: body.location,
+      sourceUrl: normalizedSourceUrl,
+      ...(sourceChanged
+        ? {
+            isOnline: false,
+            streamStatus: CameraStreamStatus.CONNECTING,
+            lastPingAtUtc: null,
+            lastFrameAtUtc: null,
+            lastError: null,
+          }
+        : {}),
+    },
   });
 
   res.json({ camera });
@@ -107,21 +157,60 @@ export async function updateCameraZones(req: Request, res: Response): Promise<vo
 
 const pingCameraSchema = z.object({
   isOnline: z.boolean().optional(),
+  streamStatus: z.nativeEnum(CameraStreamStatus).optional(),
+  lastFrameAtUtc: z.string().datetime().optional().nullable(),
+  lastError: z.string().optional().nullable(),
 });
 
 export async function pingCamera(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
   const body = pingCameraSchema.parse(req.body ?? {});
+  const isOnline = body.isOnline ?? true;
   
   const camera = await prisma.camera.update({
     where: { id },
     data: { 
       lastPingAtUtc: new Date(),
-      isOnline: body.isOnline ?? true,
+      isOnline,
+      streamStatus: body.streamStatus ?? (isOnline ? CameraStreamStatus.ONLINE : CameraStreamStatus.OFFLINE),
+      lastFrameAtUtc: body.lastFrameAtUtc === null
+        ? null
+        : body.lastFrameAtUtc
+          ? new Date(body.lastFrameAtUtc)
+          : undefined,
+      lastError: body.lastError === null ? null : body.lastError,
     },
   });
 
   res.json({ success: true, lastPingAtUtc: camera.lastPingAtUtc });
+}
+
+export async function restartCamera(req: Request, res: Response): Promise<void> {
+  const { id } = req.params as { id: string };
+
+  const camera = await prisma.camera.update({
+    where: { id },
+    data: {
+      isOnline: false,
+      streamStatus: CameraStreamStatus.CONNECTING,
+      lastError: null,
+      lastFrameAtUtc: null,
+    },
+  });
+
+  let daemonAccepted = false;
+  try {
+    const response = await fetch(`${env.aiServiceBaseUrl}/cameras/${id}/restart`, {
+      method: "POST",
+      headers: { "x-service-token": env.serviceToken },
+      signal: AbortSignal.timeout(1500),
+    });
+    daemonAccepted = response.ok;
+  } catch {
+    daemonAccepted = false;
+  }
+
+  res.json({ camera, daemonAccepted });
 }
 
 export async function deleteCamera(req: Request, res: Response): Promise<void> {

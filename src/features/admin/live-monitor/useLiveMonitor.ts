@@ -6,7 +6,7 @@ import { useAiServiceStatus } from "./useAiServiceStatus"
 export function useLiveMonitor() {
   const [cameras, setCameras] = useState<CampusCamera[]>([])
   const [filter, setFilter] = useState("all")
-  const [viewMode, setViewMode] = useState<LiveMonitorViewMode>("grid")
+  const [viewMode, setViewMode] = useState<LiveMonitorViewMode>("focus")
   const [activeCamId, setActiveCamId] = useState<string | null>(null)
   const [recentSnapshots, setRecentSnapshots] = useState<RecentSnapshot[]>([])
   const { aiService, setAiService } = useAiServiceStatus(5000)
@@ -81,7 +81,7 @@ export function useLiveMonitor() {
         model: null,
         device: null,
         cudaAvailable: null,
-        error: running ? "Unable to start AI service." : "Unable to stop AI service.",
+        error: running ? "Unable to start camera service." : "Unable to stop camera service.",
       }))
     } finally {
       setIsAiServiceUpdating(false)

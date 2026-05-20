@@ -38,7 +38,7 @@ export function LiveMonitorHeaderActions({
         isRunning ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-slate-50 border-slate-200 text-slate-500"
       }`}>
         <span className={`w-2 h-2 rounded-full ${isRunning ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
-        {isRunning ? "AI Service Online" : "AI Service Off"}
+        {isRunning ? "Camera Service Online" : "Camera Service Off"}
       </div>
 
       <Button
@@ -51,7 +51,7 @@ export function LiveMonitorHeaderActions({
             : "bg-brand text-white hover:bg-brand-active"
         }`}
       >
-        {isAiServiceUpdating ? "Updating..." : isRunning ? "Stop AI Service" : "Start AI Service"}
+        {isAiServiceUpdating ? "Updating..." : isRunning ? "Stop Camera Service" : "Start Camera Service"}
       </Button>
     </div>
   )

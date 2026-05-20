@@ -28,9 +28,6 @@ export function getSnapshotReasonLabels(snapshot: AISnapshot): string[] {
   if (meta.personWasNearby) {
     labels.push("Person moved away")
   }
-  if (meta.zoneName) {
-    labels.push(`Zone: ${meta.zoneName}`)
-  }
   if (meta.reason && labels.length === 0) {
     labels.push(...meta.reason.split("/").map((part) => part.trim()).filter(Boolean))
   }

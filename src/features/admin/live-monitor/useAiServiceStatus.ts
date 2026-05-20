@@ -19,7 +19,7 @@ export function useAiServiceStatus(intervalMs = 10000) {
         model: null,
         device: null,
         cudaAvailable: null,
-        error: "Unable to reach AI service controller.",
+        error: "Unable to reach camera service controller.",
       })
     }
   }, [])

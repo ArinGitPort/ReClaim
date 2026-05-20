@@ -1,6 +1,7 @@
 import { Activity, Clock, MapPin, ScanSearch } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { formatCompactDateTime } from "@/lib/formatters"
 import { getConfidenceBadgeClass, getSnapshotCategory, getSnapshotConfidence, getSnapshotLocation } from "@/features/admin/snapshots/snapshotUtils"
 import type { RecentSnapshot } from "./types"
 
@@ -40,7 +41,7 @@ export function RecentDetectionsPanel({ snapshots }: RecentDetectionsPanelProps)
                 <div className="flex justify-between items-start mb-1">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     <Clock className="w-3 h-3" />
-                    {new Date(snapshot.detectedAtUtc).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <span className="normal-case tracking-normal">{formatCompactDateTime(snapshot.detectedAtUtc)}</span>
                   </div>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold border ${getConfidenceBadgeClass(confidence)}`}>
                     {confidence}%

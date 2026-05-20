@@ -13,7 +13,6 @@ export type AISnapshot = {
     stationaryDuration?: number
     personWasNearby?: boolean
     personLeftAt?: string | null
-    zoneName?: string | null
     reason?: string
     duplicateKey?: string
     boundingBox?: {

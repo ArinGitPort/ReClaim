@@ -55,6 +55,7 @@ LOST_ITEM_CLASSES = {
 active_trackers = {}
 ACTIVE_CAMERAS = {}
 RECENT_SNAPSHOTS = []
+RESTART_REQUESTS = set()
 
 
 def normalize_source_key(source_url):
@@ -237,74 +238,12 @@ def is_person_near_item(item_box, person_boxes, frame_shape):
     return False
 
 
-def normalize_point(point, frame_width, frame_height):
-    if isinstance(point, dict):
-        return float(point.get("x", 0)), float(point.get("y", 0))
-    return float(point[0]), float(point[1])
-
-
-def zone_points(zone):
-    if isinstance(zone.get("points"), list) and len(zone["points"]) >= 3:
-        return zone["points"]
-
-    required = ["x", "y", "width", "height"]
-    if all(isinstance(zone.get(key), (int, float)) for key in required):
-        x, y, width, height = zone["x"], zone["y"], zone["width"], zone["height"]
-        return [
-            {"x": x, "y": y},
-            {"x": x + width, "y": y},
-            {"x": x + width, "y": y + height},
-            {"x": x, "y": y + height},
-        ]
-
-    return []
-
-
-def point_in_polygon(point, polygon):
-    x, y = point
-    inside = False
-    j = len(polygon) - 1
-    for i in range(len(polygon)):
-        xi, yi = polygon[i]
-        xj, yj = polygon[j]
-        intersects = ((yi > y) != (yj > y)) and (
-            x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-9) + xi
-        )
-        if intersects:
-            inside = not inside
-        j = i
-    return inside
-
-
-def get_zone_match(camera, box, frame_shape):
-    config = camera.get("zoneConfig") or {}
-    frame_height, frame_width = frame_shape[:2]
-    cx, cy = box_center(box)
-    normalized_center = (cx / frame_width, cy / frame_height)
-
-    for zone in config.get("ignoredZones") or []:
-        polygon = [normalize_point(point, frame_width, frame_height) for point in zone_points(zone)]
-        if polygon and point_in_polygon(normalized_center, polygon):
-            return {"ignored": True, "zoneName": zone.get("label", "Ignored zone")}
-
-    monitored_zones = config.get("monitoredZones") or []
-    if monitored_zones:
-        for zone in monitored_zones:
-            polygon = [normalize_point(point, frame_width, frame_height) for point in zone_points(zone)]
-            if polygon and point_in_polygon(normalized_center, polygon):
-                return {"ignored": False, "zoneName": zone.get("label", "Monitored zone")}
-        return {"ignored": True, "zoneName": "Outside monitored zones"}
-
-    return {"ignored": False, "zoneName": None}
-
-
-def make_duplicate_key(camera_id, category_name, box, frame_shape, zone_name):
+def make_duplicate_key(camera_id, category_name, box, frame_shape):
     frame_height, frame_width = frame_shape[:2]
     cx, cy = box_center(box)
     bucket_x = int((cx / frame_width) * 10)
     bucket_y = int((cy / frame_height) * 10)
-    zone_part = zone_name or "no-zone"
-    return f"{camera_id}:{category_name}:{zone_part}:{bucket_x}:{bucket_y}"
+    return f"{camera_id}:{category_name}:{bucket_x}:{bucket_y}"
 
 
 def is_duplicate_snapshot(camera_id, category_name, box, duplicate_key):
@@ -358,8 +297,10 @@ def track_camera(camera_id, stop_event):
     if not cap.isOpened():
         print(f"[CAM: {camera['name']}] Unable to open camera source: {source}")
         LATEST_FRAMES[camera_id] = make_placeholder_frame("CAMERA UNAVAILABLE", f"Source {source} could not be opened")
-        ping_camera(camera_id, False)
+        ping_camera(camera_id, False, "ERROR", None, f"Source {source} could not be opened")
         return
+
+    ping_camera(camera_id, True, "CONNECTING", None, None)
 
     track_history = defaultdict(
         lambda: {
@@ -376,6 +317,7 @@ def track_camera(camera_id, stop_event):
     while not stop_event.is_set():
         ret, frame = cap.read()
         if not ret:
+            ping_camera(camera_id, False, "ERROR", None, "Camera source stopped producing frames")
             time.sleep(1)
             continue
 
@@ -419,9 +361,6 @@ def track_camera(camera_id, stop_event):
                         conf = float(boxes.conf[i].item())
                         x1, y1, x2, y2 = boxes.xyxy[i].tolist()
                         item_box = (x1, y1, x2, y2)
-                        zone_match = get_zone_match(camera, item_box, frame.shape)
-                        if zone_match["ignored"]:
-                            continue
 
                         cx = (x1 + x2) / 2
                         cy = (y1 + y2) / 2
@@ -458,7 +397,7 @@ def track_camera(camera_id, stop_event):
                             continue
 
                         category_name = LOST_ITEM_CLASSES[cls_id]
-                        duplicate_key = make_duplicate_key(camera_id, category_name, item_box, frame.shape, zone_match["zoneName"])
+                        duplicate_key = make_duplicate_key(camera_id, category_name, item_box, frame.shape)
                         if is_duplicate_snapshot(camera_id, category_name, item_box, duplicate_key):
                             state["reported"] = True
                             continue
@@ -467,8 +406,6 @@ def track_camera(camera_id, stop_event):
                         reason_parts = [f"Stationary for {int(stationary_duration)}s"]
                         if state["person_was_nearby"]:
                             reason_parts.append("Person moved away")
-                        if zone_match["zoneName"]:
-                            reason_parts.append(f"Inside {zone_match['zoneName']}")
                         reason_parts.append("No interaction detected")
                         reasoning_meta = {
                             "stationaryDuration": round(stationary_duration, 1),
@@ -478,7 +415,6 @@ def track_camera(camera_id, stop_event):
                                 if state["person_left_at"]
                                 else None
                             ),
-                            "zoneName": zone_match["zoneName"],
                             "reason": " / ".join(reason_parts),
                             "duplicateKey": duplicate_key,
                         }
@@ -506,6 +442,10 @@ def track_camera(camera_id, stop_event):
         ret_jpg, buffer = cv2.imencode(".jpg", annotated_frame)
         if ret_jpg:
             LATEST_FRAMES[camera_id] = buffer.tobytes()
+            state = active_trackers.get(camera_id)
+            if state is not None:
+                state["last_frame_at"] = time.time()
+                state["last_error"] = None
 
         time.sleep(0.03)
 
@@ -523,12 +463,20 @@ def fetch_cameras():
     return []
 
 
-def ping_camera(camera_id, is_online=True):
+def ping_camera(camera_id, is_online=True, stream_status=None, last_frame_at=None, last_error=None):
+    payload = {"isOnline": is_online}
+    if stream_status:
+        payload["streamStatus"] = stream_status
+    if last_frame_at:
+        payload["lastFrameAtUtc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_frame_at))
+    if last_error is not None:
+        payload["lastError"] = last_error
+
     try:
         requests.patch(
             f"{BACKEND_API_URL}/cameras/{camera_id}/ping",
             headers={"x-service-token": BACKEND_SERVICE_TOKEN},
-            json={"isOnline": is_online},
+            json=payload,
             timeout=5,
         )
     except Exception:
@@ -578,6 +526,20 @@ def shutdown():
     return jsonify({"status": "stopping"})
 
 
+@app.route("/cameras/<camera_id>/restart", methods=["POST"])
+def restart_camera(camera_id):
+    token = request.headers.get("x-service-token", "")
+    if BACKEND_SERVICE_TOKEN and token != BACKEND_SERVICE_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+
+    RESTART_REQUESTS.add(camera_id)
+    tracker = active_trackers.get(camera_id)
+    if tracker:
+        tracker["stop_event"].set()
+
+    return jsonify({"status": "restart_requested", "cameraId": camera_id})
+
+
 def main():
     print("ReClaim AI Headless Daemon Started")
     print(f"Using YOLO model: {YOLO_MODEL}")
@@ -596,15 +558,48 @@ def main():
 
     while True:
         cameras = fetch_cameras()
-        active_ids = {cam["id"] for cam in cameras}
+        active_ids = {cam["id"] for cam in cameras if cam.get("streamEnabled", True)}
 
         for cam in cameras:
+            cam_id = cam["id"]
+            if not cam.get("streamEnabled", True):
+                tracker = active_trackers.get(cam_id)
+                if tracker:
+                    print(f"Pausing stream for disabled camera {cam['name']} ({cam_id})...")
+                    tracker["stop_event"].set()
+                    tracker["thread"].join(timeout=2)
+                    del active_trackers[cam_id]
+                LATEST_FRAMES[cam_id] = make_placeholder_frame("CAMERA PAUSED", "Stream disabled by staff")
+                ACTIVE_CAMERAS[cam_id] = cam
+                continue
+
+            previous_camera = ACTIVE_CAMERAS.get(cam_id)
+            if (
+                cam_id in active_trackers
+                and previous_camera
+                and normalize_source_key(previous_camera.get("sourceUrl")) != normalize_source_key(cam.get("sourceUrl"))
+            ):
+                print(f"Restarting stream for updated camera source {cam['name']} ({cam_id})...")
+                tracker = active_trackers[cam_id]
+                tracker["stop_event"].set()
+                tracker["thread"].join(timeout=2)
+                del active_trackers[cam_id]
+                LATEST_FRAMES.pop(cam_id, None)
             ACTIVE_CAMERAS[cam["id"]] = cam
 
         for cam_id in list(active_trackers.keys()):
             tracker = active_trackers[cam_id]
+            if cam_id in RESTART_REQUESTS:
+                print(f"Restarting stream for camera {cam_id} by request...")
+                tracker["stop_event"].set()
+                tracker["thread"].join(timeout=2)
+                del active_trackers[cam_id]
+                LATEST_FRAMES.pop(cam_id, None)
+                RESTART_REQUESTS.discard(cam_id)
+                continue
+
             if cam_id not in active_ids or not tracker["thread"].is_alive():
-                print(f"Stopping stream for deleted camera {cam_id}...")
+                print(f"Stopping stream for inactive camera {cam_id}...")
                 tracker["stop_event"].set()
                 tracker["thread"].join(timeout=2)
                 del active_trackers[cam_id]
@@ -614,6 +609,9 @@ def main():
 
         for cam in cameras:
             cam_id = cam["id"]
+            if not cam.get("streamEnabled", True):
+                continue
+
             if cam_id not in active_trackers:
                 source_key = normalize_source_key(cam["sourceUrl"])
                 source_in_use = any(
@@ -623,18 +621,26 @@ def main():
                 if source_in_use:
                     print(f"Skipping camera {cam['name']} because source {source_key} is already in use")
                     LATEST_FRAMES[cam_id] = make_placeholder_frame("SOURCE IN USE", f"Camera source {source_key} is already active")
-                    ping_camera(cam_id, False)
+                    ping_camera(cam_id, False, "SOURCE_IN_USE", None, f"Camera source {source_key} is already active")
                     continue
 
                 print(f"Starting stream for camera {cam['name']} ({cam_id})...")
                 stop_event = threading.Event()
                 thread = threading.Thread(target=track_camera, args=(cam_id, stop_event), daemon=True)
                 thread.start()
-                active_trackers[cam_id] = {"stop_event": stop_event, "thread": thread}
+                active_trackers[cam_id] = {"stop_event": stop_event, "thread": thread, "last_frame_at": None, "last_error": None}
 
         if time.time() - last_ping_time > 30:
-            for cam_id in active_trackers.keys():
-                ping_camera(cam_id)
+            for cam_id, tracker in active_trackers.items():
+                last_frame_at = tracker.get("last_frame_at")
+                has_frame = last_frame_at is not None and time.time() - last_frame_at < 45
+                ping_camera(
+                    cam_id,
+                    has_frame,
+                    "ONLINE" if has_frame else "CONNECTING",
+                    last_frame_at,
+                    None if has_frame else "Waiting for first frame",
+                )
             last_ping_time = time.time()
 
         time.sleep(10)

@@ -12,11 +12,11 @@ export function AdminAiStatusIndicator() {
           ? "border-emerald-200 bg-emerald-50 text-emerald-700"
           : "border-slate-200 bg-slate-50 text-slate-400"
       }`}
-      title={isRunning ? `AI service online${aiService?.device ? ` on ${aiService.device}` : ""}` : "AI service is off"}
+      title={isRunning ? `Camera service online${aiService?.device ? `; AI device ${aiService.device}` : ""}` : "Camera service is off"}
     >
       <span className={`h-2 w-2 rounded-full ${isRunning ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
       <Cpu className="h-3.5 w-3.5" />
-      <span>{isRunning ? "AI On" : "AI Off"}</span>
+      <span>{isRunning ? "Cameras On" : "Cameras Off"}</span>
       {isRunning && aiService?.activeCameras.length ? (
         <span className="rounded-full bg-white/70 px-1.5 py-0.5 text-[9px] text-emerald-700">
           {aiService.activeCameras.length}
