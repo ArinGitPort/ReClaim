@@ -4,58 +4,73 @@
 
 ### AI Surveillance Daemon Optimization
 **Update:** Decoupled the raw video streaming component from the AI inference engine.
-**Documentation:** Previously, the video stream and AI processing were tightly coupled, causing performance bottlenecks. By separating them, the system now allows for independent live monitoring and AI toggling. The YOLOv8-Medium model was also configured with specific class filtering (backpacks, laptops, bottles, etc.) to improve detection accuracy and a refined confidence threshold was established to minimize false positives.
+**Documentation:** Separated the video stream feed and AI processing thread to resolve performance bottlenecks. The YOLOv8 model was configured with class filtering (backpacks, laptops, bottles, etc.) to target relevant lost item categories and optimize detection latency.
 
 ### Reusable UI Components & Admin Handover UI
-**Update:** Standardization of the confirmation workflow across administrative actions.
-**Documentation:** Extracted duplicate modal code into standalone `StatusModal` and `StatusContent` components. This ensures a consistent design language across the application. The report tracking on the user side (`UserMyReportsPage`) was also refactored to prioritize actionable statuses (e.g., "Match Found", "Active Search") over closed items, improving user experience.
+**Update:** Standardized the confirmation workflow across admin actions and refactored report tracking.
+**Documentation:** Extracted duplicate modal implementations into standalone `StatusModal` and `StatusContent` components. Refactored the user-side report tracking (`UserMyReportsPage`) to prioritize active searches and matches over historical closed records, streamlining user navigation.
 
 ### Admin Dashboard Analytics Backend
-**Update:** Transformed the Admin Dashboard from a static placeholder into a data-driven overview.
-**Documentation:** Implemented a backend analytics API to track key performance metrics such as active inventory count, pending claims, and camera network health. These data feeds are now integrated into the frontend dashboard utilizing a high-density, professional UI that provides administrators with actionable insights at a glance.
+**Update:** Migrated the Admin Dashboard from a static mockup to a live, data-driven interface.
+**Documentation:** Added a backend analytics API to aggregate system-wide performance indices (active found inventory, pending claims, camera network health). Integrated these endpoints into the admin front-facing dashboard to provide real-time operational insights.
 
 ### Form Sanitization & Header State Resolutions
-**Update:** Enhanced security on authentication forms and resolved session persistence bugs.
-**Documentation:** Added sanitization logic to Login and Register forms to prevent trailing spaces from being counted as valid input in email/password fields. Additionally, resolved a critical issue where header navigation and admin functionalities persisted after a user logged out by ensuring strict session invalidation and React state clearing across the main navigation and sidebar.
+**Update:** Secured authorization inputs and fixed session persistence bugs on logout.
+**Documentation:** Input validation sanitizes all auth forms (stripping trailing whitespace in email and password fields). Resolved navigation state leakage by ensuring strict session token clearance and resetting active React states in the main sidebar and headers on user logout.
 
 ---
 
 ## 2. Latest System Update
 
-### Real-Time Live AI Monitor & Dismissed Snapshots Archive
-**Update:** Replaced mock data with real-time API polling on the Live Monitor and introduced a robust "Soft-Delete" snapshot archiving system.
+### AI Detection Robustness v1: Stateful Tracking & Multi-Person Conservation
+**Update:** Upgraded the computer vision daemon to state-based tracking, implemented proximity-based person attendance logic, and introduced rich reasoning metadata on the frontend review queue.
 
 **Detailed Explanation & Documentation:**
-1. **Live AI Monitor Integration:** The `AdminLiveMonitorPage` was completely refactored. The "Recent Detections" side panel now actively polls the `GET /snapshots` endpoint every 15 seconds instead of relying on hardcoded mock arrays. It displays real detection times, color-coded confidence badges (e.g., Green for ≥90%), and predicted categories. Each detection acts as a direct link to the snapshot gallery for immediate review.
-2. **Dismissed Snapshots Archive:** Rather than permanently deleting false alarms, the system now employs a "soft-delete" mechanism. The `AIEvidenceLog` database schema was updated with a `dismissedAt` timestamp. A brand new page (`AdminDismissedSnapshotsPage`) was created to serve as a recovery queue.
-3. **Audit Trail Accountability:** To maintain strict administrative accountability, the `AuditAction` enum in the database was expanded to include `SNAPSHOT_DISMISSED` and `SNAPSHOT_RESTORED`. Any time an administrator dismisses a false alarm or restores one from the archive, the action is permanently recorded in the system's Audit Trail with the actor's details and timestamp.
+
+1. **Stateful Tracking & Spatial Matching (`daemon.py`)**:
+   Historically, the Python camera service relied strictly on volatile YOLO track IDs, leading to split tracks and duplicate alerts when the detector momentarily lost track. The new architecture implements a persistent spatial state dictionary (`track_history`). Detections are matched across frames using spatial overlap (Intersection-over-Union) and center-distance bounds. An object keeps its history and tracking timer even if the underlying YOLO model fluctuates and assigns a new track ID.
+2. **Proximity-Based Human Attendance Checking**:
+   To prevent false alarms in crowded scenes, the AI service now verifies if a nearby person is "attending" the object before initiating the abandonment countdown.
+   * **Spatial Search Cone**: The daemon uses `is_person_near_item()`, expanding the item bounding box by 75% in all directions and calculating overlap (IoU) with any detected person bounding box.
+   * **Distance Threshold**: Matches centers against a camera frame diagonal scale (`PERSON_NEAR_DISTANCE_RATIO = 0.28`). 
+   * While a person remains within these bounds, the item is marked as "attended", holding the countdown timer. The timer only starts after all nearby persons exit the boundary.
+3. **Stationary & Grace Constraints**:
+   An item is only flagged as abandoned if it satisfies three strict criteria:
+   * **Stillness**: The item center must not shift by more than `STATIONARY_DIST_THRESHOLD` (50px). If it is moved, the timer resets.
+   * **Stationary Duration**: It must remain still for at least `STATIONARY_TIME_THRESHOLD` (10 seconds).
+   * **Grace Period**: After a person leaves the item, a grace period of `PERSON_LEFT_GRACE_SECONDS` (3 seconds) is enforced. If the person returns, the timer is aborted.
+4. **Spatial Duplicate Suppression**:
+   To prevent database spamming of the same abandoned object, the daemon buckets the camera frame into a `10x10` coordinate grid. A unique `duplicateKey` is generated based on camera ID, item class, and grid coordinates. Detections in the same grid bucket are suppressed for `DUPLICATE_SUPPRESSION_SECONDS` (5 minutes) to ensure clean, singular ingestion logs.
+5. **Rich Ingestion Metadata & Frontend Reasoning Badges**:
+   When an alert is uploaded to the backend, the daemon populates a comprehensive `detectionMeta` JSON payload containing `stationaryDuration`, `personWasNearby`, `personLeftAt`, and a descriptive `reason` text.
+   * On the admin UI, `SnapshotDetailsModal.tsx` and `snapshotUtils.ts` have been upgraded to read this metadata and render glowing, glassmorphic **Reasoning Badges** under the header **"Why AI flagged this"**. It displays dynamically computed reasons such as `Stationary for 12s` and `Person moved away` alongside the YOLO model details.
 
 ---
 
-## 3. Screenshots and Documentation
+## 3. Screen Documentation & Verification Guide
 
-*(Note: Please insert your high-resolution system screenshots in the placeholders below before presenting.)*
+*Use the local development server running at `http://localhost:5173/` to view and capture these screenshots. Save your captured images in the `d:/VSCODE Projects/ReClaim/screenshots/` folder.*
 
-### A. Live AI Monitor Interface
-![Live AI Monitor Interface](./screenshots/live-monitor-realtime.png)
+### A. AI Snapshot Gallery with Reasoning Badges
+![AI Snapshot Gallery](./screenshots/snapshot-gallery-reasoning.png)
 
-**Discussion & Explanation:**
-This screenshot demonstrates the newly upgraded Live AI Monitor. On the left, you can see the multi-camera grid streaming live MJPEG feeds directly from campus security cameras. On the right is the new **Real-Time Detections Feed**. As the YOLOv8 AI daemon registers items in the frame, they populate this list automatically every 15 seconds. The color-coded badges (green, blue, amber) instantly communicate the AI's confidence level, allowing administrators to prioritize which snapshots to review first.
+**Documentation & Verification:**
+Navigating to the **AI Snapshot Gallery** (`/admin/snapshots`) displays the incoming review queue. Each card contains the image captured by the camera daemon. As verified in this screen, the cards are now equipped with dynamic category labels and confidence ratings parsed directly from the updated `detectionMeta` database records.
 
-### B. Dismissed Snapshots Archive
-![Dismissed Snapshots Archive](./screenshots/dismissed-snapshots-archive.png)
+### B. AI Snapshot Review Modal
+![AI Snapshot Review Modal](./screenshots/snapshot-review-modal.png)
 
-**Discussion & Explanation:**
-This screenshot highlights the new Dismissed Snapshots page. When an administrator encounters a false alarm in the primary Snapshot Gallery (e.g., a jacket mistaken for a backpack), they dismiss it. Instead of vanishing, it appears here. This interface mimics the high-density layout of our standard data tables, allowing admins to search, filter by category, and review the exact metadata of the dismissed item. Most importantly, it features a "Restore" action, preventing permanent data loss from accidental clicks.
+**Documentation & Verification:**
+Clicking on a snapshot card opens the **AI Snapshot Review Modal**. Under the **"Why AI flagged this"** panel, you can verify that the system successfully parses the stateful tracking parameters. It displays the active reason tags (e.g. `Stationary for 10s`, `Person moved away`) and provides staff with a clear explanation of the AI's logic, supporting manual approval ("Log as Found") or rejection ("Dismiss False Alarm").
 
-### C. Enhanced Audit Trail
-![Audit Trail Logging](./screenshots/audit-trail-updates.png)
+### C. Live Camera Monitor
+![Live Camera Monitor](./screenshots/live-monitor-camera.png)
 
-**Discussion & Explanation:**
-This screenshot shows the updated Audit Trail interface. You can see the new `SNAPSHOT_DISMISSED` and `SNAPSHOT_RESTORED` actions successfully logging. The system records exactly which administrator performed the action and the unique reference code of the snapshot. This guarantees that all interactions with AI-generated evidence are tracked, ensuring compliance and accountability within the administrative portal.
+**Documentation & Verification:**
+The **Live AI Monitor** (`/admin/live-monitor`) displays active cameras and overlays bounding boxes around identified objects. On the right-hand panel, the "Recent Detections Feed" dynamically updates. The camera status badge shows the stream's operational state, verifying proper integration with the running computer vision daemon.
 
-### D. Dynamic Header Navigation
-![Dynamic Header Fix](./screenshots/dynamic-header.png)
+### D. Audit Trail Action Logger
+![Audit Trail Logging](./screenshots/audit-trail-logs.png)
 
-**Discussion & Explanation:**
-This visual focuses on the top navigation bar. Previously, navigating to new administrative routes like the Snapshot Gallery or Live Monitor would incorrectly display a generic "Admin Portal" title. As shown in the screenshot, the header routing logic has been fixed and strictly ordered. The application now dynamically and accurately reads the URL path to display the precise module name (e.g., "AI Snapshot Gallery" or "Live Monitor"), significantly improving contextual awareness for the user.
+**Documentation & Verification:**
+The **Audit Trail** (`/admin/audit-logs`) displays chronological logs of all staff actions. Any time an administrator dismisses a stateful AI alert or logs it as a found item, a corresponding audit record is committed. This guarantees high reliability, operational compliance, and strict administrative accountability.

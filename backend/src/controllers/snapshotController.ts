@@ -195,3 +195,92 @@ export async function restoreSnapshot(req: Request, res: Response): Promise<void
 
   res.json({ success: true });
 }
+
+export async function batchDismissSnapshots(req: Request, res: Response): Promise<void> {
+  const { snapshotIds } = req.body;
+  if (!Array.isArray(snapshotIds) || snapshotIds.length === 0) {
+    throw new HttpError(400, "snapshotIds array is required");
+  }
+
+  const actorUserId = req.user?.id;
+  if (!actorUserId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  await prisma.aIEvidenceLog.updateMany({
+    where: { id: { in: snapshotIds } },
+    data: { dismissedAt: new Date() },
+  });
+
+  await logAudit({
+    actorUserId,
+    action: AuditAction.SNAPSHOT_DISMISSED,
+    targetType: "snapshot",
+    targetId: "batch",
+    description: `Admin bulk dismissed ${snapshotIds.length} AI snapshots`,
+  });
+
+  res.json({ success: true, count: snapshotIds.length });
+}
+
+export async function batchLogSnapshotsAsFound(req: Request, res: Response): Promise<void> {
+  const { snapshotIds } = req.body;
+  if (!Array.isArray(snapshotIds) || snapshotIds.length === 0) {
+    throw new HttpError(400, "snapshotIds array is required");
+  }
+
+  const actorUserId = req.user?.id;
+  if (!actorUserId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  const snapshots = await prisma.aIEvidenceLog.findMany({
+    where: { id: { in: snapshotIds } }
+  });
+
+  const createdItems = [];
+  for (const snapshot of snapshots) {
+    if (snapshot.foundItemId || snapshot.dismissedAt) continue;
+
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const code = `FI-${timestamp}-${randomStr}`;
+    
+    const detection = (snapshot.detectionMeta as Record<string, any>) || {};
+    const category = detection.category || "Other";
+    const color = detection.color || "Not Specified";
+    const title = `AI Found ${category}`;
+    const location = detection.location || "Campus Zone";
+
+    const item = await prisma.foundItem.create({
+      data: {
+        code,
+        title,
+        category,
+        color,
+        foundLocation: location,
+        foundAtUtc: snapshot.detectedAtUtc,
+        publicDescription: "Bulk logged AI-detected item",
+        status: "AVAILABLE",
+        createdById: actorUserId,
+      }
+    });
+
+    await prisma.aIEvidenceLog.update({
+      where: { id: snapshot.id },
+      data: { foundItemId: item.id }
+    });
+
+    createdItems.push(item);
+  }
+
+  await logAudit({
+    actorUserId,
+    action: AuditAction.ITEM_CREATED,
+    targetType: "found_item",
+    targetId: "batch",
+    description: `Admin bulk logged ${createdItems.length} AI snapshots as found items`,
+  });
+
+  res.json({ success: true, count: createdItems.length });
+}

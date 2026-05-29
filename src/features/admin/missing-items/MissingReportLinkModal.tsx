@@ -21,7 +21,6 @@ export function MissingReportLinkModal({ isOpen, report, selectedReportId, onClo
         <MatchLinkingModal
           reportId={report?.id || selectedReportId}
           reportCode={report?.code || ""}
-          itemTitle={report?.item || "Item"}
           onLinked={() => onLinked(selectedReportId)}
           prefill={report ? {
             category: report.category,

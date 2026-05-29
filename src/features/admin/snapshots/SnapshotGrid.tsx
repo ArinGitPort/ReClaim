@@ -14,25 +14,48 @@ type SnapshotGridProps = {
   snapshots: AISnapshot[]
   variant?: "active" | "dismissed"
   onSelect: (snapshot: AISnapshot) => void
+  selectedIds?: Set<string>
+  onToggleSelect?: (id: string) => void
 }
 
-export function SnapshotGrid({ snapshots, variant = "active", onSelect }: SnapshotGridProps) {
+export function SnapshotGrid({ snapshots, variant = "active", onSelect, selectedIds, onToggleSelect }: SnapshotGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {snapshots.map((snapshot) => {
         const confidence = getSnapshotConfidence(snapshot)
         const reasonLabels = getSnapshotReasonLabels(snapshot)
+        const isSelected = selectedIds?.has(snapshot.id) ?? false
 
         return (
           <button
             key={snapshot.id}
             type="button"
             onClick={() => onSelect(snapshot)}
-            className={`text-left bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md hover:border-brand/40 transition-all cursor-pointer group flex flex-col ${
+            className={`text-left bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md hover:border-brand/40 transition-all cursor-pointer group flex flex-col relative ${
+              isSelected ? "border-brand ring-2 ring-brand/10" : "border-slate-200"
+            } ${
               variant === "dismissed" ? "opacity-80 hover:opacity-100" : ""
             }`}
           >
             <div className="w-full h-32 bg-slate-100 border-b border-slate-200 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden group-hover:opacity-90 transition-opacity">
+              {onToggleSelect && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleSelect(snapshot.id)
+                  }}
+                  className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center border transition-all z-20 cursor-pointer shadow-sm ${
+                    isSelected
+                      ? "bg-brand border-brand text-white scale-105"
+                      : "bg-white/80 hover:bg-white border-slate-300 hover:border-slate-400 text-transparent"
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+
               {snapshot.snapshotPath ? (
                 <img src={getImageUrl(snapshot.snapshotPath)} alt="Snapshot" className="w-full h-full object-cover" />
               ) : (

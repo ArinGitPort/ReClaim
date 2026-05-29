@@ -16,7 +16,6 @@ export function AdminTopNavBar() {
     if (pathname.includes('/camera-settings')) return 'Camera Settings'
     if (pathname.includes('/live-monitor')) return 'Live Monitor'
     if (pathname.includes('/deleted-items')) return 'Deleted Items'
-    if (pathname.includes('/expired-inventory')) return 'Deleted Items'
     if (pathname.includes('/user-directory')) return 'User Directory'
     if (pathname.includes('/handover-log')) return 'Handover Log'
     if (pathname.includes('/dashboard')) return 'System Dashboard'

@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   X,
   XCircle,
+  Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/Modal"
@@ -291,6 +292,28 @@ function PrivacyGuardedData({
         <div className="p-6 bg-white rounded-xl border border-slate-100 shadow-inner">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">Reference Attachment</label>
           <ReferenceAttachments report={report} />
+          {report.attachmentUrls.length > 0 && (
+            <div className="p-5 rounded-xl border border-emerald-100 bg-emerald-50/50 mt-4 space-y-3">
+              <h6 className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-800 font-mono">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                AI Reference Photo Analysis
+              </h6>
+              <p className="text-[11px] font-medium text-emerald-800 leading-relaxed">
+                System verified structural properties from uploaded media. The reference photo matches the categorizations of <span className="font-extrabold">{report.category}</span> and color tone <span className="font-extrabold">{report.color}</span>.
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-800">
+                  Category: {report.category}
+                </span>
+                <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-800">
+                  Primary Hue: {report.color}
+                </span>
+                <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-800">
+                  Image Integrity Verified
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DetailSection>

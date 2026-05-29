@@ -24,6 +24,7 @@ export function ReportLostForm() {
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [filePreviews, setFilePreviews] = useState<string[]>([])
   const needsColor = requiresColorSelection(category)
   const [categoryProofValues, setCategoryProofValues] = useState<Record<string, string>>({})
 
@@ -74,8 +75,11 @@ export function ReportLostForm() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
 
+    filePreviews.forEach((url) => URL.revokeObjectURL(url))
+
     if (files.length === 0) {
       setSelectedFiles([])
+      setFilePreviews([])
       return
     }
 
@@ -83,6 +87,7 @@ export function ReportLostForm() {
     if (validationError) {
       setError(validationError)
       setSelectedFiles([])
+      setFilePreviews([])
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
       }
@@ -91,6 +96,17 @@ export function ReportLostForm() {
 
     setError(null)
     setSelectedFiles(files)
+    const urls = files.map((file) => URL.createObjectURL(file))
+    setFilePreviews(urls)
+  }
+
+  const clearSelectedFiles = () => {
+    setSelectedFiles([])
+    filePreviews.forEach((url) => URL.revokeObjectURL(url))
+    setFilePreviews([])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,13 +195,6 @@ export function ReportLostForm() {
       ...prev,
       [key]: value,
     }))
-  }
-
-  const clearSelectedFiles = () => {
-    setSelectedFiles([])
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
   }
 
   return (
@@ -417,22 +426,30 @@ export function ReportLostForm() {
                   <h4 className="font-bold text-slate-700">Click or drag to upload</h4>
                   <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Max 2 files • 5MB Limit per file</p>
                 </div>
+
                 {selectedFiles.length > 0 && (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 space-y-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 space-y-3 shadow-inner">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold">Selected files ({selectedFiles.length})</span>
-                      <button type="button" onClick={clearSelectedFiles} className="text-[10px] font-bold uppercase tracking-widest text-brand">
-                        Clear
+                      <span className="font-bold text-slate-700">Selected Photos ({selectedFiles.length})</span>
+                      <button type="button" onClick={clearSelectedFiles} className="text-[10px] font-black uppercase tracking-widest text-brand hover:underline">
+                        Clear All
                       </button>
                     </div>
-                    <ul className="space-y-1">
-                      {selectedFiles.map((file) => (
-                        <li key={file.name} className="flex items-center justify-between gap-2">
-                          <span className="truncate">{file.name}</span>
-                          <span className="text-[10px] text-slate-400">{Math.ceil(file.size / 1024)} KB</span>
-                        </li>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedFiles.map((file, index) => (
+                        <div key={file.name} className="relative group border border-slate-200 bg-white rounded-xl p-2 flex items-center gap-3 overflow-hidden shadow-sm">
+                          {filePreviews[index] && (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 shrink-0">
+                              <img src={filePreviews[index]} alt={file.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-slate-800 truncate leading-tight">{file.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{Math.ceil(file.size / 1024)} KB</p>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
               </div>
@@ -510,4 +527,3 @@ export function ReportLostForm() {
     </>
   )
 }
-

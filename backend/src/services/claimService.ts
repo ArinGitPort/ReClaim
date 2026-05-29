@@ -101,27 +101,31 @@ export async function submitClaim(input: {
       throw new HttpError(409, "Item is temporarily reserved by an active claim");
     }
 
-    const cooldownCutoff = new Date(now.getTime() - CLAIM_RETRY_COOLDOWN_MS);
     const recentClosedClaim = await tx.claim.findFirst({
       where: {
         claimantUserId: input.userId,
         foundItemId: input.foundItemId,
         status: { in: [ClaimStatus.EXPIRED, ClaimStatus.CANCELLED] },
-        updatedAt: { gt: cooldownCutoff },
       },
       orderBy: { updatedAt: "desc" },
       select: {
         status: true,
         updatedAt: true,
+        reservationExpiresAt: true,
       },
     });
 
     if (recentClosedClaim) {
-      const availableAt = new Date(recentClosedClaim.updatedAt.getTime() + CLAIM_RETRY_COOLDOWN_MS);
-      throw new HttpError(409, "You can claim this item again after the cooldown ends.", {
-        code: "CLAIM_RETRY_COOLDOWN",
-        availableAt,
-      });
+      const cooldownStart = recentClosedClaim.status === ClaimStatus.EXPIRED
+        ? (recentClosedClaim.reservationExpiresAt ?? recentClosedClaim.updatedAt)
+        : recentClosedClaim.updatedAt;
+      const availableAt = new Date(cooldownStart.getTime() + CLAIM_RETRY_COOLDOWN_MS);
+      if (availableAt.getTime() > now.getTime()) {
+        throw new HttpError(409, "You can claim this item again after the cooldown ends.", {
+          code: "CLAIM_RETRY_COOLDOWN",
+          availableAt,
+        });
+      }
     }
 
     const createdClaim = await tx.claim.create({

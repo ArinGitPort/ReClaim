@@ -18,19 +18,27 @@ import { cn, getImageUrl } from "@/lib/utils"
 import { api } from "@/lib/api"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 
-type InventoryMatch = {
+type ScoredInventoryMatch = {
   id: string
   code: string
   title: string
   category: string
   color: string
   foundAtUtc: string
-  date: string
-  location: string
+  foundLocation: string
   status: string
-  imageUrl?: string
+  privateData?: unknown
+  aiEvidenceLogs?: Array<{
+    snapshotPath?: string | null
+  }>
   matchScore: number
   reasons: string[]
+}
+
+type InventoryMatch = ScoredInventoryMatch & {
+  date: string
+  location: string
+  imageUrl?: string
 }
 
 type MatchPrefill = {
@@ -53,40 +61,22 @@ type MatchCriteria = {
   privateNote: string | null
 }
 
-type AdminInventoryItem = {
-  id: string
-  code: string
-  title: string
-  category: string
-  color: string
-  foundAtUtc: string
-  foundLocation: string
-  status: string
-  publicDescription?: string | null
-  privateDiscoveryNote?: string | null
-  privateData?: unknown
-  aiEvidenceLogs?: Array<{
-    snapshotPath?: string | null
-  }>
-}
-
 type MatchLinkingModalProps = {
   onClose: () => void
   onLinked?: (matchedItemId: string) => void
   reportId: string
   reportCode: string
-  itemTitle: string
   prefill?: MatchPrefill
 }
 
-export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, itemTitle, prefill }: MatchLinkingModalProps) {
+export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, prefill }: MatchLinkingModalProps) {
   const [isLinking, setIsLinking] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [searchText, setSearchText] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [candidateItems, setCandidateItems] = useState<AdminInventoryItem[]>([])
+  const [candidateItems, setCandidateItems] = useState<ScoredInventoryMatch[]>([])
 
   const debouncedSearch = useDebounce(searchText, 250)
   const criteria = useMemo<MatchCriteria>(() => ({
@@ -121,15 +111,10 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
 
       try {
         const response = await api.get<{
-          items: AdminInventoryItem[]
-        }>("/items/admin", {
-          params: {
-            status: "AVAILABLE",
-            limit: 100,
-          },
-        })
+          matches: ScoredInventoryMatch[]
+        }>(`/reports/${reportId}/matches`)
 
-        setCandidateItems(response.data.items.filter((item) => item.status === "AVAILABLE"))
+        setCandidateItems(response.data.matches)
       } catch {
         setError("Unable to load inventory matches.")
       } finally {
@@ -147,11 +132,9 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, ite
         date: formatShortDate(item.foundAtUtc),
         location: item.foundLocation,
         imageUrl: getInventoryImageUrl(item),
-        ...computeMatchSignal(item, itemTitle, criteria),
       }))
       .filter((item) => matchesSearch(item, debouncedSearch))
-      .sort((a, b) => b.matchScore - a.matchScore || new Date(b.foundAtUtc).getTime() - new Date(a.foundAtUtc).getTime())
-  }, [candidateItems, debouncedSearch, itemTitle, criteria])
+  }, [candidateItems, debouncedSearch])
 
   const selectedItem = useMemo(
     () => inventoryMatches.find((item) => item.id === selectedMatch),
@@ -368,56 +351,7 @@ function CriteriaPill({ label, value }: { label: string; value: string }) {
   )
 }
 
-function computeMatchSignal(item: AdminInventoryItem, reportTitle: string, criteria: MatchCriteria): Pick<InventoryMatch, "matchScore" | "reasons"> {
-  let score = 20
-  const reasons: string[] = []
-  const category = criteria.category
-  const color = criteria.color
-  const location = criteria.location
-  const brand = criteria.brand
-  const marks = criteria.marks
-  const note = criteria.privateNote
-
-  if (category && normalizedEquals(item.category, category)) {
-    score += 25
-    reasons.push("Category match")
-  }
-
-  if (color && normalizedEquals(item.color, color)) {
-    score += 18
-    reasons.push("Color match")
-  }
-
-  const itemText = [item.title, item.code, item.category, item.color, item.foundLocation, item.publicDescription, item.privateDiscoveryNote].join(" ")
-  const titleOverlap = tokenOverlap(reportTitle, itemText)
-  if (titleOverlap > 0) {
-    score += Math.min(titleOverlap * 8, 24)
-    reasons.push("Item wording match")
-  }
-
-  const detailOverlap = tokenOverlap([brand, marks, note].filter(Boolean).join(" "), itemText)
-  if (detailOverlap > 0) {
-    score += Math.min(detailOverlap * 6, 18)
-    reasons.push("Report detail match")
-  }
-
-  if (location && tokenOverlap(location, item.foundLocation) > 0) {
-    score += 10
-    reasons.push("Location match")
-  }
-
-  const dateScore = computeDateScore(item.foundAtUtc, criteria.dateFrom ?? undefined)
-  score += dateScore.score
-  if (dateScore.reason) reasons.push(dateScore.reason)
-
-  if (reasons.length === 0) {
-    reasons.push("Available for manual review")
-  }
-
-  return { matchScore: Math.min(Math.max(score, 1), 99), reasons: reasons.slice(0, 4) }
-}
-
-function getInventoryImageUrl(item: AdminInventoryItem): string | undefined {
+function getInventoryImageUrl(item: ScoredInventoryMatch): string | undefined {
   const photoPath = extractPhotoPath(item.privateData) ?? item.aiEvidenceLogs?.find((log) => log.snapshotPath)?.snapshotPath
   return getImageUrl(photoPath)
 }
@@ -427,27 +361,6 @@ function extractPhotoPath(privateData: unknown): string | undefined {
 
   const maybePhoto = (privateData as { photoUrl?: unknown }).photoUrl
   return typeof maybePhoto === "string" ? maybePhoto : undefined
-}
-
-function computeDateScore(foundAtUtc: string, dateFrom?: string): { score: number; reason?: string } {
-  if (!dateFrom) return { score: 0 }
-
-  const foundAt = new Date(foundAtUtc).getTime()
-  const lostAt = new Date(dateFrom).getTime()
-  if (!Number.isFinite(foundAt) || !Number.isFinite(lostAt)) return { score: 0 }
-
-  const daysAfterLoss = (foundAt - lostAt) / (24 * 60 * 60 * 1000)
-  if (daysAfterLoss < -1) {
-    return { score: -12 }
-  }
-  if (daysAfterLoss <= 14) {
-    return { score: 12, reason: "Found after loss date" }
-  }
-  if (daysAfterLoss <= 60) {
-    return { score: 6, reason: "Date is plausible" }
-  }
-
-  return { score: 0 }
 }
 
 function matchesSearch(item: InventoryMatch, query: string): boolean {
@@ -467,26 +380,6 @@ function matchesSearch(item: InventoryMatch, query: string): boolean {
   ].join(" "))
 
   return tokens.every((token) => haystack.includes(token))
-}
-
-function tokenOverlap(input: string, target: string): number {
-  const inputTokens = new Set(
-    normalizeText(input)
-      .split(" ")
-      .filter((token) => token.length > 2 && !STOP_WORDS.has(token))
-  )
-  if (inputTokens.size === 0) return 0
-
-  const targetText = normalizeText(target)
-  let count = 0
-  inputTokens.forEach((token) => {
-    if (targetText.includes(token)) count += 1
-  })
-  return count
-}
-
-function normalizedEquals(left: string, right: string): boolean {
-  return normalizeText(left) === normalizeText(right)
 }
 
 function normalizeText(value: string): string {
@@ -518,5 +411,3 @@ function MatchScoreBadge({ weight }: { weight: number }) {
     </span>
   )
 }
-
-const STOP_WORDS = new Set(["the", "and", "for", "with", "from", "item", "lost", "found", "not", "specified"])

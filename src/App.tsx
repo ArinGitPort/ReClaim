@@ -139,7 +139,6 @@ function App() {
               <Route path="handover-log" element={<HandoverLogPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />
               <Route path="deleted-items" element={<DeletedItemsPage />} />
-              <Route path="expired-inventory" element={<Navigate to="/admin/deleted-items" replace />} />
               <Route path="logs" element={<AuditLogsPage />} />
               <Route path="camera-settings" element={<CameraSettingsPage />} />
               <Route path="notifications" element={<AdminNotificationsPage />} />

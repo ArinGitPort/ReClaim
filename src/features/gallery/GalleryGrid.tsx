@@ -116,6 +116,7 @@ export function GalleryGrid({
           foundItemId: string
           status: string
           updatedAt?: string
+          reservationExpiresAt?: string
         }>
       }>("/claims")
       const activeIds = new Set(
@@ -126,9 +127,14 @@ export function GalleryGrid({
       const now = Date.now()
       const cooldowns = new Map<string, string>()
       res.data.claims
-        .filter((claim) => ["EXPIRED", "CANCELLED"].includes(claim.status) && claim.updatedAt)
+        .filter((claim) => ["EXPIRED", "CANCELLED"].includes(claim.status))
         .forEach((claim) => {
-          const availableAtMs = new Date(claim.updatedAt as string).getTime() + 24 * 60 * 60 * 1000
+          const cooldownStartStr = claim.status === "EXPIRED"
+            ? (claim.reservationExpiresAt ?? claim.updatedAt)
+            : claim.updatedAt;
+          if (!cooldownStartStr) return;
+
+          const availableAtMs = new Date(cooldownStartStr).getTime() + 24 * 60 * 60 * 1000
           if (Number.isFinite(availableAtMs) && availableAtMs > now) {
             cooldowns.set(claim.foundItemId, new Date(availableAtMs).toISOString())
           }
