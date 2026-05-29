@@ -37,6 +37,8 @@ type EditableItem = {
 
 const ITEM_STATUSES = ["AVAILABLE", "CLAIM_PENDING", "RETURNED", "ARCHIVED"] as const
 
+
+
 export function EditInventoryItemModal({
   item,
   onClose,
@@ -59,23 +61,32 @@ export function EditInventoryItemModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const isElectronics = category === "Electronics"
   const isLocked = item.status === "CLAIM_PENDING" || item.status === "RETURNED"
 
-  async function handleSubmit(event: React.FormEvent): Promise<void> {
+  function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
-    setError(null)
+    
+    const foundAtDate = new Date(foundAtLocal)
+    if (Number.isNaN(foundAtDate.getTime())) {
+      setError("Invalid found date/time")
+      return
+    }
+    if (isElectronics && !electronicItemType) {
+      setError("Please select the electronics type.")
+      return
+    }
+    
+    setShowSaveConfirm(true)
+  }
+
+  async function executeSubmit(): Promise<void> {
     setIsSubmitting(true)
 
     try {
       const foundAtDate = new Date(foundAtLocal)
-      if (Number.isNaN(foundAtDate.getTime())) {
-        throw new Error("Invalid found date/time")
-      }
-      if (isElectronics && !electronicItemType) {
-        throw new Error("Please select the electronics type.")
-      }
 
       await api.patch(`/items/${item.id}`, {
         title,
@@ -295,13 +306,28 @@ export function EditInventoryItemModal({
           <Trash2 className="w-4 h-4 mr-2" />
           Delete
         </Button>
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs">
+        <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 border-transparent font-bold uppercase tracking-widest text-xs">
           Cancel
         </Button>
         <Button type="submit" form="edit-item-form" disabled={isSubmitting || isLocked} className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95 disabled:opacity-50">
           {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={showSaveConfirm}
+        onClose={() => !isSubmitting && setShowSaveConfirm(false)}
+        onConfirm={() => {
+          setShowSaveConfirm(false)
+          void executeSubmit()
+        }}
+        title="Save Changes"
+        message="Are you sure you want to save these changes to the inventory item? This will update the system records."
+        confirmText="Save Changes"
+        cancelText="Cancel"
+        isLoading={isSubmitting}
+        confirmButtonClassName="bg-brand hover:bg-brand-active rounded-xl"
+      />
 
       <ConfirmModal
         isOpen={showDeleteConfirm}

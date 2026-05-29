@@ -248,7 +248,7 @@ export function InventoryHandoverModal({
       </div>
 
       <div className="px-6 py-5 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
-        <Button variant="outline" onClick={onClose} className="h-11 px-6 rounded-xl text-xs font-bold uppercase tracking-wider">Close</Button>
+        <Button variant="outline" onClick={onClose} className="h-11 px-6 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 border-transparent">Close</Button>
         <div className="flex gap-3">
           {error && (
             <Button

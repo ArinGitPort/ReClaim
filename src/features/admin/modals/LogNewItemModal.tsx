@@ -377,6 +377,8 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
              <Archive className="w-3.5 h-3.5 text-brand" />
              <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Sensitive Discovery Notes</h4>
           </div>
+
+
           <div className="space-y-1.5">
             <Label htmlFor="notes" className="text-xs uppercase tracking-wider font-bold text-slate-500">Additional Notes (Only for Admin)</Label>
             <Textarea 
@@ -397,7 +399,7 @@ export function LogNewItemModal({ onClose, onSaved }: { onClose: () => void; onS
           type="button" 
           variant="outline" 
           onClick={onClose} 
-          className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs"
+          className="flex-1 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 border-transparent font-bold uppercase tracking-widest text-xs"
         >
           Cancel
         </Button>
@@ -419,4 +421,3 @@ function toLocalDatetimeInputValue(date: Date): string {
   const localDate = new Date(date.getTime() - offset * 60 * 1000)
   return localDate.toISOString().slice(0, 16)
 }
-
