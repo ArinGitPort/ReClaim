@@ -1,4 +1,7 @@
-import { Calendar, Clock, Loader2, MapPin, MessageSquare, Package, RefreshCw, ShieldCheck, Ticket } from "lucide-react"
+import { Calendar, Clock, Loader2, MapPin, MessageSquare, Package, RefreshCw, ShieldCheck, Ticket, QrCode, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import QRCode from "qrcode"
+import { Modal } from "@/components/ui/Modal"
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { ClaimMessages } from "@/components/ui/ClaimMessagesModal"
 import { cn } from "@/lib/utils"
@@ -189,6 +192,21 @@ function PickupTokenPanel({
   rerollingItemId: string | null
   onRerollToken: (itemId: string) => void
 }) {
+  const [showQrModal, setShowQrModal] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState("")
+
+  const isExpired = claim.pickupTokenExpires
+    ? new Date(claim.pickupTokenExpires).getTime() < now
+    : false
+
+  useEffect(() => {
+    if (claim.pickupToken && !isExpired) {
+      QRCode.toDataURL(claim.pickupToken, { width: 256, margin: 2 })
+        .then((url) => setQrCodeUrl(url))
+        .catch((error) => console.error("Error generating QR Code", error))
+    }
+  }, [claim.pickupToken, isExpired])
+
   if (!claim.pickupToken) return null
 
   return (
@@ -214,14 +232,25 @@ function PickupTokenPanel({
               <div className="text-xs font-semibold text-emerald-600 mt-0.5">Present this token and your ID at the Campus Admin Office.</div>
             </div>
           </div>
-          <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
-              <Ticket className="w-5 h-5" />
-              {claim.pickupToken}
+          <div className="bg-white rounded-lg border border-emerald-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-xl font-black text-emerald-800 tracking-wide">
+                <Ticket className="w-5 h-5" />
+                {claim.pickupToken}
+              </div>
+              {!isExpired && (
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(true)}
+                  className="flex items-center gap-1 bg-brand hover:bg-brand-active text-white text-[10px] font-bold rounded-lg px-2.5 py-1.5 transition-colors uppercase tracking-wider active:scale-95 shadow-sm cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5" /> QR Code
+                </button>
+              )}
             </div>
             {claim.pickupTokenExpires && (
               <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-2">
-                {new Date(claim.pickupTokenExpires).getTime() < now ? (
+                {isExpired ? (
                   <div className="flex items-center gap-2 text-rose-600">
                     <span>Expired</span>
                     <button
@@ -241,6 +270,34 @@ function PickupTokenPanel({
             )}
           </div>
         </>
+      )}
+
+      {showQrModal && (
+        <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)} className="max-w-md bg-slate-50 rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-brand" /> Pickup Verification
+            </h3>
+            <button type="button" onClick={() => setShowQrModal(false)} className="p-1 text-slate-400 hover:text-slate-900 rounded-lg transition-colors cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center justify-center">
+            {qrCodeUrl ? (
+              <img src={qrCodeUrl} alt="Pickup QR Code" className="w-48 h-48 rounded-lg shadow-sm border border-slate-100" />
+            ) : (
+              <div className="w-48 h-48 bg-slate-50 flex items-center justify-center text-xs font-semibold text-slate-400">
+                Generating QR Code...
+              </div>
+            )}
+            <span className="mt-4 font-mono font-black text-slate-800 text-lg uppercase tracking-widest bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-lg select-all">
+              {claim.pickupToken}
+            </span>
+          </div>
+          <p className="mt-6 text-xs font-bold text-slate-500 leading-relaxed">
+            Let the office administrator scan this QR code or input the alphanumeric token to verify and release your item.
+          </p>
+        </Modal>
       )}
     </div>
   )

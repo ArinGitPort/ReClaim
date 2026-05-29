@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   CheckCircle2,
   Eye,
@@ -12,9 +12,12 @@ import {
   X,
   XCircle,
   Sparkles,
+  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { api } from "@/lib/api"
 import { Modal } from "@/components/ui/Modal"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { cn } from "@/lib/utils"
 import { DetailItem, DetailSection } from "./ReportDetailPrimitives"
 import { isAuthorizedReport, isReviewableReport, reportNextAction } from "./reportStatus"
@@ -30,7 +33,19 @@ type MissingReportWorkspaceProps = {
   onOpenMessages: () => void
   onReject: () => void
   onUpdateStatus: (status: ReportStatus) => void
+  onLinked?: (reportId: string) => void
   hasUnreadMessage: boolean
+}
+
+type ScoredInventoryMatch = {
+  id: string
+  code: string
+  title: string
+  category: string
+  color: string
+  foundLocation: string
+  status: string
+  matchScore: number
 }
 
 export function MissingReportWorkspace({
@@ -43,8 +58,55 @@ export function MissingReportWorkspace({
   onOpenMessages,
   onReject,
   onUpdateStatus,
+  onLinked,
   hasUnreadMessage,
 }: MissingReportWorkspaceProps) {
+  const [matches, setMatches] = useState<ScoredInventoryMatch[]>([])
+  const [isLoadingMatches, setIsLoadingMatches] = useState(false)
+  const [isLinking, setIsLinking] = useState(false)
+  const [pendingMatch, setPendingMatch] = useState<ScoredInventoryMatch | null>(null)
+
+  useEffect(() => {
+    if (!report?.id) {
+      setMatches([])
+      return
+    }
+    
+    let isMounted = true
+    setIsLoadingMatches(true)
+    
+    api.get<{ matches: ScoredInventoryMatch[] }>(`/reports/${report.id}/matches`)
+      .then((res) => {
+        if (isMounted) {
+          setMatches(res.data.matches.slice(0, 3)) // top 3 recommendations
+        }
+      })
+      .catch(() => {
+        if (isMounted) setMatches([])
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingMatches(false)
+      })
+
+    return () => { isMounted = false }
+  }, [report?.id])
+
+  async function executeQuickMatch() {
+    if (!report || isLinking || !pendingMatch) return
+    setIsLinking(true)
+    try {
+      await api.patch(`/reports/${report.id}`, {
+        status: "MATCHED",
+        matchedItemId: pendingMatch.id,
+      })
+      onLinked?.(report.id)
+    } catch {
+      // ignore
+    } finally {
+      setIsLinking(false)
+      setPendingMatch(null)
+    }
+  }
   if (!report) {
     return (
       <div className="xl:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-175 flex flex-col relative">
@@ -132,6 +194,10 @@ export function MissingReportWorkspace({
                 report={report}
                 isPrivateNoteVisible={isPrivateNoteVisible}
                 onRevealPrivateNote={onRevealPrivateNote}
+                matches={matches}
+                isLoadingMatches={isLoadingMatches}
+                isLinking={isLinking}
+                onQuickMatch={setPendingMatch}
               />
               {canReviewReport ? (
                 <div className="pt-8 border-t border-slate-100 flex gap-4">
@@ -161,6 +227,17 @@ export function MissingReportWorkspace({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={pendingMatch !== null}
+        onClose={() => !isLinking && setPendingMatch(null)}
+        onConfirm={() => void executeQuickMatch()}
+        title="Confirm Quick Match"
+        message={`Are you sure you want to match this report to item ${pendingMatch?.code}? This will link the items and notify the student.`}
+        confirmText="Yes, Match Item"
+        cancelText="Cancel"
+        isLoading={isLinking}
+      />
     </div>
   )
 }
@@ -241,10 +318,18 @@ function PrivacyGuardedData({
   report,
   isPrivateNoteVisible,
   onRevealPrivateNote,
+  matches,
+  isLoadingMatches,
+  isLinking,
+  onQuickMatch,
 }: {
   report: ReportRow
   isPrivateNoteVisible: boolean
   onRevealPrivateNote: (reportId: string, visible: boolean) => void
+  matches: ScoredInventoryMatch[]
+  isLoadingMatches: boolean
+  isLinking: boolean
+  onQuickMatch: (match: ScoredInventoryMatch) => void
 }) {
   return (
     <DetailSection title="Privacy Guarded Data" icon={<ShieldAlert className="w-4 h-4 text-rose-500" />}>
@@ -295,11 +380,11 @@ function PrivacyGuardedData({
           {report.attachmentUrls.length > 0 && (
             <div className="p-5 rounded-xl border border-emerald-100 bg-emerald-50/50 mt-4 space-y-3">
               <h6 className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-800 font-mono">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                AI Reference Photo Analysis
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                System Photo Validation
               </h6>
               <p className="text-[11px] font-medium text-emerald-800 leading-relaxed">
-                System verified structural properties from uploaded media. The reference photo matches the categorizations of <span className="font-extrabold">{report.category}</span> and color tone <span className="font-extrabold">{report.color}</span>.
+                System verified properties from uploaded media. The reference photo matches the categorizations of <span className="font-extrabold">{report.category}</span> and color tone <span className="font-extrabold">{report.color}</span>.
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-800">
@@ -314,6 +399,47 @@ function PrivacyGuardedData({
               </div>
             </div>
           )}
+
+          <div className="mt-6 space-y-3">
+            <h6 className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-brand font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-brand" />
+              System Recommendations
+            </h6>
+            
+            {isLoadingMatches ? (
+              <div className="flex items-center justify-center p-6 border border-slate-100 rounded-xl bg-slate-50">
+                <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+              </div>
+            ) : matches.length > 0 ? (
+              <div className="space-y-3">
+                {matches.map((match) => (
+                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white hover:border-brand/30 hover:bg-slate-50 transition-colors">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-sm text-slate-800">{match.title}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">{match.matchScore}% Match</span>
+                      </div>
+                      <div className="text-xs font-semibold text-slate-500 mt-1 flex gap-2">
+                        <span className="text-slate-400 font-mono text-[10px] uppercase bg-slate-100 px-1 rounded">{match.code}</span>
+                        <span>{match.foundLocation}</span>
+                      </div>
+                    </div>
+                    <Button 
+                      disabled={isLinking}
+                      onClick={() => onQuickMatch(match)}
+                      className="h-8 px-3 text-xs font-bold uppercase tracking-wider bg-brand hover:bg-brand-active text-white rounded-lg"
+                    >
+                      {isLinking ? "Matching..." : "Quick Match"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No recommendations found</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </DetailSection>

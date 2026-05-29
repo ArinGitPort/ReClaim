@@ -91,7 +91,7 @@ export function MissingReportsQueue({
             {selectedReportId === report.id && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />}
 
             <div className="flex justify-between items-start mb-3">
-              <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+              <span className="text-[11px] font-black text-slate-700 font-mono tracking-wider bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">
                 {report.code}
               </span>
               <StatusBadge status={report.status} />

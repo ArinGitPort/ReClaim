@@ -66,6 +66,7 @@ export function MissingItemsPage() {
           onOpenMessages={() => missingItems.report && missingItems.setChatReportId(missingItems.report.id)}
           onReject={() => missingItems.setIsRejectConfirmOpen(true)}
           onUpdateStatus={() => missingItems.setIsAuthorizeConfirmOpen(true)}
+          onLinked={(reportId) => missingItems.markLinked(reportId)}
           hasUnreadMessage={missingItems.report ? missingItems.hasUnreadMessage(missingItems.report) : false}
         />
       </div>

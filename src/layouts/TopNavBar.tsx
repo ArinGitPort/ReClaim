@@ -1,4 +1,4 @@
-import { Search, PlusCircle, BookmarkCheck, Menu, X, Hand, FileText, Settings, MapPin, LogOut } from "lucide-react"
+import { Search, PlusCircle, BookmarkCheck, Menu, X, FileText, Settings, MapPin, LogOut } from "lucide-react"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useState, useEffect } from "react"
@@ -71,6 +71,18 @@ export function TopNavBar() {
                 <BookmarkCheck className="w-4 h-4" />
                 My Claims
               </NavLink>
+              <NavLink
+                to="/my-reports"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive ? "bg-brand/10 text-brand" : "text-text-secondary hover:text-text-primary hover:bg-background-subtle/50"
+                  )
+                }
+              >
+                <FileText className="w-4 h-4" />
+                My Reports
+              </NavLink>
             </nav>
           )}
           {/* Right Side: Actions */}
@@ -108,18 +120,7 @@ export function TopNavBar() {
       {user && isMobileMenuOpen && (
         <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-background-app border-b border-border-divider shadow-md flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 flex flex-col gap-1">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2 px-3 mt-2">Core Actions</h4>
-
-            <MobileNavItem to="/gallery" icon={<Search className="w-5 h-5" />} label="Browse Found Items" />
-            <MobileNavItem to="/report-lost" icon={<PlusCircle className="w-5 h-5" />} label="Report a Lost Item" />
-
-            <div className="h-px w-full bg-border-divider my-3" />
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2 px-3">Tracking & Status</h4>
-
-            <MobileNavItem to="/my-claims" icon={<Hand className="w-5 h-5" />} label="My Claims" />
-            <MobileNavItem to="/my-reports" icon={<FileText className="w-5 h-5" />} label="My Lost Reports" />
-
-            <div className="h-px w-full bg-border-divider my-3" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2 px-3 mt-2">Account Actions</h4>
 
             <MobileNavItem to="/settings" icon={<Settings className="w-5 h-5" />} label="Profile Settings" />
             <MobileNavItem to="/office" icon={<MapPin className="w-5 h-5" />} label="Campus Admin Office" />

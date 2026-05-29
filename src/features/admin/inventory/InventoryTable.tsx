@@ -128,10 +128,11 @@ function InventoryTableRow({
       <td className="px-8 py-5 text-right">
         <div className="flex items-center justify-end gap-2">
           <ActionIconButton
-            label="Edit item"
+            label={item.isHandoverReady ? "Cannot edit during handover" : item.status === 'RETURNED' ? "Cannot edit returned item" : "Edit item"}
             icon={<Edit className="w-4 h-4" />}
             buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
             onClick={() => onEdit(item)}
+            disabled={item.isHandoverReady || item.status === 'RETURNED'}
           />
           <ActionIconButton
             label="View item details"

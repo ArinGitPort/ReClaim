@@ -61,6 +61,7 @@ export function EditInventoryItemModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const isElectronics = category === "Electronics"
+  const isLocked = item.status === "CLAIM_PENDING" || item.status === "RETURNED"
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault()
@@ -131,7 +132,20 @@ export function EditInventoryItemModal({
         onClose={onClose}
       />
 
-      <form id="edit-item-form" onSubmit={(event) => void handleSubmit(event)} className="flex-1 overflow-y-auto p-6 space-y-8">
+      {isLocked && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-start gap-3">
+          <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-amber-800">Editing Prohibited</h3>
+            <p className="text-xs font-medium text-amber-700 mt-1">
+              This item is currently {item.status === "CLAIM_PENDING" ? "pending handover" : "returned"}. Editing is disabled to preserve record integrity.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <form id="edit-item-form" onSubmit={(event) => void handleSubmit(event)} className="flex-1 overflow-y-auto p-6">
+        <fieldset disabled={isLocked} className="space-y-8 group">
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
             <Package className="w-3.5 h-3.5 text-brand" />
@@ -267,6 +281,7 @@ export function EditInventoryItemModal({
         </div>
 
         {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
+        </fieldset>
       </form>
 
       <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3">
@@ -274,8 +289,8 @@ export function EditInventoryItemModal({
           type="button"
           variant="outline"
           onClick={() => setShowDeleteConfirm(true)}
-          disabled={isSubmitting || isDeleting}
-          className="h-12 px-4 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold uppercase tracking-widest text-xs"
+          disabled={isSubmitting || isDeleting || isLocked}
+          className="h-12 px-4 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold uppercase tracking-widest text-xs disabled:opacity-50"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Delete
@@ -283,7 +298,7 @@ export function EditInventoryItemModal({
         <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 border-slate-200 font-bold uppercase tracking-widest text-xs">
           Cancel
         </Button>
-        <Button type="submit" form="edit-item-form" disabled={isSubmitting} className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95">
+        <Button type="submit" form="edit-item-form" disabled={isSubmitting || isLocked} className="flex-1 h-12 bg-brand hover:bg-brand-active text-white font-bold uppercase tracking-widest text-xs shadow-sm rounded-xl transition-all active:scale-95 disabled:opacity-50">
           {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>

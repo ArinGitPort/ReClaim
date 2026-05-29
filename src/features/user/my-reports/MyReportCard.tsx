@@ -28,7 +28,7 @@ export function MyReportCard({ report, focusCode, closingTicketId, onCloseTicket
       <div className="flex flex-col sm:flex-row sm:items-center gap-5">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">{report.id}</span>
+            <span className="text-[11px] font-black font-mono tracking-wider text-slate-700 bg-slate-100 border border-slate-200 shadow-sm px-2.5 py-1 rounded-md">{report.id}</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">{report.category}</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">{report.color}</span>
           </div>

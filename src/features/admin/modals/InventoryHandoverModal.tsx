@@ -1,12 +1,9 @@
-import { useState, useEffect } from "react"
-import { CheckCircle2, Search, ShieldCheck, User, Package, QrCode, X } from "lucide-react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { CheckCircle2, ShieldCheck, User, Package, AlertCircle, MapPin, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModalHeader } from "@/components/ui/ModalHeader"
-import { Input } from "@/components/ui/Input"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
-import { Modal } from "@/components/ui/Modal"
 import { api } from "@/lib/api"
-import { Html5QrcodeScanner } from "html5-qrcode"
 
 type InventoryItemLite = {
   id: string
@@ -31,89 +28,37 @@ type HandoverPreview = {
     code: string
     title: string
     category: string
+    color?: string
+    foundLocation?: string
+    foundAtUtc?: string
+    privateDiscoveryNote?: string
     storageLocation: string
     status: string
+    photoUrl?: string
   }
 }
 
 export function InventoryHandoverModal({
   item,
+  initialToken,
   onClose,
   onCompleted,
 }: {
-  item: InventoryItemLite
+  item?: InventoryItemLite
+  initialToken?: string
   onClose: () => void
   onCompleted?: () => void
 }) {
-  const [tokenInput, setTokenInput] = useState("")
   const [preview, setPreview] = useState<HandoverPreview | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [showStartConfirm, setShowStartConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-  const [isScanOpen, setIsScanOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isScanOpen) return
-
-    // Allow html5-qrcode container to render first in modal
-    const timer = setTimeout(() => {
-      const html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-scanner-element",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-      )
-
-      html5QrcodeScanner.render(
-        (decodedText) => {
-          setTokenInput(decodedText)
-          setIsScanOpen(false)
-          setError(null)
-          setIsSearching(true)
-          
-          api.get<{ preview: HandoverPreview }>("/handover/preview", {
-            params: { pickupToken: decodedText },
-          })
-            .then((response) => {
-              const result = response.data.preview
-              if (result.item.id !== item.id) {
-                setPreview(null)
-                setError("This pickup token belongs to a different item.")
-              } else {
-                setPreview(result)
-              }
-            })
-            .catch(() => {
-              setPreview(null)
-              setError("Token not found or no longer valid for handover.")
-            })
-            .finally(() => {
-              setIsSearching(false)
-            })
-        },
-        () => {
-          // Silent scan error to avoid console noise
-        }
-      )
-
-      return () => {
-        html5QrcodeScanner.clear().catch((err) => {
-          console.error("Failed to clear scanner", err)
-        })
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isScanOpen, item.id])
-
-  async function handlePreview(): Promise<void> {
-    const token = tokenInput.trim()
-    if (!token) {
-      setError("Enter a pickup token first.")
-      return
-    }
+  const handlePreview = useCallback(async (token: string): Promise<void> => {
+    if (!token) return
 
     setIsSearching(true)
     setError(null)
@@ -123,7 +68,7 @@ export function InventoryHandoverModal({
       })
 
       const result = response.data.preview
-      if (result.item.id !== item.id) {
+      if (item && result.item.id !== item.id) {
         setPreview(null)
         setError("This pickup token belongs to a different item.")
         return
@@ -136,19 +81,30 @@ export function InventoryHandoverModal({
     } finally {
       setIsSearching(false)
     }
+  }, [item])
+
+  const lastScannedRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (initialToken && initialToken !== lastScannedRef.current) {
+      lastScannedRef.current = initialToken
+      void handlePreview(initialToken)
+    }
+  }, [initialToken, handlePreview])
+
+  const handleRescan = () => {
+    setError(null)
+    setPreview(null)
   }
 
   async function handleConfirm(): Promise<void> {
-    const token = tokenInput.trim()
-    if (!token || !preview) {
-      return
-    }
+    if (!initialToken || !preview) return
 
     setIsConfirming(true)
     setError(null)
     try {
       await api.post("/handover/confirm", {
-        pickupToken: token,
+        pickupToken: initialToken,
         idVerified: true,
       })
 
@@ -162,13 +118,12 @@ export function InventoryHandoverModal({
   }
 
   async function handleCancelHandover(): Promise<void> {
-    const token = tokenInput.trim()
-    if (!token || !preview) return
+    if (!initialToken || !preview) return
 
     setIsCancelling(true)
     setError(null)
     try {
-      await api.post("/handover/cancel", { pickupToken: token })
+      await api.post("/handover/cancel", { pickupToken: initialToken })
       onCompleted?.()
       onClose()
     } catch {
@@ -179,167 +134,193 @@ export function InventoryHandoverModal({
   }
 
   return (
-    <>
-      <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
-        <ModalHeader
-          title="Start Handover"
-          subtitle={`Target Item: ${item.code}`}
-          icon={<ShieldCheck className="w-6 h-6 text-white" />}
-          onClose={onClose}
-          containerClassName="px-8 py-6 bg-white"
-          iconWrapperClassName="bg-emerald-600 w-12 h-12"
-          titleClassName="text-slate-900 text-xl"
-        />
+    <div className="flex flex-col max-h-[85vh] bg-white overflow-hidden rounded-xl">
+      <ModalHeader
+        title="Pickup Handover Verification"
+        subtitle={item ? `Item Release for Code: ${item.code}` : "Unified Handover & Release"}
+        icon={<ShieldCheck className="w-6 h-6 text-white" />}
+        onClose={onClose}
+        containerClassName="px-8 py-6 bg-white"
+        iconWrapperClassName="bg-emerald-600 w-12 h-12"
+        titleClassName="text-slate-900 text-xl font-bold"
+      />
 
-        <div className="p-6 border-b border-slate-100 bg-white space-y-4">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand transition-colors" />
-            <Input
-              value={tokenInput}
-              onChange={(event) => setTokenInput(event.target.value)}
-              placeholder="Enter pickup token"
-              className="pl-12 h-11 bg-slate-50 border-slate-200"
-            />
+      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] bg-slate-50/70 p-6 flex flex-col space-y-6">
+        {isSearching && !preview && !error ? (
+          <div className="flex flex-col items-center justify-center space-y-4 py-8">
+            <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm font-bold text-slate-500">Loading token details...</p>
           </div>
-
-          <div className="flex gap-3">
-            <Button
-              disabled={isSearching}
-              onClick={() => void handlePreview()}
-              className="h-11 flex-1 bg-brand hover:bg-brand-active text-white rounded-xl font-bold uppercase tracking-wider text-xs active:scale-95 transition-all shadow-sm"
-            >
-              {isSearching ? "Checking Token..." : "Preview Holder"}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setIsScanOpen(true)}
-              className="h-11 px-5 border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-xl font-bold uppercase tracking-wider text-xs active:scale-95 transition-all flex items-center gap-1.5"
-            >
-              <QrCode className="w-4 h-4 text-brand" /> Scan QR Code
-            </Button>
+        ) : !preview && !error ? (
+          <div className="flex flex-col items-center justify-center space-y-4 py-8">
+             <div className="text-center max-w-sm mb-4">
+                <h4 className="font-extrabold text-slate-800 text-sm">Manual Code Entry</h4>
+                <p className="text-xs font-semibold text-slate-400 mt-1">
+                  Type the alphanumeric pickup token to verify the handover. Hardware scanners will automatically trigger this modal.
+                </p>
+             </div>
+             <div className="w-full max-w-md bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                <div className="relative group">
+                  <input
+                    id="manual-token-input"
+                    autoFocus
+                    type="text"
+                    placeholder="e.g. PK-XXXXXX"
+                    className="w-full pl-4 pr-24 h-11 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        void handlePreview(e.currentTarget.value)
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const val = (document.getElementById("manual-token-input") as HTMLInputElement)?.value;
+                      if (val) void handlePreview(val);
+                    }}
+                    className="absolute right-1 top-1 bottom-1 h-9 px-4 bg-brand hover:bg-brand-active text-white text-xs font-bold rounded-md"
+                  >
+                    Lookup
+                  </Button>
+                </div>
+                <p className="text-xs text-center font-semibold text-slate-400">Press Enter or click Lookup</p>
+             </div>
           </div>
-
-          {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/70 space-y-4">
-          {!preview && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-              <p className="text-sm font-semibold text-slate-500">Validate token to load student and item details.</p>
-            </div>
-          )}
-
-          {preview && (
-            <>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Verified Claim</div>
-                <div className="text-sm font-bold text-emerald-800">{preview.claimCode}</div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center space-y-4 py-8">
+            <AlertCircle className="w-12 h-12 text-rose-500" />
+            <p className="text-base font-bold text-slate-800">Scan Failed</p>
+            <p className="text-sm font-medium text-rose-600 text-center">{error}</p>
+          </div>
+        ) : preview ? (
+          <div className="space-y-6">
+            {preview.item.photoUrl && (
+              <div className="w-full bg-slate-100 overflow-hidden rounded-xl border border-slate-200">
+                 <img src={preview.item.photoUrl} alt={preview.item.title} className="w-full h-48 md:h-64 object-cover" />
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 space-y-2 flex flex-col justify-center">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> Verified Claim Ticket
+                </div>
+                <div className="text-lg font-black text-emerald-800">{preview.claimCode}</div>
                 {preview.pickupTokenExpires && (
-                  <div className="text-xs font-semibold text-emerald-700 mt-1">
+                  <div className="text-xs font-semibold text-emerald-700">
                     Expires: {new Date(preview.pickupTokenExpires).toLocaleString()}
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                    <User className="w-3.5 h-3.5" /> Student
-                  </div>
-                  <p className="text-sm font-bold text-slate-800">{preview.student.name}</p>
-                  <p className="text-xs font-semibold text-slate-500">Student ID: {preview.student.studentId ?? "N/A"}</p>
-                  <p className="text-xs font-semibold text-slate-500">Email: {preview.student.email}</p>
+              <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                  <User className="w-4 h-4 text-brand" /> Student claimant
                 </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                    <Package className="w-3.5 h-3.5" /> Item
-                  </div>
-                  <p className="text-sm font-bold text-slate-800">{preview.item.title}</p>
-                  <p className="text-xs font-semibold text-slate-500">Code: {preview.item.code}</p>
-                  <p className="text-xs font-semibold text-slate-500">Storage: {preview.item.storageLocation}</p>
+                <div className="space-y-1">
+                  <p className="text-sm font-black text-slate-800">{preview.student.name}</p>
+                  <p className="text-xs font-bold text-slate-500">Student ID: {preview.student.studentId ?? "N/A"}</p>
+                  <p className="text-xs font-semibold text-slate-400">Email: {preview.student.email}</p>
                 </div>
               </div>
-            </>
-          )}
-        </div>
+            </div>
 
-        <div className="px-6 py-5 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
-          <Button variant="outline" onClick={onClose} className="h-11 px-6">Close</Button>
-          <div className="flex gap-3">
-            {preview && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoCard icon={<Package className="w-4 h-4" />} label="Title" value={preview.item.title} />
+              <InfoCard icon={<Package className="w-4 h-4" />} label="Category" value={preview.item.category} />
+              <InfoCard icon={<Package className="w-4 h-4" />} label="Color" value={preview.item.color || "N/A"} />
+              <InfoCard icon={<MapPin className="w-4 h-4" />} label="Found At" value={preview.item.foundLocation || "N/A"} />
+              <InfoCard icon={<MapPin className="w-4 h-4" />} label="Found Date" value={preview.item.foundAtUtc ? new Date(preview.item.foundAtUtc).toLocaleString() : "N/A"} />
+              <InfoCard icon={<MapPin className="w-4 h-4" />} label="Storage" value={preview.item.storageLocation} />
+              <InfoCard icon={<AlertCircle className="w-4 h-4" />} label="Status" value={preview.item.status.replaceAll("_", " ")} />
+            </div>
+
+            {preview.item.privateDiscoveryNote && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 mb-2">Sensitive Discovery Note</div>
+                <p className="text-sm font-semibold text-amber-900">{preview.item.privateDiscoveryNote}</p>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="px-6 py-5 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
+        <Button variant="outline" onClick={onClose} className="h-11 px-6 rounded-xl text-xs font-bold uppercase tracking-wider">Close</Button>
+        <div className="flex gap-3">
+          {error && (
+            <Button
+              variant="outline"
+              onClick={handleRescan}
+              className="h-11 px-6 border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Rescan
+            </Button>
+          )}
+          {preview && (
+            <>
               <Button
                 variant="outline"
                 onClick={() => setShowCancelConfirm(true)}
                 disabled={isConfirming || isCancelling}
-                className="h-11 px-6 border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                className="h-11 px-6 border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-xl text-xs font-bold uppercase tracking-wider"
               >
                 {isCancelling ? "Cancelling..." : "Cancel Handover"}
               </Button>
-            )}
-            <Button
-              onClick={() => setShowStartConfirm(true)}
-              disabled={!preview || isConfirming || isCancelling}
-              className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              {isConfirming ? "Confirming..." : "Confirm Handover"}
-            </Button>
-          </div>
+              <Button
+                onClick={() => setShowStartConfirm(true)}
+                disabled={isConfirming || isCancelling}
+                className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold uppercase tracking-wider text-xs active:scale-95 transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {isConfirming ? "Confirming..." : "Confirm Handover"}
+              </Button>
+            </>
+          )}
         </div>
-
-        <ConfirmModal
-          isOpen={showStartConfirm}
-          onClose={() => setShowStartConfirm(false)}
-          onConfirm={() => {
-            setShowStartConfirm(false)
-            void handleConfirm()
-          }}
-          title="Confirm Handover"
-          message={preview ? `Confirm that ${preview.student.name} has presented valid ID and should receive ${preview.item.title}? This will mark the item as returned.` : "Confirm this handover?"}
-          confirmText="Yes, Start Handover"
-          cancelText="Review Details"
-          isLoading={isConfirming}
-          confirmButtonClassName="bg-emerald-600 hover:bg-emerald-700"
-        />
-
-        <ConfirmModal
-          isOpen={showCancelConfirm}
-          onClose={() => setShowCancelConfirm(false)}
-          onConfirm={() => {
-            setShowCancelConfirm(false)
-            void handleCancelHandover()
-          }}
-          title="Cancel Handover"
-          message="Are you sure you want to cancel this handover? The item will be made available again, and the claim will be cancelled."
-          confirmText="Yes, Cancel Handover"
-          cancelText="Keep Handover"
-          isDestructive={true}
-        />
       </div>
 
-      {isScanOpen && (
-        <Modal
-          isOpen={isScanOpen}
-          onClose={() => setIsScanOpen(false)}
-          className="max-w-lg bg-slate-50 rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-brand" /> Scan Pickup Token
-            </h3>
-            <button onClick={() => setIsScanOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 rounded-lg transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-inner overflow-hidden flex flex-col items-center">
-            <div id="qr-scanner-element" className="w-full max-w-sm rounded-lg overflow-hidden border border-slate-100" />
-          </div>
-          <p className="mt-4 text-xs font-bold text-slate-400">
-            Allow camera access to scan, or use the file drag-and-drop options inside the scanner to load an image.
-          </p>
-        </Modal>
-      )}
-    </>
+      <ConfirmModal
+        isOpen={showStartConfirm}
+        onClose={() => setShowStartConfirm(false)}
+        onConfirm={() => {
+          setShowStartConfirm(false)
+          void handleConfirm()
+        }}
+        title="Confirm Handover Release"
+        message={preview ? `Confirm that ${preview.student.name} has presented valid ID and should receive the claimed ${preview.item.title}? This will release the item.` : "Confirm this handover?"}
+        confirmText="Yes, Release Item"
+        cancelText="Review Details"
+        isLoading={isConfirming}
+        confirmButtonClassName="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+      />
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={() => {
+          setShowCancelConfirm(false)
+          void handleCancelHandover()
+        }}
+        title="Cancel Handover & Claim"
+        message="Are you sure you want to cancel this handover? The item will return to Available inventory, and the claim ticket will be cancelled."
+        confirmText="Yes, Cancel Handover"
+        cancelText="Keep Handover"
+        isDestructive={true}
+        confirmButtonClassName="rounded-xl"
+      />
+    </div>
+  )
+}
+
+function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 mb-1">{icon} {label}</div>
+      <div className="text-sm font-bold text-slate-900">{value}</div>
+    </div>
   )
 }
