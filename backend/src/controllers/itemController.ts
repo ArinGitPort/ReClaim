@@ -251,6 +251,10 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
     throw new HttpError(404, "Item not found");
   }
 
+  if (beforeItem.status === "CLAIM_PENDING" || beforeItem.status === "RETURNED") {
+    throw new HttpError(403, "Cannot edit an item that is currently in handover or already returned");
+  }
+
   const item = await updateFoundItem({
     itemId: id,
     title: body.title,
@@ -514,17 +518,49 @@ function mergeClaimProfile(
 export async function batchDisposeItems(req: Request, res: Response): Promise<void> {
   const { itemIds } = req.body;
   if (!Array.isArray(itemIds) || itemIds.length === 0) {
-    res.status(400).json({ error: "itemIds array is required" });
-    return;
+    throw new HttpError(400, "itemIds array is required");
   }
   
+  const validItemIds = itemIds.filter(id => typeof id === "string" && id.length === 36);
+  if (validItemIds.length === 0) {
+    throw new HttpError(400, "No valid item IDs provided");
+  }
+
+  const items = await prisma.foundItem.findMany({
+    where: { id: { in: validItemIds } }
+  });
+
+  const eligibleItemIds = items
+    .filter(item => item.status !== ItemStatus.CLAIM_PENDING && item.status !== ItemStatus.RETURNED)
+    .map(item => item.id);
+
+  if (eligibleItemIds.length === 0) {
+    throw new HttpError(400, "None of the selected items are eligible for disposal");
+  }
+
   const updated = await prisma.foundItem.updateMany({
     where: {
-      id: { in: itemIds }
+      id: { in: eligibleItemIds }
     },
     data: {
       status: ItemStatus.ARCHIVED
     }
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.ITEM_UPDATED,
+    targetType: "found_item",
+    targetId: "bulk",
+    description: `Admin bulk archived ${updated.count} items`,
+    payload: {
+      itemIds: eligibleItemIds,
+      action: "batch_dispose",
+    },
+  });
+
+  eligibleItemIds.forEach(id => {
+    emitItemUpdated({ itemId: id, status: ItemStatus.ARCHIVED });
   });
   
   res.json({ success: true, count: updated.count });

@@ -28,9 +28,13 @@ export async function computeMatchesForReport(reportId: string): Promise<ScoredM
     throw new Error("Report not found");
   }
 
-  // Get all AVAILABLE items
+  // Get all AVAILABLE and CLAIM_PENDING items
   const items = await prisma.foundItem.findMany({
-    where: { status: ItemStatus.AVAILABLE },
+    where: { 
+      status: {
+        in: [ItemStatus.AVAILABLE, ItemStatus.CLAIM_PENDING]
+      }
+    },
     include: {
       aiEvidenceLogs: true,
     },
@@ -103,7 +107,7 @@ export async function computeMatchesForReport(reportId: string): Promise<ScoredM
 
     if (reportHasImage && itemHasImage) {
       score += 10;
-      reasons.push("Visual hue match (AI verified)");
+      reasons.push("Visual hue match");
     }
 
     // Final normalization

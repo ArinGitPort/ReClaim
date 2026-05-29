@@ -275,53 +275,57 @@ export async function listClaimsPaginated(filters: {
 export async function decideClaim(input: {
   claimId: string;
   adminId: string;
+  claimId: string;
+  adminId: string;
   status: "APPROVED" | "DENIED" | "INQUIRY_REQUIRED";
   reviewerNote?: string;
 }) {
   await expireStaleClaimReservations();
 
-  const claim = await prisma.claim.findUnique({ where: { id: input.claimId }, include: { foundItem: true } });
-  if (!claim) {
-    throw new HttpError(404, "Claim not found");
-  }
+  return prisma.$transaction(async (tx) => {
+    const claim = await tx.claim.findUnique({ where: { id: input.claimId }, include: { foundItem: true } });
+    if (!claim) {
+      throw new HttpError(404, "Claim not found");
+    }
 
-  if (claim.status === ClaimStatus.EXPIRED) {
-    throw new HttpError(400, "Claim reservation has expired");
-  }
+    if (claim.status === ClaimStatus.EXPIRED) {
+      throw new HttpError(400, "Claim reservation has expired");
+    }
 
-  if (claim.status === ClaimStatus.APPROVED || claim.status === ClaimStatus.DENIED) {
-    throw new HttpError(400, "Claim has already been finalized");
-  }
+    if (claim.status === ClaimStatus.APPROVED || claim.status === ClaimStatus.DENIED) {
+      throw new HttpError(400, "Claim has already been finalized");
+    }
 
-  const note = input.reviewerNote?.trim();
-  if ((input.status === ClaimStatus.DENIED || input.status === ClaimStatus.INQUIRY_REQUIRED) && !note) {
-    throw new HttpError(400, "reviewerNote is required for deny or inquiry decisions");
-  }
+    const note = input.reviewerNote?.trim();
+    if ((input.status === ClaimStatus.DENIED || input.status === ClaimStatus.INQUIRY_REQUIRED) && !note) {
+      throw new HttpError(400, "reviewerNote is required for deny or inquiry decisions");
+    }
 
-  const decisionAtUtc = new Date();
-  const approved = input.status === ClaimStatus.APPROVED;
+    const decisionAtUtc = new Date();
+    const approved = input.status === ClaimStatus.APPROVED;
 
-  const updated = await prisma.claim.update({
-    where: { id: claim.id },
-    data: {
-      status: input.status,
-      reviewerNote: note ?? null,
-      reservationExpiresAt: approved ? null : claim.reservationExpiresAt,
-      decisionAtUtc,
-      verifiedByAdminId: input.adminId,
-      pickupToken: approved ? createPickupToken() : null,
-      pickupTokenExpires: approved ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 3) : null,
-    },
+    const updated = await tx.claim.update({
+      where: { id: claim.id },
+      data: {
+        status: input.status,
+        reviewerNote: note ?? null,
+        reservationExpiresAt: approved ? null : claim.reservationExpiresAt,
+        decisionAtUtc,
+        verifiedByAdminId: input.adminId,
+        pickupToken: approved ? createPickupToken() : null,
+        pickupTokenExpires: approved ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 3) : null,
+      },
+    });
+
+    await tx.foundItem.update({
+      where: { id: claim.foundItemId },
+      data: {
+        status: input.status === ClaimStatus.DENIED ? ItemStatus.AVAILABLE : ItemStatus.CLAIM_PENDING,
+      },
+    });
+
+    return updated;
   });
-
-  await prisma.foundItem.update({
-    where: { id: claim.foundItemId },
-    data: {
-      status: input.status === ClaimStatus.DENIED ? ItemStatus.AVAILABLE : ItemStatus.CLAIM_PENDING,
-    },
-  });
-
-  return updated;
 }
 
 export async function updateClaimProof(input: {
@@ -350,8 +354,6 @@ export async function updateClaimProof(input: {
       submittedProof: input.proof,
       status: ClaimStatus.PENDING_VERIFICATION,
       reviewerNote: null,
-      decisionAtUtc: null,
-      verifiedByAdminId: null,
       pickupToken: null,
       pickupTokenExpires: null,
     },
@@ -382,23 +384,23 @@ export async function closeClaimByStudent(input: {
     throw new HttpError(400, "This claim can no longer be closed");
   }
 
-  const updated = await prisma.claim.update({
-    where: { id: claim.id },
-    data: {
-      status: ClaimStatus.CANCELLED,
-      reviewerNote: "Closed by claimant",
-      decisionAtUtc: null,
-      verifiedByAdminId: null,
-      pickupToken: null,
-      pickupTokenExpires: null,
-    },
-  });
-
-  if (claim.foundItem.status === ItemStatus.CLAIM_PENDING) {
-    await prisma.$transaction(async (tx) => {
-      await releaseItemIfNoActiveHold(tx, claim.foundItemId);
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.claim.update({
+      where: { id: claim.id },
+      data: {
+        status: ClaimStatus.CANCELLED,
+        reviewerNote: "Closed by claimant",
+        decisionAtUtc: null,
+        verifiedByAdminId: null,
+        pickupToken: null,
+        pickupTokenExpires: null,
+      },
     });
-  }
 
-  return updated;
+    if (claim.foundItem.status === ItemStatus.CLAIM_PENDING) {
+      await releaseItemIfNoActiveHold(tx, claim.foundItemId);
+    }
+
+    return updated;
+  });
 }

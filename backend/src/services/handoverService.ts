@@ -83,31 +83,51 @@ export async function createHandoverLog(input: {
   idVerified: boolean;
   note?: string;
 }) {
-  const item = await prisma.foundItem.findUnique({ where: { id: input.foundItemId } });
-  if (!item) {
-    throw new HttpError(404, "Found item not found");
+  if (!input.idVerified) {
+    throw new HttpError(400, "ID verification must be confirmed before handover");
   }
 
-  const handover = await prisma.handoverLog.create({
-    data: {
-      foundItemId: input.foundItemId,
-      claimId: input.claimId,
-      releasedToUserId: input.releasedToUserId,
-      pickupTokenPresented: input.pickupTokenPresented,
-      idVerified: input.idVerified,
-      releasedAtUtc: new Date(),
-      note: input.note,
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const item = await tx.foundItem.findUnique({ where: { id: input.foundItemId } });
+    if (!item) {
+      throw new HttpError(404, "Found item not found");
+    }
 
-  await prisma.foundItem.update({
-    where: { id: input.foundItemId },
-    data: {
-      status: ItemStatus.RETURNED,
-    },
-  });
+    if (item.status !== ItemStatus.CLAIM_PENDING) {
+      throw new HttpError(409, "Item is not in a handover-eligible state");
+    }
 
-  return handover;
+    if (input.claimId) {
+      const claim = await tx.claim.findUnique({ where: { id: input.claimId } });
+      if (!claim || claim.status !== ClaimStatus.APPROVED) {
+        throw new HttpError(400, "Invalid or unapproved claim provided for handover");
+      }
+      if (claim.pickupToken && claim.pickupTokenExpires && claim.pickupTokenExpires < new Date()) {
+        throw new HttpError(410, "Pickup token has expired");
+      }
+    }
+
+    const handover = await tx.handoverLog.create({
+      data: {
+        foundItemId: input.foundItemId,
+        claimId: input.claimId,
+        releasedToUserId: input.releasedToUserId,
+        pickupTokenPresented: input.pickupTokenPresented,
+        idVerified: input.idVerified,
+        releasedAtUtc: new Date(),
+        note: input.note,
+      },
+    });
+
+    await tx.foundItem.update({
+      where: { id: input.foundItemId },
+      data: {
+        status: ItemStatus.RETURNED,
+      },
+    });
+
+    return handover;
+  });
 }
 
 export async function getHandoverPreviewByToken(input: { pickupToken: string }) {
@@ -192,6 +212,7 @@ export async function confirmHandoverByToken(input: {
   }
 
   return prisma.$transaction(async (tx) => {
+    const now = new Date();
     const claim = await tx.claim.findFirst({
       where: {
         pickupToken: input.pickupToken,
@@ -206,7 +227,7 @@ export async function confirmHandoverByToken(input: {
       throw new HttpError(404, "Pickup token not found or not eligible for handover");
     }
 
-    if (claim.pickupTokenExpires && claim.pickupTokenExpires < new Date()) {
+    if (claim.pickupTokenExpires && claim.pickupTokenExpires < now) {
       throw new HttpError(410, "Pickup token has expired");
     }
 
@@ -257,18 +278,18 @@ export async function confirmHandoverByToken(input: {
 }
 
 export async function cancelHandoverByToken(input: { pickupToken: string }) {
-  const claim = await prisma.claim.findFirst({
-    where: {
-      pickupToken: input.pickupToken,
-      status: ClaimStatus.APPROVED,
-    },
-  });
-
-  if (!claim) {
-    throw new HttpError(404, "Pickup token not found or not eligible for cancellation");
-  }
-
   return prisma.$transaction(async (tx) => {
+    const claim = await tx.claim.findFirst({
+      where: {
+        pickupToken: input.pickupToken,
+        status: ClaimStatus.APPROVED,
+      },
+    });
+
+    if (!claim) {
+      throw new HttpError(404, "Pickup token not found or not eligible for cancellation");
+    }
+
     const updatedClaim = await tx.claim.update({
       where: { id: claim.id },
       data: {
@@ -321,6 +342,21 @@ export async function restoreHandover(input: { handoverId: string }) {
       where: { id: handover.foundItemId },
       data: { status: ItemStatus.AVAILABLE },
     });
+
+    const linkedReport = await tx.lostReport.findFirst({
+      where: {
+        matchedItemId: handover.foundItemId,
+        reporterUserId: handover.releasedToUserId,
+        status: ReportStatus.RESOLVED,
+      },
+    });
+
+    if (linkedReport) {
+      await tx.lostReport.update({
+        where: { id: linkedReport.id },
+        data: { status: ReportStatus.MATCHED },
+      });
+    }
 
     return {
       success: true,

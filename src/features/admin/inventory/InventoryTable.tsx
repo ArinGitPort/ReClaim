@@ -71,6 +71,10 @@ function InventoryTableRow({
   onDetails: (item: InventoryRow) => void
   onHandover: (item: InventoryRow) => void
 }) {
+  const isHandoverReady = item.handoverClaim?.pickupTokenExpires 
+    ? new Date(item.handoverClaim.pickupTokenExpires) > new Date()
+    : item.isHandoverReady;
+
   return (
     <tr
       className={cn(
@@ -118,9 +122,9 @@ function InventoryTableRow({
       <td className="px-8 py-5">
         <div className="space-y-1.5">
           <StatusBadge status={item.status} />
-          {inventoryNextAction(item) && (
+          {inventoryNextAction({ ...item, isHandoverReady }) && (
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              {inventoryNextAction(item)}
+              {inventoryNextAction({ ...item, isHandoverReady })}
             </div>
           )}
         </div>
@@ -128,11 +132,11 @@ function InventoryTableRow({
       <td className="px-8 py-5 text-right">
         <div className="flex items-center justify-end gap-2">
           <ActionIconButton
-            label={item.isHandoverReady ? "Cannot edit during handover" : item.status === 'RETURNED' ? "Cannot edit returned item" : "Edit item"}
+            label={isHandoverReady ? "Cannot edit during handover" : item.status === 'RETURNED' ? "Cannot edit returned item" : "Edit item"}
             icon={<Edit className="w-4 h-4" />}
             buttonClassName="bg-amber-100 border-amber-200 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
             onClick={() => onEdit(item)}
-            disabled={item.isHandoverReady || item.status === 'RETURNED'}
+            disabled={isHandoverReady || item.status === 'RETURNED'}
           />
           <ActionIconButton
             label="View item details"
@@ -143,8 +147,8 @@ function InventoryTableRow({
           <Button
             type="button"
             onClick={() => onHandover(item)}
-            disabled={!item.isHandoverReady}
-            title={item.isHandoverReady ? "Start handover" : "Approve or link a claim before handover"}
+            disabled={!isHandoverReady}
+            title={isHandoverReady ? "Start handover" : "Approve or link a claim before handover"}
             className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
           >
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
