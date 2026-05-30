@@ -167,8 +167,6 @@ function toTargetLabel(targetType: string): string {
 
 function toActionVerb(action: AuditAction): string {
   if (action === AuditAction.AUTH_LOGIN) return "logged in and accessed";
-  if (action === AuditAction.ITEM_CREATED) return "created";
-  if (action === AuditAction.ITEM_UPDATED) return "updated";
   if (action === AuditAction.CLAIM_SUBMITTED) return "submitted";
   if (action === AuditAction.CLAIM_APPROVED) return "approved";
   if (action === AuditAction.CLAIM_DENIED) return "denied";

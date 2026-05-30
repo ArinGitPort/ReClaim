@@ -199,20 +199,7 @@ export async function postItem(req: Request, res: Response): Promise<void> {
       : undefined,
   });
 
-  await logAudit({
-    actorUserId: req.user!.id,
-    action: AuditAction.ITEM_CREATED,
-    targetType: "found_item",
-    targetId: item.id,
-    description: "Admin logged a new found item",
-    targetReferenceCode: item.code,
-    payload: {
-      targetReferenceCode: item.code,
-      code: item.code,
-      category: item.category,
-      status: item.status,
-    },
-  });
+  
 
   emitItemUpdated({
     itemId: item.id,
@@ -271,40 +258,7 @@ export async function patchItem(req: Request, res: Response): Promise<void> {
       : undefined,
   });
 
-  await logAudit({
-    actorUserId: req.user!.id,
-    action: AuditAction.ITEM_UPDATED,
-    targetType: "found_item",
-    targetId: item.id,
-    description: "Admin updated found item record",
-    targetReferenceCode: item.code,
-    payload: {
-      targetReferenceCode: item.code,
-      changes: buildChangePayload(beforeItem, item),
-      before: {
-        title: beforeItem.title,
-        category: beforeItem.category,
-        color: beforeItem.color,
-        foundLocation: beforeItem.foundLocation,
-        foundAtUtc: beforeItem.foundAtUtc,
-        storageLocation: beforeItem.storageLocation,
-        privateDiscoveryNote: beforeItem.privateDiscoveryNote,
-        status: beforeItem.status,
-        isHighValue: beforeItem.isHighValue,
-      },
-      after: {
-        title: item.title,
-        category: item.category,
-        color: item.color,
-        foundLocation: item.foundLocation,
-        foundAtUtc: item.foundAtUtc,
-        storageLocation: item.storageLocation,
-        privateDiscoveryNote: item.privateDiscoveryNote,
-        status: item.status,
-        isHighValue: item.isHighValue,
-      },
-    },
-  });
+  
 
   emitItemUpdated({
     itemId: item.id,
@@ -341,20 +295,7 @@ export async function postAiItem(req: Request, res: Response): Promise<void> {
       : undefined,
   });
 
-  await logAudit({
-    actorUserId,
-    action: AuditAction.ITEM_CREATED,
-    targetType: "found_item",
-    targetId: item.id,
-    description: "AI ingestion created a new found item",
-    targetReferenceCode: item.code,
-    payload: {
-      targetReferenceCode: item.code,
-      code: item.code,
-      category: item.category,
-      status: item.status,
-    },
-  });
+  
 
   emitItemUpdated({
     itemId: item.id,
@@ -437,19 +378,7 @@ export async function deleteItem(req: Request, res: Response): Promise<void> {
       status: ItemStatus.ARCHIVED,
     });
 
-    await logAudit({
-      actorUserId: req.user!.id,
-      action: AuditAction.ITEM_UPDATED,
-      targetType: "found_item",
-      targetId: archived.id,
-      description: "Admin archived item instead of deleting because it has linked history",
-      targetReferenceCode: archived.code,
-      payload: {
-        targetReferenceCode: archived.code,
-        deleteMode: "archived",
-        linkedHistory: item._count,
-      },
-    });
+    
 
     emitItemUpdated({ itemId: archived.id, status: archived.status });
     res.json({ mode: "archived", item: archived });
@@ -461,20 +390,7 @@ export async function deleteItem(req: Request, res: Response): Promise<void> {
     prisma.foundItem.delete({ where: { id } }),
   ]);
 
-  await logAudit({
-    actorUserId: req.user!.id,
-    action: AuditAction.ITEM_UPDATED,
-    targetType: "found_item",
-    targetId: item.id,
-    description: "Admin deleted an unused found item",
-    targetReferenceCode: item.code,
-    payload: {
-      targetReferenceCode: item.code,
-      deleteMode: "deleted",
-      title: item.title,
-      category: item.category,
-    },
-  });
+  
 
   emitItemUpdated({ itemId: item.id, status: ItemStatus.ARCHIVED });
   res.json({ mode: "deleted" });
@@ -547,17 +463,7 @@ export async function batchDisposeItems(req: Request, res: Response): Promise<vo
     }
   });
 
-  await logAudit({
-    actorUserId: req.user!.id,
-    action: AuditAction.ITEM_UPDATED,
-    targetType: "found_item",
-    targetId: "bulk",
-    description: `Admin bulk archived ${updated.count} items`,
-    payload: {
-      itemIds: eligibleItemIds,
-      action: "batch_dispose",
-    },
-  });
+  
 
   eligibleItemIds.forEach(id => {
     emitItemUpdated({ itemId: id, status: ItemStatus.ARCHIVED });

@@ -275,8 +275,6 @@ export async function listClaimsPaginated(filters: {
 export async function decideClaim(input: {
   claimId: string;
   adminId: string;
-  claimId: string;
-  adminId: string;
   status: "APPROVED" | "DENIED" | "INQUIRY_REQUIRED";
   reviewerNote?: string;
 }) {

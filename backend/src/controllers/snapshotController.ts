@@ -134,19 +134,7 @@ export async function logSnapshotAsFound(req: Request, res: Response): Promise<v
     data: { foundItemId: item.id },
   });
 
-  await logAudit({
-    actorUserId,
-    action: AuditAction.ITEM_CREATED,
-    targetType: "found_item",
-    targetId: item.id,
-    description: "Admin logged an AI snapshot as a found item",
-    targetReferenceCode: item.code,
-    payload: {
-      code: item.code,
-      category: item.category,
-      snapshotId: id,
-    },
-  });
+  
 
   res.json({ item });
 }
@@ -274,13 +262,7 @@ export async function batchLogSnapshotsAsFound(req: Request, res: Response): Pro
     createdItems.push(item);
   }
 
-  await logAudit({
-    actorUserId,
-    action: AuditAction.ITEM_CREATED,
-    targetType: "found_item",
-    targetId: "batch",
-    description: `Admin bulk logged ${createdItems.length} AI snapshots as found items`,
-  });
+  
 
   res.json({ success: true, count: createdItems.length });
 }

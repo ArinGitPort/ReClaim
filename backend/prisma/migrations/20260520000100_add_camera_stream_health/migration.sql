@@ -1,6 +1,0 @@
-CREATE TYPE "CameraStreamStatus" AS ENUM ('CONNECTING', 'ONLINE', 'OFFLINE', 'SOURCE_IN_USE', 'ERROR');
-
-ALTER TABLE "Camera"
-  ADD COLUMN "streamStatus" "CameraStreamStatus" NOT NULL DEFAULT 'OFFLINE',
-  ADD COLUMN "lastFrameAtUtc" TIMESTAMPTZ(6),
-  ADD COLUMN "lastError" TEXT;

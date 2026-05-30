@@ -1,1 +1,0 @@
-ALTER TABLE "Camera" ADD COLUMN "streamEnabled" BOOLEAN NOT NULL DEFAULT true;

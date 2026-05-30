@@ -48,10 +48,11 @@
 }
 
 @layer base {
-  body {
+  html, body {
     @apply bg-background-app text-text-primary antialiased;
     margin: 0;
     min-height: 100vh;
+    overscroll-behavior: none;
   }
 }
 
