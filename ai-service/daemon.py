@@ -292,6 +292,8 @@ def track_camera(camera_id, stop_event):
     device = resolve_yolo_device()
     print(f"[CAM: {camera['name']}] Inference device: {describe_inference_device(device)}")
     model = YOLO(YOLO_MODEL)
+    if device != "cpu":
+        model.to(device)
 
     cap = open_video_capture(source)
     if not cap.isOpened():
