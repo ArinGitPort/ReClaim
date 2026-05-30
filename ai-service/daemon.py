@@ -5,6 +5,7 @@ import hashlib
 import threading
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 import cv2
 import numpy as np
@@ -56,7 +57,7 @@ active_trackers = {}
 ACTIVE_CAMERAS = {}
 RECENT_SNAPSHOTS = []
 RESTART_REQUESTS = set()
-
+upload_executor = ThreadPoolExecutor(max_workers=10)
 
 def normalize_source_key(source_url):
     return str(source_url).strip()
@@ -245,7 +246,6 @@ def make_duplicate_key(camera_id, category_name, box, frame_shape):
     bucket_y = int((cy / frame_height) * 10)
     return f"{camera_id}:{category_name}:{bucket_x}:{bucket_y}"
 
-
 def is_duplicate_snapshot(camera_id, category_name, box, duplicate_key):
     now = time.time()
     RECENT_SNAPSHOTS[:] = [
@@ -265,7 +265,6 @@ def is_duplicate_snapshot(camera_id, category_name, box, duplicate_key):
 
     return False
 
-
 def remember_snapshot(camera_id, category_name, box, duplicate_key):
     RECENT_SNAPSHOTS.append({
         "camera_id": camera_id,
@@ -275,6 +274,27 @@ def remember_snapshot(camera_id, category_name, box, duplicate_key):
         "created_at": time.time(),
     })
 
+def _async_upload(annotated_frame, item_box, category_name, conf, camera, camera_id, obj_id, reasoning_meta, duplicate_key, state):
+    try:
+        response = save_full_frame_snapshot(
+            annotated_frame,
+            item_box,
+            category_name,
+            conf,
+            camera,
+            camera_id,
+            obj_id,
+            reasoning_meta,
+        )
+        if response.status_code == 201:
+            print(f"[CAM: {camera['name']}] Snapshot uploaded")
+            remember_snapshot(camera_id, category_name, item_box, duplicate_key)
+        else:
+            print(f"[CAM: {camera['name']}] Snapshot rejected: {response.status_code}")
+            state["reported"] = False
+    except Exception as exc:
+        print(f"[CAM: {camera['name']}] Upload error: {exc}")
+        state["reported"] = False
 
 def track_camera(camera_id, stop_event):
     camera = ACTIVE_CAMERAS.get(camera_id)
@@ -316,25 +336,39 @@ def track_camera(camera_id, stop_event):
         }
     )
 
+    frame_count = 0
     while not stop_event.is_set():
         ret, frame = cap.read()
         if not ret:
-            ping_camera(camera_id, False, "ERROR", None, "Camera source stopped producing frames")
-            time.sleep(1)
+            ping_camera(camera_id, False, "ERROR", None, "Camera stream dropped. Attempting to reconnect...")
+            cap.release()
+            time.sleep(2)
+            cap = open_video_capture(source)
+            if not cap:
+                time.sleep(3)
             continue
 
         camera = ACTIVE_CAMERAS.get(camera_id)
         if not camera:
             break
 
+        frame_count += 1
+        frame_skip = int(camera.get("aiFrameSkip") or 6)
+        
+        # Always read frame to keep buffer clear, but only process every Nth frame
+        if frame_count % frame_skip != 0:
+            continue
+
         annotated_frame = frame
 
         if camera.get("aiEnabled"):
+            conf_threshold = float(camera.get("aiConfThreshold") or 0.35)
             results = model.track(
                 frame,
                 persist=True,
+                tracker="bytetrack.yaml",
                 classes=[0, *LOST_ITEM_CLASSES.keys()],
-                conf=0.35,
+                conf=conf_threshold,
                 device=device,
                 half=device != "cpu",
                 verbose=False,
@@ -421,25 +455,20 @@ def track_camera(camera_id, stop_event):
                             "duplicateKey": duplicate_key,
                         }
 
-                        try:
-                            response = save_full_frame_snapshot(
-                                annotated_frame,
-                                (x1, y1, x2, y2),
-                                category_name,
-                                conf,
-                                camera,
-                                camera_id,
-                                obj_id,
-                                reasoning_meta,
-                            )
-                            if response.status_code == 201:
-                                print(f"[CAM: {camera['name']}] Snapshot uploaded")
-                                remember_snapshot(camera_id, category_name, item_box, duplicate_key)
-                                state["reported"] = True
-                            else:
-                                print(f"[CAM: {camera['name']}] Snapshot rejected: {response.status_code}")
-                        except Exception as exc:
-                            print(f"[CAM: {camera['name']}] Upload error: {exc}")
+                        state["reported"] = True
+                        upload_executor.submit(
+                            _async_upload,
+                            annotated_frame.copy(),
+                            (x1, y1, x2, y2),
+                            category_name,
+                            conf,
+                            camera.copy(),
+                            camera_id,
+                            obj_id,
+                            reasoning_meta,
+                            duplicate_key,
+                            state
+                        )
 
         ret_jpg, buffer = cv2.imencode(".jpg", annotated_frame)
         if ret_jpg:

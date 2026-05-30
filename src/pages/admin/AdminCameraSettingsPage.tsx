@@ -7,7 +7,7 @@ import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
 import { AddCameraModal } from "@/features/admin/components/AddCameraModal"
 import {
   CameraSettingsFilters,
-  CameraSettingsTable,
+  CameraSettingsGrid,
   useCameraSettings,
 } from "@/features/admin/camera-settings"
 import { StartAiServiceConfirmModal, useAiServiceStatus, type AiServiceStatus } from "@/features/admin/live-monitor"
@@ -100,7 +100,7 @@ export function CameraSettingsPage() {
         onSearchChange={cameras.setSearchQuery}
       />
 
-      <CameraSettingsTable
+      <CameraSettingsGrid
         cameras={cameras.filteredCameras}
         onToggleStream={cameras.toggleStream}
         onToggleAi={cameras.toggleAi}

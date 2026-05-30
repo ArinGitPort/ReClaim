@@ -9,12 +9,16 @@ const createCameraSchema = z.object({
   name: z.string().min(1),
   location: z.string().min(1),
   sourceUrl: z.string().min(1),
+  aiConfThreshold: z.number().min(0.1).max(1.0).optional(),
+  aiFrameSkip: z.number().min(1).max(30).optional(),
 });
 
 const updateCameraSchema = z.object({
   name: z.string().min(1),
   location: z.string().min(1),
   sourceUrl: z.string().min(1),
+  aiConfThreshold: z.number().min(0.1).max(1.0).optional(),
+  aiFrameSkip: z.number().min(1).max(30).optional(),
 });
 
 export async function getCameras(req: Request, res: Response): Promise<void> {
@@ -50,6 +54,8 @@ export async function createCamera(req: Request, res: Response): Promise<void> {
       streamStatus: CameraStreamStatus.CONNECTING,
       lastError: null,
       aiEnabled: false,
+      aiConfThreshold: body.aiConfThreshold ?? 0.35,
+      aiFrameSkip: body.aiFrameSkip ?? 6,
     },
   });
 
@@ -149,6 +155,8 @@ export async function updateCamera(req: Request, res: Response): Promise<void> {
             lastError: null,
           }
         : {}),
+      aiConfThreshold: body.aiConfThreshold ?? 0.35,
+      aiFrameSkip: body.aiFrameSkip ?? 6,
     },
   });
 

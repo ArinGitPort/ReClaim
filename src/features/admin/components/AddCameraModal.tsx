@@ -11,11 +11,13 @@ import { addCameraSchema, type AddCameraFormData } from "@/lib/validations/admin
 interface AddCameraModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: { name: string; location: string; sourceUrl: string }) => Promise<void>
+  onSubmit: (data: { name: string; location: string; sourceUrl: string; aiConfThreshold?: number; aiFrameSkip?: number }) => Promise<void>
   initialValues?: {
     name: string
     location: string
     sourceUrl: string
+    aiConfThreshold?: number
+    aiFrameSkip?: number
   } | null
   title?: string
   submitText?: string
@@ -43,6 +45,8 @@ export function AddCameraModal({
 
   const sourceType = useWatch({ control, name: "sourceType" })
   const webcamIndex = useWatch({ control, name: "webcamIndex" }) || "0"
+  const aiConfThreshold = useWatch({ control, name: "aiConfThreshold" }) ?? 0.35
+  const aiFrameSkip = useWatch({ control, name: "aiFrameSkip" }) ?? 6
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -122,7 +126,13 @@ export function AddCameraModal({
     try {
       setSubmitError(null)
       stopStream()
-      await onSubmit({ name: data.name, location: data.location, sourceUrl: finalSourceUrl })
+      await onSubmit({ 
+        name: data.name, 
+        location: data.location, 
+        sourceUrl: finalSourceUrl,
+        aiConfThreshold: data.aiConfThreshold,
+        aiFrameSkip: data.aiFrameSkip,
+      })
       reset()
       onClose()
     } catch (err: unknown) {
@@ -134,7 +144,7 @@ export function AddCameraModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="w-[800px] max-w-[90vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
+    <Modal isOpen={isOpen} onClose={onClose} className="w-[960px] max-w-[95vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
       <ModalHeader
         title={title}
         icon={<Camera className="w-5 h-5 text-white" />}
@@ -220,18 +230,56 @@ export function AddCameraModal({
               {errors.rtspUrl && <p className="mt-1 text-xs text-rose-600 font-semibold">{errors.rtspUrl.message}</p>}
             </div>
           )}
+
+          <div className="pt-4 border-t border-slate-100">
+            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">AI Detection Settings</h4>
+            
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">Confidence Threshold</label>
+                  <span className="text-xs font-black text-brand bg-brand/10 px-2 py-0.5 rounded">{Math.round(aiConfThreshold * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1.0"
+                  step="0.05"
+                  {...register("aiConfThreshold", { valueAsNumber: true })}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand"
+                />
+                <p className="mt-2 text-[10px] font-medium text-slate-400 leading-snug">Higher confidence reduces false positives but might miss items. Default: 35%.</p>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">Frame Skip (Performance)</label>
+                  <span className="text-xs font-black text-brand bg-brand/10 px-2 py-0.5 rounded">1 in {aiFrameSkip} frames</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="30"
+                  step="1"
+                  {...register("aiFrameSkip", { valueAsNumber: true })}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand"
+                />
+                <p className="mt-2 text-[10px] font-medium text-slate-400 leading-snug">Process fewer frames to save GPU load. E.g., 6 processes ~5 FPS. Default: 6.</p>
+              </div>
+            </div>
+          </div>
           </div>
           </div>
 
           {/* Right Column: Live Preview Box */}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col">
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Live Preview</label>
-            <div className="w-full flex-1 min-h-[240px] bg-slate-100 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center relative">
+            <div className="w-full aspect-video bg-slate-900 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
               {sourceType === "webcam" ? (
                 <>
                   <video 
                     ref={videoRef} 
-                    className="w-full h-full object-cover bg-black" 
+                    className="w-full h-full object-contain" 
                     autoPlay
                     muted 
                     playsInline 
@@ -282,5 +330,7 @@ function getDefaultValues(initialValues?: AddCameraModalProps["initialValues"]):
     sourceType: isRtsp ? "rtsp" : "webcam",
     webcamIndex: isRtsp ? "0" : sourceUrl,
     rtspUrl: isRtsp ? sourceUrl : "",
+    aiConfThreshold: initialValues?.aiConfThreshold ?? 0.35,
+    aiFrameSkip: initialValues?.aiFrameSkip ?? 6,
   }
 }

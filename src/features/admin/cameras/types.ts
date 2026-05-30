@@ -7,6 +7,8 @@ export type CampusCamera = {
   isOnline: boolean
   streamEnabled: boolean
   aiEnabled: boolean
+  aiConfThreshold?: number
+  aiFrameSkip?: number
   streamStatus?: CameraStreamStatus
   lastFrameAtUtc?: string | null
   lastError?: string | null

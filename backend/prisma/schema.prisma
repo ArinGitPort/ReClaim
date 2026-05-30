@@ -87,30 +87,30 @@ enum NotificationType {
 }
 
 model User {
-  id             String      @id @default(uuid()) @db.Uuid
-  studentId      String?     @unique
-  name           String
-  email          String      @unique
-  phone          String?
-  department     String?
+  id                      String         @id @default(uuid()) @db.Uuid
+  studentId               String?        @unique
+  name                    String
+  email                   String         @unique
+  phone                   String?
+  department              String?
   notificationPreferences Json?
-  passwordHash   String
-  role           UserRole
-  status         UserStatus  @default(ACTIVE)
-  passwordResetRequired Boolean @default(false)
-  lastLoginAt    DateTime?   @db.Timestamptz(6)
-  disabledAt     DateTime?   @db.Timestamptz(6)
-  disabledReason String?
-  disabledById   String?     @db.Uuid
-  claims         Claim[]
-  reports        LostReport[]
-  notifications  Notification[]
-  auditLogs      AuditLog[]
-  createdItems   FoundItem[] @relation("ItemCreatedBy")
-  verifiedClaims Claim[]     @relation("ClaimVerifiedBy")
-  handovers      HandoverLog[]
-  createdAt      DateTime    @default(now()) @db.Timestamptz(6)
-  updatedAt      DateTime    @updatedAt @db.Timestamptz(6)
+  passwordHash            String
+  role                    UserRole
+  status                  UserStatus     @default(ACTIVE)
+  passwordResetRequired   Boolean        @default(false)
+  lastLoginAt             DateTime?      @db.Timestamptz(6)
+  disabledAt              DateTime?      @db.Timestamptz(6)
+  disabledReason          String?
+  disabledById            String?        @db.Uuid
+  claims                  Claim[]
+  reports                 LostReport[]
+  notifications           Notification[]
+  auditLogs               AuditLog[]
+  createdItems            FoundItem[]    @relation("ItemCreatedBy")
+  verifiedClaims          Claim[]        @relation("ClaimVerifiedBy")
+  handovers               HandoverLog[]
+  createdAt               DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt               DateTime       @updatedAt @db.Timestamptz(6)
 }
 
 model FoundItem {
@@ -138,25 +138,25 @@ model FoundItem {
 }
 
 model Claim {
-  id                 String      @id @default(uuid()) @db.Uuid
-  claimCode          String      @unique
-  foundItemId        String      @db.Uuid
-  foundItem          FoundItem   @relation(fields: [foundItemId], references: [id])
-  claimantUserId     String      @db.Uuid
-  claimantUser       User        @relation(fields: [claimantUserId], references: [id])
-  submittedProof     Json
-  status             ClaimStatus @default(PENDING_VERIFICATION)
-  reviewerNote       String?
-  reservationExpiresAt DateTime? @db.Timestamptz(6)
-  decisionAtUtc      DateTime?   @db.Timestamptz(6)
-  verifiedByAdminId  String?     @db.Uuid
-  verifiedByAdmin    User?       @relation("ClaimVerifiedBy", fields: [verifiedByAdminId], references: [id])
-  pickupToken        String?
-  pickupTokenExpires DateTime?   @db.Timestamptz(6)
-  handoverLogs       HandoverLog[]
-  messages           ClaimMessage[]
-  createdAt          DateTime    @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime    @updatedAt @db.Timestamptz(6)
+  id                   String         @id @default(uuid()) @db.Uuid
+  claimCode            String         @unique
+  foundItemId          String         @db.Uuid
+  foundItem            FoundItem      @relation(fields: [foundItemId], references: [id])
+  claimantUserId       String         @db.Uuid
+  claimantUser         User           @relation(fields: [claimantUserId], references: [id])
+  submittedProof       Json
+  status               ClaimStatus    @default(PENDING_VERIFICATION)
+  reviewerNote         String?
+  reservationExpiresAt DateTime?      @db.Timestamptz(6)
+  decisionAtUtc        DateTime?      @db.Timestamptz(6)
+  verifiedByAdminId    String?        @db.Uuid
+  verifiedByAdmin      User?          @relation("ClaimVerifiedBy", fields: [verifiedByAdminId], references: [id])
+  pickupToken          String?
+  pickupTokenExpires   DateTime?      @db.Timestamptz(6)
+  handoverLogs         HandoverLog[]
+  messages             ClaimMessage[]
+  createdAt            DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime       @updatedAt @db.Timestamptz(6)
 
   @@index([foundItemId])
   @@index([claimantUserId])
@@ -175,72 +175,72 @@ model ClaimMessage {
 }
 
 model LostReport {
-  id                String       @id @default(uuid()) @db.Uuid
-  reportCode        String       @unique
-  reporterUserId    String       @db.Uuid
-  reporterUser      User         @relation(fields: [reporterUserId], references: [id])
+  id                String          @id @default(uuid()) @db.Uuid
+  reportCode        String          @unique
+  reporterUserId    String          @db.Uuid
+  reporterUser      User            @relation(fields: [reporterUserId], references: [id])
   title             String
   category          String
   color             String
   location          String
-  reportedLostAtUtc DateTime     @db.Timestamptz(6)
+  reportedLostAtUtc DateTime        @db.Timestamptz(6)
   timeWindow        String?
   proofData         Json
-  status            ReportStatus @default(SUBMITTED)
-  matchedItemId     String?      @db.Uuid
-  matchedItem       FoundItem?   @relation("ReportMatchedItem", fields: [matchedItemId], references: [id])
+  status            ReportStatus    @default(SUBMITTED)
+  matchedItemId     String?         @db.Uuid
+  matchedItem       FoundItem?      @relation("ReportMatchedItem", fields: [matchedItemId], references: [id])
   messages          ReportMessage[]
-  createdAt         DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt         DateTime     @updatedAt @db.Timestamptz(6)
+  createdAt         DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime        @updatedAt @db.Timestamptz(6)
 
   @@index([reporterUserId])
   @@index([status])
 }
 
 model AIEvidenceLog {
-  id               String    @id @default(uuid()) @db.Uuid
-  foundItemId      String?   @db.Uuid
-  foundItem        FoundItem? @relation(fields: [foundItemId], references: [id])
-  sourceCameraId   String
-  snapshotPath     String
-  snapshotHash     String?
-  isEncrypted      Boolean   @default(true)
-  detectionMeta    Json
-  detectedAtUtc    DateTime  @db.Timestamptz(6)
-  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
-  dismissedAt      DateTime? @db.Timestamptz(6)
+  id             String     @id @default(uuid()) @db.Uuid
+  foundItemId    String?    @db.Uuid
+  foundItem      FoundItem? @relation(fields: [foundItemId], references: [id])
+  sourceCameraId String
+  snapshotPath   String
+  snapshotHash   String?
+  isEncrypted    Boolean    @default(true)
+  detectionMeta  Json
+  detectedAtUtc  DateTime   @db.Timestamptz(6)
+  createdAt      DateTime   @default(now()) @db.Timestamptz(6)
+  dismissedAt    DateTime?  @db.Timestamptz(6)
 
   @@index([foundItemId])
 }
 
 model HandoverLog {
-  id                 String   @id @default(uuid()) @db.Uuid
-  foundItemId         String   @db.Uuid
-  foundItem           FoundItem @relation(fields: [foundItemId], references: [id])
-  claimId             String?  @db.Uuid
-  claim               Claim?   @relation(fields: [claimId], references: [id])
-  releasedToUserId    String   @db.Uuid
-  releasedToUser      User     @relation(fields: [releasedToUserId], references: [id])
+  id                   String    @id @default(uuid()) @db.Uuid
+  foundItemId          String    @db.Uuid
+  foundItem            FoundItem @relation(fields: [foundItemId], references: [id])
+  claimId              String?   @db.Uuid
+  claim                Claim?    @relation(fields: [claimId], references: [id])
+  releasedToUserId     String    @db.Uuid
+  releasedToUser       User      @relation(fields: [releasedToUserId], references: [id])
   pickupTokenPresented String
-  idVerified          Boolean  @default(false)
-  releasedAtUtc       DateTime @db.Timestamptz(6)
-  note                String?
-  createdAt           DateTime @default(now()) @db.Timestamptz(6)
+  idVerified           Boolean   @default(false)
+  releasedAtUtc        DateTime  @db.Timestamptz(6)
+  note                 String?
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([foundItemId])
   @@index([releasedToUserId])
 }
 
 model AuditLog {
-  id           String      @id @default(uuid()) @db.Uuid
-  actorUserId  String      @db.Uuid
-  actorUser    User        @relation(fields: [actorUserId], references: [id])
-  action       AuditAction
-  targetType   String
-  targetId     String
-  description  String?
-  payload      Json?
-  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  id          String      @id @default(uuid()) @db.Uuid
+  actorUserId String      @db.Uuid
+  actorUser   User        @relation(fields: [actorUserId], references: [id])
+  action      AuditAction
+  targetType  String
+  targetId    String
+  description String?
+  payload     Json?
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
 
   @@index([actorUserId])
   @@index([action])
@@ -266,15 +266,15 @@ model SystemSetting {
 }
 
 model Notification {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id])
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id])
   type      NotificationType @default(SYSTEM)
   title     String
   message   String
   route     String?
-  readAt    DateTime? @db.Timestamptz(6)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  readAt    DateTime?        @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
 
   @@index([userId])
   @@index([userId, readAt])
@@ -283,21 +283,23 @@ model Notification {
 }
 
 model Camera {
-  id              String    @id @default(uuid()) @db.Uuid
-  code            String    @unique
-  name            String
-  location        String
-  sourceUrl       String
-  zoneConfig      Json?
-  isOnline        Boolean   @default(false)
-  streamEnabled   Boolean   @default(true)
-  aiEnabled       Boolean   @default(false)
-  streamStatus    CameraStreamStatus @default(OFFLINE)
-  lastFrameAtUtc  DateTime? @db.Timestamptz(6)
-  lastError       String?
-  lastPingAtUtc   DateTime? @db.Timestamptz(6)
-  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+  id             String             @id @default(uuid()) @db.Uuid
+  code           String             @unique
+  name           String
+  location       String
+  sourceUrl      String
+  zoneConfig     Json?
+  isOnline       Boolean            @default(false)
+  streamEnabled  Boolean            @default(true)
+  aiEnabled      Boolean            @default(false)
+  aiConfThreshold Float             @default(0.35)
+  aiFrameSkip     Int               @default(6)
+  streamStatus   CameraStreamStatus @default(OFFLINE)
+  lastFrameAtUtc DateTime?          @db.Timestamptz(6)
+  lastError      String?
+  lastPingAtUtc  DateTime?          @db.Timestamptz(6)
+  createdAt      DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @db.Timestamptz(6)
 
   @@index([isOnline])
   @@index([aiEnabled])

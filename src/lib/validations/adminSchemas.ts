@@ -6,6 +6,8 @@ export const addCameraSchema = z.object({
   sourceType: z.enum(["webcam", "rtsp"]),
   webcamIndex: z.string().optional(),
   rtspUrl: z.string().optional(),
+  aiConfThreshold: z.number().min(0.1).max(1.0).optional(),
+  aiFrameSkip: z.number().min(1).max(30).optional(),
 }).refine((data) => {
   if (data.sourceType === "rtsp" && (!data.rtspUrl || !data.rtspUrl.startsWith("rtsp://"))) {
     return false;
