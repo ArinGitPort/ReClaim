@@ -9,6 +9,7 @@ import {
   FileSearch, 
   HandMetal, 
   History,
+  Link,
   LogOut,
   Camera,
   Video,
@@ -56,7 +57,7 @@ export function AdminMobileNav() {
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Operations</h4>
             <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" />
             <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" />
-            <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" />
+            <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items Report" />
             <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
             <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
 
@@ -68,6 +69,7 @@ export function AdminMobileNav() {
             <div className="h-px w-full bg-white/10 my-3" />
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Records & Accountability</h4>
             <MobileNavItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" />
+            <MobileNavItem to="/admin/match-history" icon={<Link className="w-5 h-5" />} label="Match History" />
             <MobileNavItem to="/admin/user-directory" icon={<FileSearch className="w-5 h-5" />} label="User Directory" />
             <MobileNavItem to="/admin/deleted-items" icon={<Package className="w-5 h-5" />} label="Deleted Items" />
 

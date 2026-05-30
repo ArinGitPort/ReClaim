@@ -36,6 +36,7 @@ import { UserDirectoryPage } from "@/pages/admin/AdminUserDirectoryPage"
 import { DeletedItemsPage } from "@/pages/admin/AdminDeletedItemsPage"
 import { SettingsPage } from "@/pages/admin/AdminSettingsPage"
 import { AdminNotificationsPage } from "@/pages/admin/AdminNotificationsPage"
+import { MatchHistoryPage } from "@/pages/admin/AdminMatchHistoryPage"
 import { SnapshotGalleryPage } from "@/pages/admin/AdminSnapshotGalleryPage"
 import { DismissedSnapshotsPage } from "@/pages/admin/AdminDismissedSnapshotsPage"
 import { CameraSettingsPage } from "@/pages/admin/AdminCameraSettingsPage"
@@ -137,6 +138,7 @@ function App() {
               <Route path="dismissed-snapshots" element={<DismissedSnapshotsPage />} />
               <Route path="claims" element={<ClaimsVerificationPage />} />
               <Route path="handover-log" element={<HandoverLogPage />} />
+              <Route path="match-history" element={<MatchHistoryPage />} />
               <Route path="user-directory" element={<UserDirectoryPage />} />
               <Route path="deleted-items" element={<DeletedItemsPage />} />
               <Route path="logs" element={<AuditLogsPage />} />

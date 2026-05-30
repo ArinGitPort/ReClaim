@@ -27,6 +27,18 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
   const [, setMessageReadVersion] = useState(0)
   const debouncedSearch = useDebounce(search, 350)
   const debouncedStatus = useDebounce(statusFilter, 350)
+  const [lastFocusCode, setLastFocusCode] = useState("")
+
+  useEffect(() => {
+    if (!focusCode || claims.length === 0) return
+    if (focusCode === lastFocusCode) return
+
+    const matchedClaim = claims.find((row) => row.claimCode.toUpperCase() === focusCode)
+    if (matchedClaim) {
+      setSelectedClaimId(matchedClaim.id)
+      setLastFocusCode(focusCode)
+    }
+  }, [focusCode, claims, lastFocusCode])
 
   useEffect(() => {
     if (queryStatus === "PENDING_VERIFICATION" || queryStatus === "INQUIRY_REQUIRED") {
@@ -60,10 +72,6 @@ export function useClaimsVerification(focusCode: string, queryStatus: string | n
       setTotalClaims(response.data.pagination?.total ?? response.data.claims.length)
       setPageCount(response.data.pagination?.pageCount ?? 1)
       setSelectedClaimId((previous) => {
-        if (focusCode) {
-          const focused = response.data.claims.find((claim) => claim.claimCode.toUpperCase() === focusCode)
-          if (focused) return focused.id
-        }
         if (previous && response.data.claims.some((claim) => claim.id === previous)) return previous
         return response.data.claims[0]?.id ?? null
       })

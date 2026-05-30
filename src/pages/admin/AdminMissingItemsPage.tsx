@@ -24,7 +24,7 @@ export function MissingItemsPage() {
       />
 
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Missing Items</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Missing Items Report</h1>
         <p className="text-slate-500 text-sm font-medium mt-1">Monitor and verify incoming student lost reports against system records.</p>
       </div>
 

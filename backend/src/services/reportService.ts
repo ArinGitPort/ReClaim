@@ -116,7 +116,7 @@ export async function listReports(filters: {
 export async function updateReportStatus(input: {
   reportId: string;
   status: ReportStatus;
-  matchedItemId?: string;
+  matchedItemId?: string | null;
   adminId: string;
 }) {
   const report = await prisma.lostReport.findUnique({ where: { id: input.reportId } });
@@ -127,9 +127,10 @@ export async function updateReportStatus(input: {
   if (
     input.status === ReportStatus.ACTIVE_SEARCH &&
     report.status !== ReportStatus.SUBMITTED &&
-    report.status !== ReportStatus.UNDER_REVIEW
+    report.status !== ReportStatus.UNDER_REVIEW &&
+    report.status !== ReportStatus.MATCHED
   ) {
-    throw new HttpError(400, "Only submitted or under-review reports can be authorized for active search");
+    throw new HttpError(400, "Only submitted, under-review, or matched reports can be authorized for active search");
   }
 
   if (
@@ -137,6 +138,33 @@ export async function updateReportStatus(input: {
     report.status === ReportStatus.RESOLVED
   ) {
     throw new HttpError(400, "Cannot update a finalized report");
+  }
+
+  if (input.status === ReportStatus.ACTIVE_SEARCH && report.status === ReportStatus.MATCHED) {
+    return prisma.$transaction(async (tx) => {
+      if (report.matchedItemId) {
+        await tx.foundItem.update({
+          where: { id: report.matchedItemId },
+          data: { status: ItemStatus.AVAILABLE },
+        });
+
+        await tx.claim.deleteMany({
+          where: {
+            foundItemId: report.matchedItemId,
+            claimantUserId: report.reporterUserId,
+            status: ClaimStatus.APPROVED,
+          },
+        });
+      }
+
+      return tx.lostReport.update({
+        where: { id: input.reportId },
+        data: {
+          status: ReportStatus.ACTIVE_SEARCH,
+          matchedItemId: null,
+        },
+      });
+    });
   }
 
   if (input.status === ReportStatus.MATCHED) {

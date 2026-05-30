@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 import { hasUnreadReportMessage, markReportMessagesViewed } from "@/lib/reportMessageReadState"
@@ -9,7 +10,6 @@ import type { ReportRealtimeEvent, ReportView } from "./types"
 
 export function useMyReports() {
   const [reports, setReports] = useState<ReportView[]>([])
-  const [liveNotice, setLiveNotice] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [closingTicketId, setClosingTicketId] = useState<string | null>(null)
@@ -62,7 +62,10 @@ export function useMyReports() {
 
     const handleStatusUpdated = (event: ReportRealtimeEvent) => {
       if (event.status === "MATCHED") {
-        setLiveNotice(`Good news! ${event.reportCode} has a match. Use Ready to Claim to view your pickup token.`)
+        toast.success("Match Found!", {
+          description: `Good news! ${event.reportCode} has a match. Use Ready to Claim to view your pickup token.`,
+          duration: 10000,
+        })
       }
       void loadReports()
     }
@@ -137,7 +140,6 @@ export function useMyReports() {
   }
 
   return {
-    liveNotice,
     search,
     setSearch,
     statusFilter,

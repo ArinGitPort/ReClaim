@@ -21,7 +21,7 @@ export function AdminTopNavBar() {
     if (pathname.includes('/dashboard')) return 'System Dashboard'
     if (pathname.includes('/inventory')) return 'Inventory Management'
     if (pathname.includes('/snapshots')) return 'AI Snapshot Gallery'
-    if (pathname.includes('/reports')) return 'Missing Items'
+    if (pathname.includes('/reports')) return 'Missing Items Report'
     if (pathname.includes('/claims')) return 'Claims Verification'
     if (pathname.includes('/logs')) return 'Audit Trail'
     if (pathname.includes('/settings')) return 'System Settings'

@@ -15,11 +15,6 @@ export function MyReportsPage() {
   return (
     <div className="w-full min-h-full pb-24">
       <div className="max-w-5xl mx-auto px-6 mt-8">
-        {myReports.liveNotice && (
-          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-            {myReports.liveNotice}
-          </div>
-        )}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-1">Tracking & Status</h2>

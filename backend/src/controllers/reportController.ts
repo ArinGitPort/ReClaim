@@ -33,7 +33,7 @@ const createReportSchema = z.object({
 
 const updateReportSchema = z.object({
   status: z.nativeEnum(ReportStatus),
-  matchedItemId: z.string().uuid().optional(),
+  matchedItemId: z.string().uuid().optional().nullable(),
 });
 
 const idParamsSchema = z.object({

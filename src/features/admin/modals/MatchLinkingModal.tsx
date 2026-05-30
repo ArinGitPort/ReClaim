@@ -12,11 +12,13 @@ import {
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { Input } from "@/components/ui/Input"
 import { formatShortDate } from "@/lib/formatters"
 import { cn, getImageUrl } from "@/lib/utils"
 import { api } from "@/lib/api"
 import { useDebounce } from "@/lib/hooks/useDebounce"
+import { toast } from "sonner"
 
 type ScoredInventoryMatch = {
   id: string
@@ -77,6 +79,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, pre
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [candidateItems, setCandidateItems] = useState<ScoredInventoryMatch[]>([])
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   const debouncedSearch = useDebounce(searchText, 250)
   const criteria = useMemo<MatchCriteria>(() => ({
@@ -159,9 +162,32 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, pre
       onLinked?.(selectedItem.id)
 
       setIsLinking(false)
+      setIsConfirmOpen(false)
       setConfirmed(true)
+      
+      const reportIdForUndo = reportId
+      toast.success("Report Linked", {
+        description: `Successfully linked to inventory item ${selectedItem.code}`,
+        action: {
+          label: "Undo Match",
+          onClick: (e: any) => {
+            if (e && e.preventDefault) e.preventDefault();
+            api.patch(`/reports/${reportIdForUndo}`, { 
+              status: "ACTIVE_SEARCH", 
+              matchedItemId: null
+            }).then(() => {
+              toast.success("Match reverted", { description: "Report returned to active queue." })
+            }).catch((err: any) => {
+              console.error("Undo error", err?.response?.data || err)
+              toast.error(`Failed to revert: ${err?.response?.data?.message || err?.message || 'Unknown'}`)
+            })
+          }
+        },
+        duration: 8000,
+      })
     } catch {
       setIsLinking(false)
+      setIsConfirmOpen(false)
       setError("Failed to link report with selected inventory item.")
     }
   }
@@ -325,7 +351,7 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, pre
             <div className="flex gap-3 w-full sm:w-auto">
               <Button variant="outline" className="flex-1 sm:flex-none h-11 px-8 border-slate-200 rounded-xl font-bold uppercase tracking-widest text-[10px] text-slate-500" onClick={() => setSelectedMatch(null)}>Change Choice</Button>
               <Button
-                onClick={handleLink}
+                onClick={() => setIsConfirmOpen(true)}
                 disabled={isLinking || !selectedItem}
                 className="flex-1 sm:flex-none h-11 px-10 bg-brand hover:opacity-90 text-white font-black uppercase tracking-widest text-[11px] shadow-sm rounded-xl transition-all active:scale-95"
               >
@@ -339,6 +365,17 @@ export function MatchLinkingModal({ onClose, onLinked, reportId, reportCode, pre
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => !isLinking && setIsConfirmOpen(false)}
+        onConfirm={() => void handleLink()}
+        title="Confirm Match"
+        message={`Are you sure you want to link report ${reportCode || reportId} with inventory item ${selectedItem?.code}? The student will be notified that a match has been found.`}
+        confirmText="Confirm & Notify"
+        cancelText="Cancel"
+        isLoading={isLinking}
+      />
     </div>
   )
 }

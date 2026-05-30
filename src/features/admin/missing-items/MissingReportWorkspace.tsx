@@ -17,8 +17,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { Modal } from "@/components/ui/Modal"
-import { ConfirmModal } from "@/components/ui/ConfirmModal"
-import { cn } from "@/lib/utils"
+import { QuickMatchReviewModal } from "@/features/admin/modals/QuickMatchReviewModal"
+import { cn, getImageUrl } from "@/lib/utils"
+import { toast } from "sonner"
 import { DetailItem, DetailSection } from "./ReportDetailPrimitives"
 import { isAuthorizedReport, isReviewableReport, reportNextAction } from "./reportStatus"
 import type { ReportRow, ReportStatus } from "./types"
@@ -44,8 +45,25 @@ type ScoredInventoryMatch = {
   category: string
   color: string
   foundLocation: string
+  storageLocation?: string
   status: string
+  privateData?: unknown
+  aiEvidenceLogs?: Array<{
+    snapshotPath?: string | null
+  }>
+  foundAtUtc: string
   matchScore: number
+}
+
+function getInventoryImageUrl(item: ScoredInventoryMatch): string | undefined {
+  const photoPath = extractPhotoPath(item.privateData) ?? item.aiEvidenceLogs?.find((log) => log.snapshotPath)?.snapshotPath
+  return getImageUrl(photoPath)
+}
+
+function extractPhotoPath(privateData: unknown): string | undefined {
+  if (!privateData || typeof privateData !== "object") return undefined
+  const maybePhoto = (privateData as { photoUrl?: unknown }).photoUrl
+  return typeof maybePhoto === "string" ? maybePhoto : undefined
 }
 
 export function MissingReportWorkspace({
@@ -100,6 +118,27 @@ export function MissingReportWorkspace({
         matchedItemId: pendingMatch.id,
       })
       onLinked?.(report.id)
+      
+      const reportIdForUndo = report.id
+      toast.success("Item matched successfully", {
+        description: "The student will be notified to review the match.",
+        action: {
+          label: "Undo Match",
+          onClick: (e: any) => {
+            if (e && e.preventDefault) e.preventDefault();
+            api.patch(`/reports/${reportIdForUndo}`, { 
+              status: "ACTIVE_SEARCH", 
+              matchedItemId: null 
+            }).then(() => {
+              toast.success("Match reverted", { description: "Report returned to active queue." })
+            }).catch((err: any) => {
+              console.error("Undo error", err?.response?.data || err)
+              toast.error(`Failed to revert: ${err?.response?.data?.message || err?.message || 'Unknown'}`)
+            })
+          }
+        },
+        duration: 8000,
+      })
     } catch {
       // ignore
     } finally {
@@ -198,6 +237,7 @@ export function MissingReportWorkspace({
                 isLoadingMatches={isLoadingMatches}
                 isLinking={isLinking}
                 onQuickMatch={setPendingMatch}
+                isAuthorized={isAuthorized}
               />
               {canReviewReport ? (
                 <div className="pt-8 border-t border-slate-100 flex gap-4">
@@ -228,16 +268,28 @@ export function MissingReportWorkspace({
         </div>
       </div>
 
-      <ConfirmModal
-        isOpen={pendingMatch !== null}
-        onClose={() => !isLinking && setPendingMatch(null)}
-        onConfirm={() => void executeQuickMatch()}
-        title="Confirm Quick Match"
-        message={`Are you sure you want to match this report to item ${pendingMatch?.code}? This will link the items and notify the student.`}
-        confirmText="Yes, Match Item"
-        cancelText="Cancel"
-        isLoading={isLinking}
-      />
+      <Modal isOpen={pendingMatch !== null} onClose={() => !isLinking && setPendingMatch(null)} className="max-w-2xl bg-transparent p-0 border-0 shadow-none">
+        {pendingMatch && (
+          <QuickMatchReviewModal
+            item={{
+              code: pendingMatch.code,
+              title: pendingMatch.title,
+              category: pendingMatch.category,
+              color: pendingMatch.color,
+              foundLocation: pendingMatch.foundLocation,
+              foundAtUtc: pendingMatch.foundAtUtc || new Date().toISOString(),
+              storage: pendingMatch.storageLocation ?? "Not specified",
+              status: pendingMatch.status,
+              privateDiscoveryNote: extractPrivateNote(pendingMatch.privateData),
+              photoUrl: getInventoryImageUrl(pendingMatch),
+              matchScore: pendingMatch.matchScore,
+            }}
+            onClose={() => setPendingMatch(null)}
+            onConfirmMatch={() => void executeQuickMatch()}
+            isConfirming={isLinking}
+          />
+        )}
+      </Modal>
     </div>
   )
 }
@@ -322,6 +374,7 @@ function PrivacyGuardedData({
   isLoadingMatches,
   isLinking,
   onQuickMatch,
+  isAuthorized,
 }: {
   report: ReportRow
   isPrivateNoteVisible: boolean
@@ -330,6 +383,7 @@ function PrivacyGuardedData({
   isLoadingMatches: boolean
   isLinking: boolean
   onQuickMatch: (match: ScoredInventoryMatch) => void
+  isAuthorized: boolean
 }) {
   return (
     <DetailSection title="Privacy Guarded Data" icon={<ShieldAlert className="w-4 h-4 text-rose-500" />}>
@@ -425,11 +479,14 @@ function PrivacyGuardedData({
                       </div>
                     </div>
                     <Button 
-                      disabled={isLinking}
+                      disabled={isLinking || !isAuthorized}
                       onClick={() => onQuickMatch(match)}
-                      className="h-8 px-3 text-xs font-bold uppercase tracking-wider bg-brand hover:bg-brand-active text-white rounded-lg"
+                      className={cn(
+                        "h-8 px-3 text-xs font-bold uppercase tracking-wider text-white rounded-lg",
+                        isAuthorized ? "bg-brand hover:bg-brand-active" : "bg-slate-300 cursor-not-allowed"
+                      )}
                     >
-                      {isLinking ? "Matching..." : "Quick Match"}
+                      {isLinking ? "Matching..." : (isAuthorized ? "Quick Match" : "Unauthorized")}
                     </Button>
                   </div>
                 ))}
@@ -521,4 +578,10 @@ function ReportAttachmentPreviewModal({
       </div>
     </Modal>
   )
+}
+
+function extractPrivateNote(privateData: unknown): string | undefined {
+  if (!privateData || typeof privateData !== "object") return undefined
+  const maybeNote = (privateData as { discoveryNote?: unknown }).discoveryNote
+  return typeof maybeNote === "string" ? maybeNote : undefined
 }

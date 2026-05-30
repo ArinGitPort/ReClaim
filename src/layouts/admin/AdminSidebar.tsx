@@ -7,6 +7,7 @@ import {
   FileSearch, 
   HandMetal, 
   History,
+  Link,
   Users,
   Archive,
   ArchiveRestore,
@@ -65,7 +66,7 @@ export function AdminSidebar() {
 
         <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items Report" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
 
@@ -83,6 +84,7 @@ export function AdminSidebar() {
         </div>
 
         <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
+        <AdminSidebarItem to="/admin/match-history" icon={<Link className="w-5 h-5" />} label="Match History" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
         <AdminSidebarItem to="/admin/deleted-items" icon={<Archive className="w-5 h-5" />} label="Deleted Items" isCollapsed={isCollapsed} />
 

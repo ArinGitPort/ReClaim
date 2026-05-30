@@ -28,12 +28,10 @@ export async function computeMatchesForReport(reportId: string): Promise<ScoredM
     throw new Error("Report not found");
   }
 
-  // Get all AVAILABLE and CLAIM_PENDING items
+  // Get only AVAILABLE items (do not match items that are already CLAIM_PENDING)
   const items = await prisma.foundItem.findMany({
     where: { 
-      status: {
-        in: [ItemStatus.AVAILABLE, ItemStatus.CLAIM_PENDING]
-      }
+      status: ItemStatus.AVAILABLE
     },
     include: {
       aiEvidenceLogs: true,
