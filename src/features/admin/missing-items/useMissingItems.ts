@@ -105,12 +105,18 @@ export function useMissingItems(focusCode: string) {
     setPage(1)
   }, [searchQuery, rowsPerPage])
 
+  const [lastFocusCode, setLastFocusCode] = useState("")
+
   useEffect(() => {
     if (!focusCode || reports.length === 0) return
+    if (focusCode === lastFocusCode) return
 
     const matchedReport = reports.find((row) => row.code.toUpperCase() === focusCode)
-    if (matchedReport) setSelectedReport(matchedReport.id)
-  }, [focusCode, reports])
+    if (matchedReport) {
+      setSelectedReport(matchedReport.id)
+      setLastFocusCode(focusCode)
+    }
+  }, [focusCode, reports, lastFocusCode])
 
   const filteredReports = useMemo(
     () => reports.filter((row) => categoryMatchesFilter(row.category, categoryFilter)),

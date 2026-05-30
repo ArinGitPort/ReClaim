@@ -61,7 +61,7 @@ export function AdminMobileNav() {
             <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
 
             <div className="h-px w-full bg-white/10 my-3" />
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">AI Intake</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Automated Capture</h4>
             <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" />
             <MobileNavItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" />
             

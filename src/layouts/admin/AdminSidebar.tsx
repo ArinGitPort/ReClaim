@@ -70,7 +70,7 @@ export function AdminSidebar() {
         <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
 
         <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">AI Intake</h4>}
+          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Automated Capture</h4>}
           {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
         </div>
 
