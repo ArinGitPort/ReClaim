@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Select } from "@/components/ui/Select"
 import { api } from "@/lib/api"
+import { adminNavItems, dailyOperationsPermissions, type AdminPermission } from "@/lib/adminPermissions"
 import type { UpdateManagedUserPayload, UserModalProps } from "@/features/admin/types"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { StatusBadge } from "@/components/ui/StatusBadge"
@@ -23,6 +24,7 @@ export function EditProfileModal({ isOpen, onClose, onSaved, user }: UserModalPr
   const [email, setEmail] = useState("")
   const [studentId, setStudentId] = useState("")
   const [role, setRole] = useState<UserRoleOption>("STUDENT")
+  const [adminPermissions, setAdminPermissions] = useState<AdminPermission[]>(dailyOperationsPermissions)
   const [accountStatus, setAccountStatus] = useState<AccountStatus>("ACTIVE")
   const [passwordResetRequired, setPasswordResetRequired] = useState(false)
   const [disabledReason, setDisabledReason] = useState<string | null>(null)
@@ -39,6 +41,7 @@ export function EditProfileModal({ isOpen, onClose, onSaved, user }: UserModalPr
     setEmail(user.email)
     setStudentId(user.studentId ?? "")
     setRole((user.role as UserRoleOption) || "STUDENT")
+    setAdminPermissions(user.role === "STAFF" && user.adminPermissions?.length ? user.adminPermissions : dailyOperationsPermissions)
     setAccountStatus((user.status as AccountStatus) || "ACTIVE")
     setPasswordResetRequired(Boolean(user.passwordResetRequired))
     setDisabledReason(user.disabledReason ?? null)
@@ -71,6 +74,7 @@ export function EditProfileModal({ isOpen, onClose, onSaved, user }: UserModalPr
       email: email.trim(),
       studentId: studentId.trim() || null,
       role,
+      adminPermissions: role === "STAFF" ? adminPermissions : undefined,
     }
 
     try {
@@ -227,6 +231,29 @@ export function EditProfileModal({ isOpen, onClose, onSaved, user }: UserModalPr
                 <option value="ADMIN">Administrator</option>
               </Select>
             </div>
+
+            {role === "STAFF" && (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Admin Tabs</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {adminNavItems.map((item) => (
+                    <label key={item.permission} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm font-bold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={adminPermissions.includes(item.permission)}
+                        onChange={() => setAdminPermissions((current) => (
+                          current.includes(item.permission)
+                            ? current.filter((permission) => permission !== item.permission)
+                            : [...current, item.permission]
+                        ))}
+                        className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

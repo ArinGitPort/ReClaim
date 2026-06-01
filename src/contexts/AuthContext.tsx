@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { api, clearStoredToken, getStoredToken, setStoredToken } from "@/lib/api"
 import { disconnectRealtimeSocket } from "@/lib/realtime"
+import type { AdminPermission } from "@/lib/adminPermissions"
 
 interface User {
   id: string
@@ -15,6 +16,7 @@ interface User {
     pickupReminders: boolean
   } | null
   role: "STUDENT" | "STAFF" | "ADMIN"
+  adminPermissions?: AdminPermission[] | null
   status?: string
   passwordResetRequired?: boolean
 }
@@ -61,6 +63,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void hydrateUser()
   }, [refreshUser])
+
+  useEffect(() => {
+    if (!user || (user.role !== "ADMIN" && user.role !== "STAFF")) {
+      return
+    }
+
+    let cancelled = false
+    const refreshSession = async () => {
+      try {
+        if (!cancelled) await refreshUser()
+      } catch {
+        if (!cancelled) {
+          clearStoredToken()
+          disconnectRealtimeSocket()
+          setUser(null)
+        }
+      }
+    }
+
+    const intervalId = window.setInterval(refreshSession, 10000)
+    const handleFocus = () => void refreshSession()
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshSession()
+    }
+
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [refreshUser, user?.id, user?.role])
 
   const login = useCallback<AuthContextType["login"]>(async (email, password) => {
     const response = await api.post<{ token: string; user: User }>("/auth/login", {

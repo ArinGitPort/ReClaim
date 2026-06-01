@@ -1,18 +1,19 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { User, FileText, Settings, MapPin, LogOut, HelpCircle } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 import { TurnInGuideModal } from "@/features/shared/TurnInGuideModal"
+import { useLogoutConfirmation } from "@/hooks/useLogoutConfirmation"
 
 export function ProfileDropdown() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const { requestLogout, logoutConfirmation } = useLogoutConfirmation()
   const [isOpen, setIsOpen] = useState(false)
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [isRightAligned, setIsRightAligned] = useState(false)
-  const navigate = useNavigate()
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -48,11 +49,8 @@ export function ProfileDropdown() {
   }, [isOpen])
 
   const handleLogout = () => {
-    if (logout) {
-      logout()
-    }
-    navigate("/")
     setIsOpen(false)
+    requestLogout()
   }
 
   return (
@@ -146,6 +144,7 @@ export function ProfileDropdown() {
         isOpen={isGuideOpen} 
         onClose={() => setIsGuideOpen(false)} 
       />
+      {logoutConfirmation}
     </div>
   )
 }

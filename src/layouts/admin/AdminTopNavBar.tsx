@@ -5,10 +5,12 @@ import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { NotificationDropdown } from "@/layouts/NotificationDropdown"
 import { MessageNotificationsDropdown } from "@/layouts/MessageNotificationsDropdown"
 import { AdminAiStatusIndicator } from "@/layouts/admin/AdminAiStatusIndicator"
+import { hasAdminPermission } from "@/lib/adminPermissions"
 
 export function AdminTopNavBar() {
   const { user } = useAuth()
   const { pathname } = useLocation()
+  const roleLabel = user?.role === "STAFF" ? "Staff" : "Administrator"
 
   // Derive title from pathname
   const getPageTitle = () => {
@@ -48,7 +50,7 @@ export function AdminTopNavBar() {
 
         {/* Right Side: Account & Notifications */}
         <div className="flex items-center gap-4">
-          <AdminAiStatusIndicator />
+          {hasAdminPermission(user, "LIVE_MONITOR") && <AdminAiStatusIndicator />}
 
           <div className="flex items-center gap-2 mr-2">
             <MessageNotificationsDropdown />
@@ -60,7 +62,7 @@ export function AdminTopNavBar() {
           <div className="flex items-center gap-3 pl-2">
             <div className="hidden sm:flex flex-col items-end leading-none">
               <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter mt-1">Administrator</span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter mt-1">{roleLabel}</span>
             </div>
             <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand hover:border-brand/40 transition-all">
               <User className="w-5 h-5" />

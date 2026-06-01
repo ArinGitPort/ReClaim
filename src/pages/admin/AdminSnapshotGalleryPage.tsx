@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { SnapshotDetailsModal } from "@/features/admin/modals/SnapshotDetailsModal"
 import {
   SnapshotEmptyState,
@@ -12,6 +13,8 @@ import {
   type AISnapshot,
 } from "@/features/admin/snapshots"
 import { api } from "@/lib/api"
+import { formatExportDate } from "@/lib/exportUtils"
+import { getSnapshotCategory, getSnapshotConfidence, getSnapshotLocation } from "@/features/admin/snapshots"
 
 export function SnapshotGalleryPage() {
   const snapshots = useSnapshotCollection({
@@ -106,9 +109,37 @@ export function SnapshotGalleryPage() {
         title="AI Snapshot Gallery"
         description="Review items automatically detected by campus security cameras."
         actions={(
-          <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Unreviewed Items: {snapshots.snapshots.length}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <AdminExportButton
+              title="AI Snapshot Gallery Export"
+              filename="reclaim-ai-snapshots"
+              disabled={snapshots.filteredSnapshots.length === 0}
+              filters={[
+                { label: "Search", value: snapshots.searchQuery || "All" },
+                { label: "Location", value: snapshots.locationFilter || "All" },
+                { label: "Confidence", value: snapshots.confidenceFilter || "All" },
+              ]}
+              fetchRows={async () => snapshots.filteredSnapshots}
+              image={{
+                header: "Snapshot URL",
+                getUrl: (snapshot) => snapshot.snapshotPath,
+                getAlt: (snapshot) => getSnapshotCategory(snapshot),
+              }}
+              getRowDate={(snapshot) => snapshot.detectedAtUtc}
+              columns={[
+                { header: "Snapshot ID", getValue: (snapshot) => snapshot.id },
+                { header: "Category", getValue: getSnapshotCategory },
+                { header: "Camera", getValue: (snapshot) => snapshot.sourceCameraId },
+                { header: "Location", getValue: getSnapshotLocation },
+                { header: "Confidence", getValue: (snapshot) => `${getSnapshotConfidence(snapshot)}%` },
+                { header: "Detected At", getValue: (snapshot) => formatExportDate(snapshot.detectedAtUtc) },
+                { header: "Reason", getValue: (snapshot) => snapshot.detectionMeta.reason },
+              ]}
+            />
+            <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+              <AlertCircle className="w-3.5 h-3.5" />
+              Unreviewed Items: {snapshots.snapshots.length}
+            </div>
           </div>
         )}
       />

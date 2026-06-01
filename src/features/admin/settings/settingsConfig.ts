@@ -1,4 +1,5 @@
 import { Bell, Building, Database, Map, Shield } from "lucide-react"
+import { dailyOperationsPermissions } from "@/lib/adminPermissions"
 import type { SettingsTab, SystemSettings } from "./types"
 
 export const settingsTabs: Array<{ id: SettingsTab; label: string; icon: typeof Building }> = [
@@ -16,9 +17,7 @@ export const fallbackSettings: SystemSettings = {
     phone: "+1 (555) 123-4567",
   },
   roles: {
-    allowStaffManageInventory: true,
-    allowStaffManageClaims: true,
-    allowStaffViewReports: true,
+    defaultStaffPermissions: dailyOperationsPermissions,
     requireAdminForSettings: true,
   },
   campusZones: ["Main Library", "Gym", "Cafeteria", "Student Union", "Engineering Building", "Science Building", "Admin Office"],
@@ -36,7 +35,7 @@ export const fallbackSettings: SystemSettings = {
 
 export function getSettingsTabDescription(tab: SettingsTab) {
   if (tab === "general") return "Primary details used across the Lost & Found portal."
-  if (tab === "roles") return "Administrative switches used to document staff access policy."
+  if (tab === "roles") return "Default admin access assigned to new staff accounts."
   if (tab === "zones") return "Campus locations shown to staff while logging and reviewing items."
   if (tab === "alerts") return "Reusable copy for common claim notification states."
   return "Retention windows for system records and automated evidence."

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Pencil, RefreshCw, Trash2, Video, Settings2, Activity, Cpu } from "lucide-react"
+import { RefreshCw, Trash2, Video, Settings2, Cpu } from "lucide-react"
 import { Switch } from "@/components/ui/Switch"
 import type { CampusCamera } from "@/features/admin/cameras/types"
 import { formatLastCameraPing, getCameraStatusClass, getCameraStatusDotClass, getCameraStatusLabel } from "./cameraSettingsUtils"

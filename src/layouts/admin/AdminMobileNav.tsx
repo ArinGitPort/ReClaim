@@ -1,33 +1,26 @@
 import React from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { NavLink, useLocation, useNavigate } from "react-router-dom"
-import { 
-  X, 
-  Menu,
-  LayoutDashboard, 
-  Package, 
-  FileSearch, 
-  HandMetal, 
-  History,
-  Link,
-  LogOut,
-  Camera,
-  Video,
-  Activity,
-  ArchiveRestore
-} from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
+import { X, Menu, LogOut } from "lucide-react"
+import { adminNavItems, hasAdminPermission } from "@/lib/adminPermissions"
 import { cn } from "@/lib/utils"
+import { useLogoutConfirmation } from "@/hooks/useLogoutConfirmation"
 
 export function AdminMobileNav() {
   const [isOpen, setIsOpen] = React.useState(false)
   const { pathname } = useLocation()
-  const { logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { requestLogout, logoutConfirmation } = useLogoutConfirmation()
+  const visibleSections = ["Operations", "Automated Capture", "Records & Accountability", "System Administration"]
+    .map((section) => ({
+      section,
+      items: adminNavItems.filter((item) => item.section === section && hasAdminPermission(user, item.permission)),
+    }))
+    .filter((group) => group.items.length > 0)
 
   const handleLogout = () => {
-    if (logout) logout()
-    navigate("/")
     setIsOpen(false)
+    requestLogout()
   }
 
   React.useEffect(() => {
@@ -35,6 +28,7 @@ export function AdminMobileNav() {
   }, [pathname])
 
   return (
+    <>
     <div className="md:hidden sticky top-0 z-[60] w-full bg-white border-b border-slate-200 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="font-extrabold text-xl tracking-tight text-slate-900">
@@ -54,30 +48,16 @@ export function AdminMobileNav() {
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-[#1E2F85] border-b border-[#172363] shadow-lg flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 flex flex-col gap-1">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">Operations</h4>
-            <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" />
-            <MobileNavItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" />
-            <MobileNavItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items Report" />
-            <MobileNavItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" />
-            <MobileNavItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" />
-
-            <div className="h-px w-full bg-white/10 my-3" />
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Automated Capture</h4>
-            <MobileNavItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" />
-            <MobileNavItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" />
-            
-            <div className="h-px w-full bg-white/10 my-3" />
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">Records & Accountability</h4>
-            <MobileNavItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" />
-            <MobileNavItem to="/admin/match-history" icon={<Link className="w-5 h-5" />} label="Match History" />
-            <MobileNavItem to="/admin/user-directory" icon={<FileSearch className="w-5 h-5" />} label="User Directory" />
-            <MobileNavItem to="/admin/deleted-items" icon={<Package className="w-5 h-5" />} label="Deleted Items" />
-
-            <div className="h-px w-full bg-white/10 my-3" />
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3">System Administration</h4>
-            <MobileNavItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" />
-            <MobileNavItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" />
-            <MobileNavItem to="/admin/settings" icon={<LayoutDashboard className="w-5 h-5" />} label="System Settings" />
+            {visibleSections.map((group, index) => (
+              <React.Fragment key={group.section}>
+                {index > 0 && <div className="h-px w-full bg-white/10 my-3" />}
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 px-3 mt-2">{group.section}</h4>
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  return <MobileNavItem key={item.to} to={item.to} icon={<Icon className="w-5 h-5" />} label={item.label} />
+                })}
+              </React.Fragment>
+            ))}
             
             <div className="h-px w-full bg-white/10 my-3" />
             <button
@@ -91,6 +71,8 @@ export function AdminMobileNav() {
         </div>
       )}
     </div>
+    {logoutConfirmation}
+    </>
   )
 }
 

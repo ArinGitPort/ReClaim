@@ -16,6 +16,8 @@ import {
   UserDirectorySidebar,
   useUserDirectory,
 } from "@/features/admin/user-directory"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
+import type { UserDirUser } from "@/features/admin/types"
 
 export function UserDirectoryPage() {
   const directory = useUserDirectory()
@@ -34,7 +36,41 @@ export function UserDirectoryPage() {
               <Users className="w-4 h-4 mr-2" />
               Add User
             </Button>
-            <AdminExportButton disabled={!directory.users.length} />
+            <AdminExportButton
+              title="User Directory Export"
+              filename="reclaim-user-directory"
+              disabled={!directory.users.length}
+              filters={[
+                { label: "Search", value: directory.searchQuery || "All" },
+                { label: "Role", value: directory.roleFilter || "All" },
+                { label: "Status", value: directory.statusFilter || "All" },
+              ]}
+              fetchRows={() => fetchAllPages<UserDirUser>({
+                endpoint: "/user",
+                dataKey: "users",
+                params: {
+                  search: directory.searchQuery.trim() || undefined,
+                  role: directory.roleFilter || undefined,
+                  status: directory.statusFilter || undefined,
+                  sortBy: "name",
+                  sortOrder: directory.sortOrder,
+                },
+              })}
+              getRowDate={(user) => user.createdAt}
+              columns={[
+                { header: "Name", getValue: (user) => user.name },
+                { header: "Email", getValue: (user) => user.email, sensitive: true },
+                { header: "Student ID", getValue: (user) => user.studentId, sensitive: true },
+                { header: "Role", getValue: (user) => user.role },
+                { header: "Status", getValue: (user) => user.status },
+                { header: "Password Reset Required", getValue: (user) => user.passwordResetRequired ? "Yes" : "No" },
+                { header: "Admin Permissions", getValue: (user) => user.adminPermissions ?? [] },
+                { header: "Claims", getValue: (user) => user._count.claims },
+                { header: "Reports", getValue: (user) => user._count.reports },
+                { header: "Created At", getValue: (user) => formatExportDate(user.createdAt) },
+              ]}
+              sensitiveDescription="This user export can include student IDs and email addresses. Continue only for authorized account administration."
+            />
           </>
         )}
       />

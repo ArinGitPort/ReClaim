@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { api } from "@/lib/api"
 import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { AddCameraModal } from "@/features/admin/components/AddCameraModal"
 import {
   CameraSettingsFilters,
@@ -11,6 +12,7 @@ import {
   useCameraSettings,
 } from "@/features/admin/camera-settings"
 import { StartAiServiceConfirmModal, useAiServiceStatus, type AiServiceStatus } from "@/features/admin/live-monitor"
+import { formatExportDate } from "@/lib/exportUtils"
 
 export function CameraSettingsPage() {
   const cameras = useCameraSettings()
@@ -76,6 +78,28 @@ export function CameraSettingsPage() {
               {isServiceUpdating ? "Updating..." : isServiceRunning ? "Stop Camera Service" : "Start Camera Service"}
             </Button>
             <div className="flex flex-col gap-2 sm:ml-3 sm:flex-row sm:border-l sm:border-slate-200 sm:pl-5">
+              <AdminExportButton
+                title="Camera Settings Export"
+                filename="reclaim-camera-settings"
+                disabled={!cameras.filteredCameras.length}
+                filters={[{ label: "Search", value: cameras.searchQuery || "All" }]}
+                fetchRows={async () => cameras.filteredCameras}
+                getRowDate={(camera) => camera.lastFrameAtUtc ?? camera.lastPingAtUtc}
+                columns={[
+                  { header: "Code", getValue: (camera) => camera.code },
+                  { header: "Name", getValue: (camera) => camera.name },
+                  { header: "Location", getValue: (camera) => camera.location },
+                  { header: "Online", getValue: (camera) => camera.isOnline ? "Yes" : "No" },
+                  { header: "Stream Enabled", getValue: (camera) => camera.streamEnabled ? "Yes" : "No" },
+                  { header: "AI Enabled", getValue: (camera) => camera.aiEnabled ? "Yes" : "No" },
+                  { header: "Status", getValue: (camera) => camera.streamStatus },
+                  { header: "Last Frame", getValue: (camera) => formatExportDate(camera.lastFrameAtUtc) },
+                  { header: "Last Ping", getValue: (camera) => formatExportDate(camera.lastPingAtUtc) },
+                  { header: "Source URL", getValue: (camera) => camera.sourceUrl, sensitive: true },
+                  { header: "Last Error", getValue: (camera) => camera.lastError },
+                ]}
+                sensitiveDescription="This camera export can include source URLs. Continue only if the file will be kept internal."
+              />
               <Button
                 onClick={() => void cameras.refreshCameras(false)}
                 variant="outline"

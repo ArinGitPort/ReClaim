@@ -8,6 +8,8 @@ import {
   HandoverLogTable,
   useHandoverLog,
 } from "@/features/admin/handover-log"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
+import type { HandoverLogRow } from "@/features/admin/handover-log"
 
 export function HandoverLogPage() {
   const handoverLog = useHandoverLog()
@@ -27,7 +29,39 @@ export function HandoverLogPage() {
       <AdminListHeader
         title="Handover Log"
         description="Permanent record of successful returns and student handovers."
-        actions={<AdminExportButton disabled={!handoverLog.logs.length} />}
+        actions={(
+          <AdminExportButton
+            title="Handover Log Export"
+            filename="reclaim-handover-log"
+            disabled={!handoverLog.logs.length}
+            filters={[
+              { label: "Search", value: handoverLog.logsSearch || "All" },
+              { label: "Source", value: handoverLog.sourceFilter || "All" },
+            ]}
+            fetchRows={() => fetchAllPages<HandoverLogRow>({
+              endpoint: "/handover/logs",
+              dataKey: "handovers",
+              params: {
+                search: handoverLog.logsSearch.trim() || undefined,
+                source: handoverLog.sourceFilter || undefined,
+              },
+            })}
+            getRowDate={(log) => log.releasedAtUtc}
+            columns={[
+              { header: "Released At", getValue: (log) => formatExportDate(log.releasedAtUtc) },
+              { header: "Item Code", getValue: (log) => log.foundItem.code },
+              { header: "Item Title", getValue: (log) => log.foundItem.title },
+              { header: "Category", getValue: (log) => log.foundItem.category },
+              { header: "Claim", getValue: (log) => log.claim?.claimCode },
+              { header: "Released To", getValue: (log) => log.releasedToUser.name },
+              { header: "Student ID", getValue: (log) => log.releasedToUser.studentId, sensitive: true },
+              { header: "Email", getValue: (log) => log.releasedToUser.email, sensitive: true },
+              { header: "Pickup Token", getValue: (log) => log.pickupTokenPresented, sensitive: true },
+              { header: "Note", getValue: (log) => log.note, sensitive: true },
+            ]}
+            sensitiveDescription="This handover export can include student identifiers, pickup tokens, and staff notes. Continue only if the file will be stored securely."
+          />
+        )}
       />
 
       <div className="space-y-3">

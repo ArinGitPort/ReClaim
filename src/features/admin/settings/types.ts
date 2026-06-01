@@ -1,3 +1,5 @@
+import type { AdminPermission } from "@/lib/adminPermissions"
+
 export type SettingsTab = "general" | "roles" | "zones" | "alerts" | "retention"
 
 export type SystemSettings = {
@@ -7,9 +9,7 @@ export type SystemSettings = {
     phone: string
   }
   roles: {
-    allowStaffManageInventory: boolean
-    allowStaffManageClaims: boolean
-    allowStaffViewReports: boolean
+    defaultStaffPermissions: AdminPermission[]
     requireAdminForSettings: boolean
   }
   campusZones: string[]

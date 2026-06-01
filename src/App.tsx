@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom"
 
 // Public pages
 import { LandingPage } from "@/pages/public/PublicLandingPage"
@@ -44,6 +44,7 @@ import { LiveMonitorPage } from "@/pages/admin/AdminLiveMonitorPage"
 
 import "./index.css"
 import { useAuth } from "@/contexts/AuthContext"
+import { getFirstAllowedAdminPath, getPermissionForAdminPath, hasAdminPermission } from "@/lib/adminPermissions"
 
 function PublicOnlyRoutes() {
   const { user, isLoading } = useAuth()
@@ -54,7 +55,7 @@ function PublicOnlyRoutes() {
 
   if (user) {
     if (user.role === "ADMIN" || user.role === "STAFF") {
-      return <Navigate to="/admin/dashboard" replace />
+      return <Navigate to={getFirstAllowedAdminPath(user) ?? "/"} replace />
     }
     return <Navigate to="/gallery" replace />
   }
@@ -74,7 +75,7 @@ function ProtectedUserRoutes() {
   }
 
   if (user.role === "ADMIN" || user.role === "STAFF") {
-    return <Navigate to="/admin/dashboard" replace />
+    return <Navigate to={getFirstAllowedAdminPath(user) ?? "/"} replace />
   }
 
   return <AppLayout />
@@ -82,6 +83,9 @@ function ProtectedUserRoutes() {
 
 function ProtectedAdminRoutes() {
   const { user, isLoading } = useAuth()
+  const { pathname } = useLocation()
+  const permission = getPermissionForAdminPath(pathname)
+  const firstAllowedPath = getFirstAllowedAdminPath(user)
 
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">Loading session...</div>
@@ -95,7 +99,20 @@ function ProtectedAdminRoutes() {
     return <Navigate to="/gallery" replace />
   }
 
+  if (!firstAllowedPath) {
+    return <div className="min-h-screen grid place-items-center text-slate-500 font-semibold">No admin permissions assigned.</div>
+  }
+
+  if (permission && !hasAdminPermission(user, permission)) {
+    return <Navigate to={firstAllowedPath} replace />
+  }
+
   return <AdminLayout />
+}
+
+function AdminDefaultRedirect() {
+  const { user } = useAuth()
+  return <Navigate to={getFirstAllowedAdminPath(user) ?? "/"} replace />
 }
 
 function App() {
@@ -129,7 +146,7 @@ function App() {
 
             {/* Administrative Dashboard Routes */}
             <Route path="/admin" element={<ProtectedAdminRoutes />}>
-              <Route index element={<DashboardPage />} />
+              <Route index element={<AdminDefaultRedirect />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="live-monitor" element={<LiveMonitorPage />} />
               <Route path="inventory" element={<InventoryPage />} />
@@ -145,7 +162,7 @@ function App() {
               <Route path="camera-settings" element={<CameraSettingsPage />} />
               <Route path="notifications" element={<AdminNotificationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="*" element={<AdminDefaultRedirect />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

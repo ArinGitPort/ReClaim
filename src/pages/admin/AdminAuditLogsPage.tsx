@@ -8,6 +8,7 @@ import { AdminListFilters, AdminListHeader, AdminSearchInput, AdminTableContaine
 import { actionOptions, AuditLogDetailsModal, useAuditLogs, type AuditAction, type AuditLogRow } from "@/features/admin/audit-logs"
 import { toRecordLabel } from "@/features/admin/audit-logs/auditLogUtils"
 import { formatDateTime } from "@/lib/formatters"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
 
 export function AuditLogsPage() {
   const auditLogs = useAuditLogs()
@@ -19,7 +20,39 @@ export function AuditLogsPage() {
       <AdminListHeader
         title="Audit Trail"
         description="Activity feed of verified system actions and administrative updates."
-        actions={<AdminExportButton disabled={!auditLogs.logs.length} />}
+        actions={(
+          <AdminExportButton
+            title="Audit Trail Export"
+            filename="reclaim-audit-trail"
+            disabled={!auditLogs.logs.length}
+            filters={[
+              { label: "Search", value: auditLogs.searchQuery || "All" },
+              { label: "Action", value: auditLogs.actionFilter || "All" },
+            ]}
+            fetchRows={() => fetchAllPages<AuditLogRow>({
+              endpoint: "/audit/logs",
+              dataKey: "logs",
+              params: {
+                search: auditLogs.searchQuery.trim() || undefined,
+                action: auditLogs.actionFilter || undefined,
+              },
+              pageSize: 100,
+            })}
+            getRowDate={(log) => log.createdAt}
+            columns={[
+              { header: "Date", getValue: (log) => formatExportDate(log.createdAt) },
+              { header: "Actor", getValue: (log) => log.actorUser.name },
+              { header: "Actor Role", getValue: (log) => log.actorUser.role },
+              { header: "Actor Email", getValue: (log) => log.actorUser.email, sensitive: true },
+              { header: "Action", getValue: (log) => log.action.replaceAll("_", " ") },
+              { header: "Record Type", getValue: (log) => toRecordLabel(log.targetType) },
+              { header: "Record", getValue: (log) => log.targetReferenceCode },
+              { header: "Details", getValue: (log) => log.actionSentence || log.description },
+              { header: "Payload", getValue: (log) => log.payload, sensitive: true },
+            ]}
+            sensitiveDescription="This audit export can include actor emails and raw payload details. Continue only for authorized internal review."
+          />
+        )}
       />
 
       {auditLogs.error && (

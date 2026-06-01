@@ -19,6 +19,23 @@ enum UserRole {
   ADMIN
 }
 
+enum AdminPermission {
+  DASHBOARD
+  INVENTORY
+  REPORTS
+  CLAIMS
+  LIVE_MONITOR
+  SNAPSHOTS
+  DISMISSED_SNAPSHOTS
+  HANDOVER_LOG
+  MATCH_HISTORY
+  USER_DIRECTORY
+  DELETED_ITEMS
+  AUDIT_LOGS
+  CAMERA_SETTINGS
+  SYSTEM_SETTINGS
+}
+
 enum UserStatus {
   ACTIVE
   DISABLED
@@ -96,6 +113,7 @@ model User {
   notificationPreferences Json?
   passwordHash            String
   role                    UserRole
+  adminPermissions        AdminPermission[] @default([])
   status                  UserStatus     @default(ACTIVE)
   passwordResetRequired   Boolean        @default(false)
   lastLoginAt             DateTime?      @db.Timestamptz(6)

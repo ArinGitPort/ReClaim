@@ -1,6 +1,8 @@
-import { UserRole, UserStatus } from "@prisma/client";
+import { AdminPermission, UserRole, UserStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { normalizeAdminPermissions } from "@/config/adminPermissions.js";
 import { prisma } from "@/lib/prisma.js";
+import { getSystemSettings } from "@/services/settingsService.js";
 import { HttpError } from "@/utils/errors.js";
 
 type UserProjection = {
@@ -9,6 +11,7 @@ type UserProjection = {
   email: string;
   studentId: string | null;
   role: UserRole;
+  adminPermissions: AdminPermission[];
   status: UserStatus;
   passwordResetRequired: boolean;
   lastLoginAt: Date | null;
@@ -26,6 +29,7 @@ type CreateManagedUserInput = {
   studentId?: string;
   password: string;
   role: UserRole;
+  adminPermissions?: AdminPermission[];
 };
 
 type UpdateManagedUserInput = {
@@ -34,6 +38,7 @@ type UpdateManagedUserInput = {
   email?: string;
   studentId?: string | null;
   role?: UserRole;
+  adminPermissions?: AdminPermission[];
 };
 
 type UpdateAccountStatusInput = {
@@ -51,6 +56,7 @@ export async function createManagedUser(input: CreateManagedUserInput): Promise<
   await ensureStudentIdIsAvailable(normalizedStudentId);
 
   const passwordHash = await bcrypt.hash(input.password, 12);
+  const adminPermissions = await resolveAdminPermissions(input.role, input.adminPermissions, !Object.prototype.hasOwnProperty.call(input, "adminPermissions"));
 
   const user = await prisma.user.create({
     data: {
@@ -59,6 +65,7 @@ export async function createManagedUser(input: CreateManagedUserInput): Promise<
       studentId: normalizedStudentId,
       passwordHash,
       role: input.role,
+      adminPermissions,
       passwordResetRequired: true,
     },
     select: {
@@ -67,6 +74,7 @@ export async function createManagedUser(input: CreateManagedUserInput): Promise<
       email: true,
       studentId: true,
       role: true,
+      adminPermissions: true,
       status: true,
       passwordResetRequired: true,
       lastLoginAt: true,
@@ -93,6 +101,7 @@ export async function updateManagedUser(input: UpdateManagedUserInput): Promise<
     email?: string;
     studentId?: string | null;
     role?: UserRole;
+    adminPermissions?: AdminPermission[];
   } = {};
 
   if (typeof input.name === "string") {
@@ -118,6 +127,15 @@ export async function updateManagedUser(input: UpdateManagedUserInput): Promise<
     data.role = input.role;
   }
 
+  const nextRole = input.role ?? existing.role;
+  if (Object.prototype.hasOwnProperty.call(input, "adminPermissions") || input.role) {
+    data.adminPermissions = await resolveAdminPermissions(
+      nextRole,
+      input.adminPermissions ?? existing.adminPermissions,
+      input.role === UserRole.STAFF && !Object.prototype.hasOwnProperty.call(input, "adminPermissions")
+    );
+  }
+
   if (Object.keys(data).length === 0) {
     throw new HttpError(400, "No update fields provided");
   }
@@ -131,6 +149,7 @@ export async function updateManagedUser(input: UpdateManagedUserInput): Promise<
       email: true,
       studentId: true,
       role: true,
+      adminPermissions: true,
       status: true,
       passwordResetRequired: true,
       lastLoginAt: true,
@@ -237,6 +256,7 @@ const userProjectionSelect = {
   email: true,
   studentId: true,
   role: true,
+  adminPermissions: true,
   status: true,
   passwordResetRequired: true,
   lastLoginAt: true,
@@ -247,3 +267,17 @@ const userProjectionSelect = {
     select: { claims: true },
   },
 };
+
+async function resolveAdminPermissions(role: UserRole, permissions?: AdminPermission[], useDefault = false): Promise<AdminPermission[]> {
+  if (role !== UserRole.STAFF) {
+    return [];
+  }
+
+  const normalized = normalizeAdminPermissions(permissions);
+  if (!useDefault) {
+    return normalized;
+  }
+
+  const settings = await getSystemSettings();
+  return settings.roles.defaultStaffPermissions;
+}

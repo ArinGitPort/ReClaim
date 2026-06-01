@@ -64,12 +64,12 @@ export function SettingsNumberField({ label, registration }: { label: string; re
   )
 }
 
-export function SettingsSaveButton({ isSubmitting }: { isSubmitting: boolean }) {
+export function SettingsSaveButton({ isSubmitting, disabled = false, label = "Save Changes" }: { isSubmitting: boolean; disabled?: boolean; label?: string }) {
   return (
     <div className="pt-2 flex justify-end">
-      <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors disabled:opacity-70">
+      <button type="submit" disabled={isSubmitting || disabled} className="flex items-center gap-2 h-11 px-8 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:bg-brand-active transition-colors disabled:opacity-70 disabled:cursor-not-allowed">
         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {isSubmitting ? "Saving..." : "Save Changes"}
+        {isSubmitting ? "Saving..." : label}
       </button>
     </div>
   )

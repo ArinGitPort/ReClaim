@@ -91,6 +91,7 @@ export async function me(req: Request, res: Response): Promise<void> {
       department: true,
       notificationPreferences: true,
       role: true,
+      adminPermissions: true,
       status: true,
       passwordResetRequired: true,
     },
@@ -169,6 +170,7 @@ const profileSelect = {
   department: true,
   notificationPreferences: true,
   role: true,
+  adminPermissions: true,
   status: true,
   passwordResetRequired: true,
 };

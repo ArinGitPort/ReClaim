@@ -38,7 +38,15 @@ export function SettingsContentCard({ activeTab, settings }: SettingsContentCard
       ) : (
         <>
           {activeTab === "general" && <GeneralSettingsPanel form={settings.form} onSubmit={settings.saveGeneral} />}
-          {activeTab === "roles" && <RolesSettingsPanel form={settings.form} onSubmit={settings.saveRoles} />}
+          {activeTab === "roles" && (
+            <RolesSettingsPanel
+              form={settings.form}
+              onSubmit={settings.saveRoles}
+              onApplyToExistingStaff={settings.saveRolesAndApplyToStaff}
+              isApplyingStaffDefaults={settings.isApplyingStaffDefaults}
+              staffDefaultsAppliedCount={settings.staffDefaultsAppliedCount}
+            />
+          )}
           {activeTab === "zones" && (
             <ZonesSettingsPanel
               form={settings.form}

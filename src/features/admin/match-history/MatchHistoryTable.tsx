@@ -1,8 +1,6 @@
 import { AdminTableContainer } from "@/features/admin/components/admin-list-layout"
-import { cn } from "@/lib/utils"
 import { Eye, Link } from "lucide-react"
 import type { ReportRow } from "@/features/admin/missing-items/types"
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/Skeleton"
 

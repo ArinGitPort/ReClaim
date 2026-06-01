@@ -1,4 +1,6 @@
 import type { Prisma } from "@prisma/client";
+import { AdminPermission } from "@prisma/client";
+import { dailyOperationsPermissions, normalizeAdminPermissions } from "@/config/adminPermissions.js";
 import { prisma } from "@/lib/prisma.js";
 
 const SYSTEM_SETTINGS_KEY = "system";
@@ -10,9 +12,7 @@ export type SystemSettings = {
     phone: string;
   };
   roles: {
-    allowStaffManageInventory: boolean;
-    allowStaffManageClaims: boolean;
-    allowStaffViewReports: boolean;
+    defaultStaffPermissions: AdminPermission[];
     requireAdminForSettings: boolean;
   };
   campusZones: string[];
@@ -35,9 +35,7 @@ export const defaultSystemSettings: SystemSettings = {
     phone: "+1 (555) 123-4567",
   },
   roles: {
-    allowStaffManageInventory: true,
-    allowStaffManageClaims: true,
-    allowStaffViewReports: true,
+    defaultStaffPermissions: dailyOperationsPermissions,
     requireAdminForSettings: true,
   },
   campusZones: [
@@ -126,9 +124,7 @@ function normalizeSettings(value: Prisma.JsonValue | undefined): SystemSettings 
       phone: readString(institution.phone, defaultSystemSettings.institution.phone),
     },
     roles: {
-      allowStaffManageInventory: readBoolean(roles.allowStaffManageInventory, defaultSystemSettings.roles.allowStaffManageInventory),
-      allowStaffManageClaims: readBoolean(roles.allowStaffManageClaims, defaultSystemSettings.roles.allowStaffManageClaims),
-      allowStaffViewReports: readBoolean(roles.allowStaffViewReports, defaultSystemSettings.roles.allowStaffViewReports),
+      defaultStaffPermissions: readDefaultStaffPermissions(roles),
       requireAdminForSettings: readBoolean(roles.requireAdminForSettings, defaultSystemSettings.roles.requireAdminForSettings),
     },
     campusZones: readStringArray(candidate.campusZones, defaultSystemSettings.campusZones),
@@ -158,6 +154,26 @@ function readString(value: unknown, fallback: string): string {
 
 function readBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function readDefaultStaffPermissions(roles: Record<string, unknown>): AdminPermission[] {
+  if (Object.prototype.hasOwnProperty.call(roles, "defaultStaffPermissions")) {
+    return normalizeAdminPermissions(roles.defaultStaffPermissions);
+  }
+
+  const legacyPermissions: AdminPermission[] = [AdminPermission.DASHBOARD];
+  if (roles.allowStaffManageInventory !== false) {
+    legacyPermissions.push(AdminPermission.INVENTORY);
+  }
+  if (roles.allowStaffManageClaims !== false) {
+    legacyPermissions.push(AdminPermission.CLAIMS, AdminPermission.HANDOVER_LOG);
+  }
+  if (roles.allowStaffViewReports !== false) {
+    legacyPermissions.push(AdminPermission.REPORTS, AdminPermission.MATCH_HISTORY);
+  }
+
+  legacyPermissions.push(AdminPermission.LIVE_MONITOR, AdminPermission.SNAPSHOTS, AdminPermission.DISMISSED_SNAPSHOTS);
+  return normalizeAdminPermissions(legacyPermissions, defaultSystemSettings.roles.defaultStaffPermissions);
 }
 
 function readNumber(value: unknown, fallback: number): number {

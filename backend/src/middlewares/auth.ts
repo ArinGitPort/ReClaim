@@ -1,9 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { UserStatus } from "@prisma/client";
+import { AdminPermission, UserStatus } from "@prisma/client";
 import { env } from "@/config/env.js";
 import { prisma } from "@/lib/prisma.js";
-import { getSystemSettings, type SystemSettings } from "@/services/settingsService.js";
 import { HttpError } from "@/utils/errors.js";
 
 interface JwtPayload {
@@ -27,6 +26,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       role: true,
       email: true,
       status: true,
+      adminPermissions: true,
     },
   });
 
@@ -42,6 +42,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     id: user.id,
     role: user.role,
     email: user.email,
+    adminPermissions: user.role === "STAFF" ? user.adminPermissions : [],
   };
 
   next();
@@ -61,8 +62,8 @@ export function requireRole(roles: Array<"STUDENT" | "STAFF" | "ADMIN">) {
   };
 }
 
-export function requireStaffPermission(permission: keyof SystemSettings["roles"]) {
-  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+export function requireAdminPermission(permission: AdminPermission) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
       throw new HttpError(401, "Unauthenticated request");
     }
@@ -76,9 +77,46 @@ export function requireStaffPermission(permission: keyof SystemSettings["roles"]
       throw new HttpError(403, "Forbidden");
     }
 
-    const settings = await getSystemSettings();
-    if (!settings.roles[permission]) {
-      throw new HttpError(403, "Staff permission is disabled in system settings");
+    if (!req.user.adminPermissions.includes(permission)) {
+      throw new HttpError(403, "Staff account does not have permission for this admin action");
+    }
+
+    next();
+  };
+}
+
+export function requireStudentOrAdminPermission(permission: AdminPermission) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      throw new HttpError(401, "Unauthenticated request");
+    }
+
+    if (req.user.role === "STUDENT") {
+      next();
+      return;
+    }
+
+    return requireAdminPermission(permission)(req, _res, next);
+  };
+}
+
+export function requireAnyAdminPermission(permissions: AdminPermission[]) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      throw new HttpError(401, "Unauthenticated request");
+    }
+
+    if (req.user.role === "ADMIN") {
+      next();
+      return;
+    }
+
+    if (req.user.role !== "STAFF") {
+      throw new HttpError(403, "Forbidden");
+    }
+
+    if (!permissions.some((permission) => req.user!.adminPermissions.includes(permission))) {
+      throw new HttpError(403, "Staff account does not have permission for this admin action");
     }
 
     next();

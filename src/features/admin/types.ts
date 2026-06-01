@@ -1,3 +1,5 @@
+import type { AdminPermission } from "@/lib/adminPermissions";
+
 export type ActiveModalState = "add" | "edit" | "pending" | "missing" | "history" | null;
 
 export type UserDirUser = {
@@ -6,6 +8,7 @@ export type UserDirUser = {
   email: string
   studentId: string | null
   role: string
+  adminPermissions?: AdminPermission[] | null
   status: string
   passwordResetRequired: boolean
   lastLoginAt?: string | null
@@ -31,6 +34,7 @@ export type UserDirectoryDetails = {
   email: string
   studentId: string | null
   role: string
+  adminPermissions?: AdminPermission[] | null
   status: string
   passwordResetRequired: boolean
   lastLoginAt?: string | null
@@ -102,6 +106,7 @@ export type CreateManagedUserPayload = {
   studentId?: string;
   password: string;
   role: "STUDENT" | "STAFF" | "ADMIN";
+  adminPermissions?: AdminPermission[];
 };
 
 export type UpdateManagedUserPayload = {
@@ -109,4 +114,5 @@ export type UpdateManagedUserPayload = {
   email?: string;
   studentId?: string | null;
   role?: "STUDENT" | "STAFF" | "ADMIN";
+  adminPermissions?: AdminPermission[];
 };

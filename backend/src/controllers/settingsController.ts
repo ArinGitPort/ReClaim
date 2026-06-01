@@ -1,6 +1,7 @@
-import { AuditAction } from "@prisma/client";
+import { AdminPermission, AuditAction } from "@prisma/client";
 import type { Request, Response } from "express";
 import { z } from "zod";
+import { hasDuplicateAdminPermissions } from "@/config/adminPermissions.js";
 import { prisma } from "@/lib/prisma.js";
 import { logAudit } from "@/services/auditService.js";
 import { getSystemSettings, updateSystemSettings } from "@/services/settingsService.js";
@@ -15,10 +16,25 @@ const settingsSchema = z.object({
     .optional(),
   roles: z
     .object({
-      allowStaffManageInventory: z.boolean(),
-      allowStaffManageClaims: z.boolean(),
-      allowStaffViewReports: z.boolean(),
+      defaultStaffPermissions: z.array(z.nativeEnum(AdminPermission)).min(1, "Select at least one default staff permission"),
       requireAdminForSettings: z.boolean(),
+    })
+    .superRefine((roles, ctx) => {
+      if (hasDuplicateAdminPermissions(roles.defaultStaffPermissions)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["defaultStaffPermissions"],
+          message: "Default staff permissions cannot contain duplicates",
+        });
+      }
+
+      if (roles.requireAdminForSettings && roles.defaultStaffPermissions.includes(AdminPermission.SYSTEM_SETTINGS)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["defaultStaffPermissions"],
+          message: "System Settings cannot be assigned to default staff while admin-only settings are enabled",
+        });
+      }
     })
     .optional(),
   campusZones: z.array(z.string().trim().min(2)).min(1).optional(),
@@ -87,4 +103,35 @@ export async function patchSettings(req: Request, res: Response): Promise<void> 
   });
 
   res.json({ settings });
+}
+
+export async function applyDefaultStaffPermissions(req: Request, res: Response): Promise<void> {
+  const settings = await getSystemSettings();
+  const result = await prisma.user.updateMany({
+    where: { role: "STAFF" },
+    data: {
+      adminPermissions: {
+        set: settings.roles.defaultStaffPermissions,
+      },
+    },
+  });
+
+  await logAudit({
+    actorUserId: req.user!.id,
+    action: AuditAction.SYSTEM_SETTINGS_UPDATED,
+    targetType: "system_settings",
+    targetId: "staff_default_permissions",
+    targetReferenceCode: "staff_default_permissions",
+    description: "Admin applied default permissions to existing staff accounts",
+    payload: {
+      targetReferenceCode: "staff_default_permissions",
+      staffUpdated: result.count,
+      defaultStaffPermissions: settings.roles.defaultStaffPermissions,
+    },
+  });
+
+  res.json({
+    staffUpdated: result.count,
+    defaultStaffPermissions: settings.roles.defaultStaffPermissions,
+  });
 }

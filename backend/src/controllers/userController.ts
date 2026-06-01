@@ -1,6 +1,7 @@
-import { AuditAction, UserRole, UserStatus } from "@prisma/client";
+import { AdminPermission, AuditAction, UserRole, UserStatus } from "@prisma/client";
 import type { Request, Response } from "express"
 import { z } from "zod";
+import { hasDuplicateAdminPermissions } from "@/config/adminPermissions.js";
 import { prisma } from "@/lib/prisma.js"
 import { createManagedUser, resetManagedUserPassword, updateAccountStatus, updateManagedUser } from "@/services/userService.js";
 import { listUserPickups, rerollPickupToken } from "@/services/userPickupService.js"
@@ -16,6 +17,9 @@ const createUserSchema = z.object({
   studentId: z.string().trim().optional(),
   password: z.string().min(8),
   role: z.nativeEnum(UserRole),
+  adminPermissions: z.array(z.nativeEnum(AdminPermission)).optional(),
+}).superRefine((value, ctx) => {
+  validateManagedStaffPermissions(value.role, value.adminPermissions, ctx);
 });
 
 const updateUserSchema = z
@@ -24,9 +28,22 @@ const updateUserSchema = z
     email: z.string().trim().email().optional(),
     studentId: z.string().trim().nullable().optional(),
     role: z.nativeEnum(UserRole).optional(),
+    adminPermissions: z.array(z.nativeEnum(AdminPermission)).optional(),
   })
   .refine((value) => Object.values(value).some((entry) => entry !== undefined), {
     message: "At least one field is required",
+  })
+  .superRefine((value, ctx) => {
+    if (value.role) {
+      validateManagedStaffPermissions(value.role, value.adminPermissions, ctx);
+    }
+    if (value.adminPermissions && hasDuplicateAdminPermissions(value.adminPermissions)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["adminPermissions"],
+        message: "Staff permissions cannot contain duplicates",
+      });
+    }
   });
 
 const accountStatusSchema = z.object({
@@ -98,6 +115,7 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
         email: true,
         studentId: true,
         role: true,
+        adminPermissions: true,
         status: true,
         passwordResetRequired: true,
         lastLoginAt: true,
@@ -142,6 +160,7 @@ export async function getAllUsers(req: Request, res: Response): Promise<void> {
     email: user.email,
     studentId: user.studentId,
     role: user.role,
+    adminPermissions: user.adminPermissions,
     status: user.status,
     passwordResetRequired: user.passwordResetRequired,
     lastLoginAt: user.lastLoginAt,
@@ -184,6 +203,7 @@ export async function getUserDetails(req: Request, res: Response): Promise<void>
         email: true,
         studentId: true,
         role: true,
+        adminPermissions: true,
         status: true,
         passwordResetRequired: true,
         lastLoginAt: true,
@@ -241,6 +261,7 @@ export async function postUser(req: Request, res: Response): Promise<void> {
     studentId: body.studentId,
     password: body.password,
     role: body.role,
+    adminPermissions: body.adminPermissions,
   });
 
   await logAudit({
@@ -274,6 +295,7 @@ export async function patchUser(req: Request, res: Response): Promise<void> {
     email: body.email,
     studentId: Object.prototype.hasOwnProperty.call(body, "studentId") ? body.studentId : undefined,
     role: body.role,
+    adminPermissions: body.adminPermissions,
   });
 
   await logAudit({
@@ -289,6 +311,7 @@ export async function patchUser(req: Request, res: Response): Promise<void> {
       targetReferenceCode: user.email,
       beforeRole: beforeUser?.role,
       afterRole: user.role,
+      adminPermissions: user.adminPermissions,
     },
   });
 
@@ -359,4 +382,26 @@ export async function postUserPasswordReset(req: Request, res: Response): Promis
 
 function createTemporaryPassword(): string {
   return `ReClaim-${Math.random().toString(36).slice(2, 8).toUpperCase()}!`;
+}
+
+function validateManagedStaffPermissions(
+  role: UserRole,
+  adminPermissions: AdminPermission[] | undefined,
+  ctx: z.RefinementCtx
+) {
+  if (adminPermissions && hasDuplicateAdminPermissions(adminPermissions)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["adminPermissions"],
+      message: "Staff permissions cannot contain duplicates",
+    });
+  }
+
+  if (role === UserRole.STAFF && adminPermissions && adminPermissions.length === 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["adminPermissions"],
+      message: "A staff account must have at least one admin permission",
+    });
+  }
 }

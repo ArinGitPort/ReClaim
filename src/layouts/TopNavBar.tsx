@@ -1,5 +1,5 @@
 import { Search, PlusCircle, BookmarkCheck, Menu, X, FileText, Settings, MapPin, LogOut } from "lucide-react"
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
+import { Link, NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/layouts/ThemeToggle"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -7,12 +7,13 @@ import { NotificationDropdown } from "./NotificationDropdown"
 import { MessageNotificationsDropdown } from "./MessageNotificationsDropdown"
 import { ProfileDropdown } from "./ProfileDropdown"
 import { useAuth } from "@/contexts/AuthContext"
+import { useLogoutConfirmation } from "@/hooks/useLogoutConfirmation"
 
 export function TopNavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { pathname } = useLocation()
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { requestLogout, logoutConfirmation } = useLogoutConfirmation()
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -128,9 +129,8 @@ export function TopNavBar() {
             {/* The Logout Button now actually calls logout */}
             <button
               onClick={() => {
-                if (logout) logout()
-                navigate("/")
                 setIsMobileMenuOpen(false)
+                requestLogout()
               }}
               className="flex flex-row items-center gap-3 px-3 py-3 rounded-md transition-colors text-status-error hover:bg-status-error/10 w-full text-left"
             >
@@ -140,6 +140,7 @@ export function TopNavBar() {
           </div>
         </div>
       )}
+      {logoutConfirmation}
     </>
   )
 }

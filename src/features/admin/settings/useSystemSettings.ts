@@ -9,6 +9,8 @@ export function useSystemSettings(activeTab: SettingsTab) {
   const [integrations, setIntegrations] = useState<SettingsResponse["integrations"] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaved, setIsSaved] = useState(false)
+  const [isApplyingStaffDefaults, setIsApplyingStaffDefaults] = useState(false)
+  const [staffDefaultsAppliedCount, setStaffDefaultsAppliedCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [zoneDraft, setZoneDraft] = useState("")
 
@@ -41,16 +43,19 @@ export function useSystemSettings(activeTab: SettingsTab) {
     void loadSettings()
   }, [loadSettings])
 
-  async function saveSettings(payload: Partial<SystemSettings>) {
+  async function saveSettings(payload: Partial<SystemSettings>): Promise<boolean> {
     setError(null)
+    setStaffDefaultsAppliedCount(null)
 
     try {
       const response = await api.patch<{ settings: SystemSettings }>("/settings", payload)
       reset(response.data.settings)
       setIsSaved(true)
       window.setTimeout(() => setIsSaved(false), 2500)
+      return true
     } catch (err) {
       setError(readError(err, "Unable to save system settings."))
+      return false
     }
   }
 
@@ -78,11 +83,31 @@ export function useSystemSettings(activeTab: SettingsTab) {
     )
   }
 
+  const saveRolesAndApplyToStaff = handleSubmit(async (data) => {
+    const saved = await saveSettings({ roles: data.roles })
+    if (!saved) return
+
+    setIsApplyingStaffDefaults(true)
+    setError(null)
+    try {
+      const response = await api.post<{ staffUpdated: number }>("/settings/staff-defaults/apply")
+      setStaffDefaultsAppliedCount(response.data.staffUpdated)
+      setIsSaved(true)
+      window.setTimeout(() => setIsSaved(false), 2500)
+    } catch (err) {
+      setError(readError(err, "Unable to apply default permissions to existing staff."))
+    } finally {
+      setIsApplyingStaffDefaults(false)
+    }
+  })
+
   return {
     form,
     integrations,
     isLoading,
     isSaved,
+    isApplyingStaffDefaults,
+    staffDefaultsAppliedCount,
     error,
     zoneDraft,
     setZoneDraft,
@@ -91,6 +116,7 @@ export function useSystemSettings(activeTab: SettingsTab) {
     activeTabDescription,
     saveGeneral,
     saveRoles,
+    saveRolesAndApplyToStaff,
     saveAlerts,
     saveRetention,
     saveZones,
@@ -101,7 +127,18 @@ export function useSystemSettings(activeTab: SettingsTab) {
 
 function readError(error: unknown, fallback: string) {
   if (error instanceof AxiosError) {
-    return (error.response?.data as { error?: string } | undefined)?.error ?? fallback
+    const data = error.response?.data as {
+      error?: string
+      details?: {
+        formErrors?: string[]
+        fieldErrors?: Record<string, string[] | undefined>
+      }
+    } | undefined
+    const firstFieldError = data?.details?.fieldErrors
+      ? Object.values(data.details.fieldErrors).flat().find(Boolean)
+      : undefined
+
+    return firstFieldError ?? data?.details?.formErrors?.[0] ?? data?.error ?? fallback
   }
 
   return fallback

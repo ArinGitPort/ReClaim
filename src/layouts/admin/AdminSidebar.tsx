@@ -1,43 +1,34 @@
 import React, { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { NavLink, useLocation, useNavigate } from "react-router-dom"
-import { 
-  LayoutDashboard, 
-  Package, 
-  FileSearch, 
-  HandMetal, 
-  History,
-  Link,
-  Users,
-  Archive,
-  ArchiveRestore,
-  Settings as SettingsIcon,
-  LogOut,
-  Menu,
-  ChevronLeft,
-  Camera,
-  Video,
-  Activity
-} from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
+import { LogOut, Menu, ChevronLeft } from "lucide-react"
+import { adminNavItems, hasAdminPermission } from "@/lib/adminPermissions"
 import { cn } from "@/lib/utils"
+import { useLogoutConfirmation } from "@/hooks/useLogoutConfirmation"
 
 export function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const { logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { requestLogout, logoutConfirmation } = useLogoutConfirmation()
+  const visibleSections = ["Operations", "Automated Capture", "Records & Accountability", "System Administration"]
+    .map((section) => ({
+      section,
+      items: adminNavItems.filter((item) => item.section === section && hasAdminPermission(user, item.permission)),
+    }))
+    .filter((group) => group.items.length > 0)
 
   const handleLogout = () => {
-    if (logout) logout()
-    navigate("/")
+    requestLogout()
   }
   
   return (
-    <aside 
-      className={cn(
-        "hidden md:flex bg-[#1E2F85] border-r border-[#172363] flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
-        isCollapsed ? "w-20" : "w-64"
-      )}
-    >
+    <>
+      <aside
+        className={cn(
+          "hidden md:flex bg-[#1E2F85] border-r border-[#172363] flex-col transition-[width] duration-300 ease-in-out z-20 sticky top-0 h-screen",
+          isCollapsed ? "w-20" : "w-64"
+        )}
+      >
       {/* Admin Title Header */}
       <div className="h-16 flex items-center justify-between px-4 flex-shrink-0 overflow-hidden mt-2">
         {!isCollapsed && (
@@ -59,43 +50,18 @@ export function AdminSidebar() {
 
       {/* Navigation Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 flex flex-col gap-1">
-        <div className="mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Operations</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="System Dashboard" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/inventory" icon={<Package className="w-5 h-5" />} label="Inventory Management" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/reports" icon={<FileSearch className="w-5 h-5" />} label="Missing Items Report" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/claims" icon={<HandMetal className="w-5 h-5" />} label="Claims Verification" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/live-monitor" icon={<Activity className="w-5 h-5" />} label="Live Monitor" isCollapsed={isCollapsed} />
-
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Automated Capture</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/snapshots" icon={<Camera className="w-5 h-5" />} label="AI Snapshot Gallery" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/dismissed-snapshots" icon={<ArchiveRestore className="w-5 h-5" />} label="Dismissed Snapshots" isCollapsed={isCollapsed} />
-
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Records & Accountability</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/handover-log" icon={<History className="w-5 h-5" />} label="Handover Log" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/match-history" icon={<Link className="w-5 h-5" />} label="Match History" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/user-directory" icon={<Users className="w-5 h-5" />} label="User Directory" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/deleted-items" icon={<Archive className="w-5 h-5" />} label="Deleted Items" isCollapsed={isCollapsed} />
-
-        <div className="mt-6 mb-2 px-3">
-          {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Administration</h4>}
-          {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
-        </div>
-
-        <AdminSidebarItem to="/admin/logs" icon={<History className="w-5 h-5" />} label="Audit Trail" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/camera-settings" icon={<Video className="w-5 h-5" />} label="Camera Settings" isCollapsed={isCollapsed} />
-        <AdminSidebarItem to="/admin/settings" icon={<SettingsIcon className="w-5 h-5" />} label="System Settings" isCollapsed={isCollapsed} />
+        {visibleSections.map((group, index) => (
+          <React.Fragment key={group.section}>
+            <div className={cn("mb-2 px-3", index > 0 && "mt-6")}>
+              {!isCollapsed && <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40">{group.section}</h4>}
+              {isCollapsed && <div className="h-px w-full bg-white/10 my-2" />}
+            </div>
+            {group.items.map((item) => {
+              const Icon = item.icon
+              return <AdminSidebarItem key={item.to} to={item.to} icon={<Icon className="w-5 h-5" />} label={item.label} isCollapsed={isCollapsed} />
+            })}
+          </React.Fragment>
+        ))}
       </div>
 
       {/* Footer Area */}
@@ -117,7 +83,9 @@ export function AdminSidebar() {
           )}
         </button>
       </div>
-    </aside>
+      </aside>
+      {logoutConfirmation}
+    </>
   )
 }
 

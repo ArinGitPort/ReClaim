@@ -1,7 +1,10 @@
 import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
 import { PaginationControls } from "@/components/ui/PaginationControls"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { MatchHistoryTable, useMatchHistory, MatchHistoryFilters, MatchHistoryDetailsModal } from "@/features/admin/match-history"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
+import { mapReportRow, type ApiReportRow } from "@/features/admin/missing-items/useMissingItems"
 
 export function MatchHistoryPage() {
   const matchHistory = useMatchHistory()
@@ -21,6 +24,42 @@ export function MatchHistoryPage() {
       <AdminListHeader
         title="Match History"
         description="Review all successfully matched reports and unlink them if necessary."
+        actions={(
+          <AdminExportButton
+            title="Match History Export"
+            filename="reclaim-match-history"
+            disabled={!matchHistory.reports.length}
+            filters={[
+              { label: "Search", value: matchHistory.searchQuery || "All" },
+              { label: "Category", value: matchHistory.categoryFilter || "All" },
+              { label: "Status", value: "MATCHED" },
+            ]}
+            fetchRows={async () => {
+              const rows = await fetchAllPages<ApiReportRow>({
+                endpoint: "/reports",
+                dataKey: "reports",
+                params: {
+                  statusIn: "MATCHED",
+                  search: matchHistory.searchQuery.trim() || undefined,
+                  category: matchHistory.categoryFilter || undefined,
+                },
+              })
+              return rows.map(mapReportRow)
+            }}
+            getRowDate={(report) => report.reportedLostAtUtcRaw}
+            columns={[
+              { header: "Report Code", getValue: (report) => report.code },
+              { header: "Student", getValue: (report) => report.student },
+              { header: "Student ID", getValue: (report) => report.studentId, sensitive: true },
+              { header: "Lost Item", getValue: (report) => report.item },
+              { header: "Category", getValue: (report) => report.category },
+              { header: "Report Status", getValue: (report) => report.status },
+              { header: "Reported Lost At", getValue: (report) => formatExportDate(report.reportedLostAtUtcRaw) },
+              { header: "Matched Item Code", getValue: (report) => report.linkedItem?.code },
+              { header: "Matched Item", getValue: (report) => report.linkedItem?.title },
+            ]}
+          />
+        )}
       />
 
       <div className="space-y-3">

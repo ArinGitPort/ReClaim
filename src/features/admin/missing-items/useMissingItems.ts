@@ -209,7 +209,7 @@ export function useMissingItems(focusCode: string) {
   }
 }
 
-type ApiReportRow = {
+export type ApiReportRow = {
   id: string
   reportCode: string
   title: string
@@ -236,7 +236,7 @@ type ApiReportRow = {
   } | null
 }
 
-function mapReportRow(entry: ApiReportRow): ReportRow {
+export function mapReportRow(entry: ApiReportRow): ReportRow {
   const proof = entry.proofData ?? {}
 
   return {
@@ -273,7 +273,7 @@ function mapReportRow(entry: ApiReportRow): ReportRow {
   }
 }
 
-function categoryMatchesFilter(category: string, categoryFilter: string): boolean {
+export function categoryMatchesFilter(category: string, categoryFilter: string): boolean {
   const normalizedRowCategory = category.toLowerCase()
   const normalizedFilterCategory = categoryFilter.toLowerCase()
 

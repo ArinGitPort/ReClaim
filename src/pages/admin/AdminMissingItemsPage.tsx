@@ -1,12 +1,16 @@
 import { useSearchParams } from "react-router-dom"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { ReportMessagesModal } from "@/components/ui/ReportMessagesModal"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
+import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
 import {
   MissingReportLinkModal,
   MissingReportsQueue,
   MissingReportWorkspace,
   useMissingItems,
 } from "@/features/admin/missing-items"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
+import { categoryMatchesFilter, mapReportRow, type ApiReportRow } from "@/features/admin/missing-items/useMissingItems"
 
 export function MissingItemsPage() {
   const [searchParams] = useSearchParams()
@@ -23,10 +27,52 @@ export function MissingItemsPage() {
         onLinked={missingItems.markLinked}
       />
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Missing Items Report</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Monitor and verify incoming student lost reports against system records.</p>
-      </div>
+      <AdminListHeader
+        title="Missing Items Report"
+        description="Monitor and verify incoming student lost reports against system records."
+        actions={(
+          <AdminExportButton
+            title="Missing Items Export"
+            filename="reclaim-missing-items"
+            disabled={!missingItems.triageReports.length}
+            filters={[
+              { label: "Search", value: missingItems.searchQuery || "All" },
+              { label: "Category", value: missingItems.categoryFilter || "All" },
+              { label: "Status", value: "SUBMITTED, UNDER_REVIEW, ACTIVE_SEARCH" },
+            ]}
+            fetchRows={async () => {
+              const rows = await fetchAllPages<ApiReportRow>({
+                endpoint: "/reports",
+                dataKey: "reports",
+                params: {
+                  statusIn: "SUBMITTED,UNDER_REVIEW,ACTIVE_SEARCH",
+                  search: missingItems.searchQuery.trim() || undefined,
+                },
+              })
+              return rows.map(mapReportRow).filter((row) => categoryMatchesFilter(row.category, missingItems.categoryFilter))
+            }}
+            image={{
+              header: "Evidence URL",
+              getUrl: (report) => report.attachmentUrls[0],
+              getAlt: (report) => report.item,
+            }}
+            getRowDate={(report) => report.reportedLostAtUtcRaw}
+            columns={[
+              { header: "Report Code", getValue: (report) => report.code },
+              { header: "Status", getValue: (report) => report.status },
+              { header: "Student", getValue: (report) => report.student },
+              { header: "Student ID", getValue: (report) => report.studentId, sensitive: true },
+              { header: "Item", getValue: (report) => report.item },
+              { header: "Category", getValue: (report) => report.category },
+              { header: "Color", getValue: (report) => report.color },
+              { header: "Location", getValue: (report) => report.location },
+              { header: "Lost At", getValue: (report) => formatExportDate(report.reportedLostAtUtcRaw) },
+              { header: "Private Proof Note", getValue: (report) => report.privateNote, sensitive: true },
+            ]}
+            sensitiveDescription="This missing-report export can include student identifiers and private proof notes. Continue only for authorized report review."
+          />
+        )}
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <MissingReportsQueue

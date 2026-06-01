@@ -1,6 +1,8 @@
 import type { ReactNode } from "react"
 import { ArrowRight, ClipboardCheck, FileCheck, Hourglass, ImageIcon, MessageSquare, Search, Video } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { getPermissionForAdminPath, hasAdminPermission } from "@/lib/adminPermissions"
 import { cn } from "@/lib/utils"
 import type { OperationsData, OperationsQueueKey } from "./types"
 
@@ -20,6 +22,12 @@ const operationsSections: Array<{
 ]
 
 export function OperationsQueue({ operations }: { operations: OperationsData }) {
+  const { user } = useAuth()
+  const visibleSections = operationsSections.filter((section) => {
+    const permission = getPermissionForAdminPath(section.route.split("?")[0])
+    return !permission || hasAdminPermission(user, permission)
+  })
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-6 py-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -35,7 +43,7 @@ export function OperationsQueue({ operations }: { operations: OperationsData }) 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-        {operationsSections.map((section) => {
+        {visibleSections.map((section) => {
           const rows = operations.queues[section.key]
           const count = operations.counts[section.key]
           const urgentCount = rows.filter((row) => row.urgency === "high").length

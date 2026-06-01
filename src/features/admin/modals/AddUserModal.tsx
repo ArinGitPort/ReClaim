@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select"
 import { Label } from "@/components/ui/Label"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { api } from "@/lib/api"
+import { adminNavItems, dailyOperationsPermissions, type AdminPermission } from "@/lib/adminPermissions"
 import type { CreateManagedUserPayload } from "@/features/admin/types"
 
 interface AddUserModalProps {
@@ -27,6 +28,7 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [role, setRole] = useState<UserRoleOption>("STUDENT")
+  const [adminPermissions, setAdminPermissions] = useState<AdminPermission[]>(dailyOperationsPermissions)
 
   const resetForm = () => {
     setName("")
@@ -35,6 +37,7 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
     setPassword("")
     setConfirmPassword("")
     setRole("STUDENT")
+    setAdminPermissions(dailyOperationsPermissions)
     setError(null)
     setIsSubmitting(false)
   }
@@ -62,6 +65,7 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
       studentId: studentId.trim() || undefined,
       password,
       role,
+      adminPermissions: role === "STAFF" ? adminPermissions : undefined,
     }
 
     try {
@@ -129,6 +133,29 @@ export function AddUserModal({ isOpen, onClose, onSaved }: AddUserModalProps) {
                 className="h-11 bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm"
               />
             </div>
+
+            {role === "STAFF" && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Admin Tabs</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {adminNavItems.map((item) => (
+                    <label key={item.permission} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm font-bold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={adminPermissions.includes(item.permission)}
+                        onChange={() => setAdminPermissions((current) => (
+                          current.includes(item.permission)
+                            ? current.filter((permission) => permission !== item.permission)
+                            : [...current, item.permission]
+                        ))}
+                        className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

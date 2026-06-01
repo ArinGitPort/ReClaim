@@ -1,6 +1,10 @@
 import { useSearchParams } from "react-router-dom"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { ClaimWorkspace, ClaimsQueue, DenyClaimModal, useClaimsVerification } from "@/features/admin/claims-verification"
+import { AdminExportButton } from "@/features/admin/components/AdminExportButton"
+import { AdminListHeader } from "@/features/admin/components/admin-list-layout"
+import { fetchAllPages, formatExportDate } from "@/lib/exportUtils"
+import type { ClaimRow } from "@/features/admin/claims-verification"
 
 export function ClaimsVerificationPage() {
   const [searchParams] = useSearchParams()
@@ -9,10 +13,45 @@ export function ClaimsVerificationPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Claims Verification</h1>
-        <p className="text-slate-500 text-sm font-medium mt-1">Review incoming gallery claims before any pickup handover is allowed.</p>
-      </div>
+      <AdminListHeader
+        title="Claims Verification"
+        description="Review incoming gallery claims before any pickup handover is allowed."
+        actions={(
+          <AdminExportButton
+            title="Claims Verification Export"
+            filename="reclaim-claims-verification"
+            disabled={!claimsVerification.filteredClaims.length}
+            filters={[
+              { label: "Search", value: claimsVerification.search || "All" },
+              { label: "Status", value: claimsVerification.statusFilter || "PENDING_VERIFICATION, INQUIRY_REQUIRED" },
+            ]}
+            fetchRows={() => fetchAllPages<ClaimRow>({
+              endpoint: "/claims",
+              dataKey: "claims",
+              params: {
+                statusIn: "PENDING_VERIFICATION,INQUIRY_REQUIRED",
+                status: claimsVerification.statusFilter || undefined,
+                search: claimsVerification.search.trim() || undefined,
+              },
+            })}
+            getRowDate={(claim) => claim.createdAt}
+            columns={[
+              { header: "Claim Code", getValue: (claim) => claim.claimCode },
+              { header: "Status", getValue: (claim) => claim.status },
+              { header: "Created At", getValue: (claim) => formatExportDate(claim.createdAt) },
+              { header: "Student", getValue: (claim) => claim.claimantUser.name },
+              { header: "Student ID", getValue: (claim) => claim.claimantUser.studentId, sensitive: true },
+              { header: "Email", getValue: (claim) => claim.claimantUser.email, sensitive: true },
+              { header: "Item Code", getValue: (claim) => claim.foundItem.code },
+              { header: "Item", getValue: (claim) => claim.foundItem.title },
+              { header: "Category", getValue: (claim) => claim.foundItem.category },
+              { header: "Proof", getValue: (claim) => claim.submittedProof, sensitive: true },
+              { header: "Reviewer Note", getValue: (claim) => claim.reviewerNote, sensitive: true },
+            ]}
+            sensitiveDescription="This claims export can include ownership proof, student identifiers, and reviewer notes. Continue only for authorized verification work."
+          />
+        )}
+      />
 
       {claimsVerification.error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">

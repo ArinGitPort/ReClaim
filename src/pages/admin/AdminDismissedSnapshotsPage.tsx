@@ -13,6 +13,8 @@ import {
   type AISnapshot,
 } from "@/features/admin/snapshots"
 import { api } from "@/lib/api"
+import { formatExportDate } from "@/lib/exportUtils"
+import { getSnapshotCategory, getSnapshotConfidence, getSnapshotLocation } from "@/features/admin/snapshots"
 
 export function DismissedSnapshotsPage() {
   const snapshots = useSnapshotCollection({ endpoint: "/snapshots/dismissed" })
@@ -38,7 +40,34 @@ export function DismissedSnapshotsPage() {
       <AdminListHeader
         title="Dismissed Snapshots"
         description="Archive of AI snapshots dismissed as false alarms. Restore to move back to the review queue."
-        actions={<AdminExportButton disabled={snapshots.snapshots.length === 0} />}
+        actions={(
+          <AdminExportButton
+            title="Dismissed Snapshots Export"
+            filename="reclaim-dismissed-snapshots"
+            disabled={snapshots.filteredSnapshots.length === 0}
+            filters={[
+              { label: "Search", value: snapshots.searchQuery || "All" },
+              { label: "Location", value: snapshots.locationFilter || "All" },
+              { label: "Confidence", value: snapshots.confidenceFilter || "All" },
+            ]}
+            fetchRows={async () => snapshots.filteredSnapshots}
+            image={{
+              header: "Snapshot URL",
+              getUrl: (snapshot) => snapshot.snapshotPath,
+              getAlt: (snapshot) => getSnapshotCategory(snapshot),
+            }}
+            getRowDate={(snapshot) => snapshot.dismissedAt ?? snapshot.detectedAtUtc}
+            columns={[
+              { header: "Snapshot ID", getValue: (snapshot) => snapshot.id },
+              { header: "Category", getValue: getSnapshotCategory },
+              { header: "Camera", getValue: (snapshot) => snapshot.sourceCameraId },
+              { header: "Location", getValue: getSnapshotLocation },
+              { header: "Confidence", getValue: (snapshot) => `${getSnapshotConfidence(snapshot)}%` },
+              { header: "Detected At", getValue: (snapshot) => formatExportDate(snapshot.detectedAtUtc) },
+              { header: "Dismissed At", getValue: (snapshot) => formatExportDate(snapshot.dismissedAt) },
+            ]}
+          />
+        )}
       />
 
       <div className="space-y-3">

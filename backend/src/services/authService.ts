@@ -78,6 +78,7 @@ export async function loginUser(input: { email: string; password: string }) {
       department: user.department,
       notificationPreferences: user.notificationPreferences,
       role: user.role,
+      adminPermissions: user.role === "STAFF" ? user.adminPermissions : [],
       passwordResetRequired: user.passwordResetRequired,
     },
   };
