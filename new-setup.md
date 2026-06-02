@@ -43,7 +43,7 @@ mkdir uploads
 cd ..
 
 # ==========================================
-# STEP 3: SETUP AI SERVICE (YOLOv8)
+# STEP 3: SETUP AI SERVICE (YOLOv11)
 # ==========================================
 # Move into the AI directory
 cd ai-service
