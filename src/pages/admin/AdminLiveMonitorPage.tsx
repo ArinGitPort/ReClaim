@@ -67,6 +67,7 @@ export function LiveMonitorPage() {
             viewMode={monitor.viewMode}
             time={monitor.time}
             serviceRunning={Boolean(monitor.aiService?.running)}
+            activeCameraIds={monitor.aiService?.activeCameras ?? []}
             onFocusCamera={monitor.focusCamera}
             onSelectCamera={monitor.setActiveCamId}
           />

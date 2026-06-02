@@ -8,6 +8,15 @@ async function bootstrap(): Promise<void> {
     await prisma.$connect();
     const { httpServer } = createRealtimeServer(app);
 
+    httpServer.on("error", (error: NodeJS.ErrnoException) => {
+      if (error.code === "EADDRINUSE") {
+        console.error(`Port ${env.port} is already in use. Stop the existing backend process or set a different PORT.`);
+      } else {
+        console.error("Backend server error", error);
+      }
+      void prisma.$disconnect().finally(() => process.exit(1));
+    });
+
     httpServer.listen(env.port, () => {
       console.log(`ReClaim backend listening on http://localhost:${env.port}`);
     });

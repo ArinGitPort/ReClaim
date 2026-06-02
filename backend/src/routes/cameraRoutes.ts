@@ -1,18 +1,25 @@
 import { Router } from "express";
 import { AdminPermission } from "@prisma/client";
+import type { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { requireAdminPermission, requireAnyAdminPermission, requireAuth, requireRole } from "@/middlewares/auth.js";
 import { requireServiceToken } from "@/middlewares/serviceAuth.js";
-import { createCamera, deleteCamera, getCameras, pingCamera, restartCamera, updateCamera, updateCameraAi, updateCameraStream } from "@/controllers/cameraController.js";
+import { createCamera, deleteCamera, getCameraSources, getCameras, pingCamera, restartCamera, updateCamera, updateCameraAi, updateCameraStream } from "@/controllers/cameraController.js";
 
 export const cameraRoutes = Router();
 
 cameraRoutes.get(
   "/",
+  allowServiceTokenOrCameraAccess,
+  asyncHandler(getCameras)
+);
+
+cameraRoutes.get(
+  "/sources",
   requireAuth,
   requireRole(["ADMIN", "STAFF"]),
-  requireAnyAdminPermission([AdminPermission.LIVE_MONITOR, AdminPermission.CAMERA_SETTINGS]),
-  asyncHandler(getCameras)
+  requireAdminPermission(AdminPermission.CAMERA_SETTINGS),
+  asyncHandler(getCameraSources)
 );
 
 cameraRoutes.post(
@@ -68,3 +75,16 @@ cameraRoutes.delete(
   requireAdminPermission(AdminPermission.CAMERA_SETTINGS),
   asyncHandler(deleteCamera)
 );
+
+function allowServiceTokenOrCameraAccess(req: Request, res: Response, next: NextFunction): void {
+  if (req.header("x-service-token")) {
+    requireServiceToken(req, res, next);
+    return;
+  }
+
+  void requireAuth(req, res, () => {
+    requireRole(["ADMIN", "STAFF"])(req, res, () => {
+      requireAnyAdminPermission([AdminPermission.LIVE_MONITOR, AdminPermission.CAMERA_SETTINGS])(req, res, next);
+    });
+  });
+}

@@ -58,9 +58,26 @@ ACTIVE_CAMERAS = {}
 RECENT_SNAPSHOTS = []
 RESTART_REQUESTS = set()
 upload_executor = ThreadPoolExecutor(max_workers=10)
+MODEL_LOCK = threading.Lock()
+MODEL_CACHE = None
+MODEL_DEVICE = None
+AI_HEALTH = {
+    "last_error": None,
+    "last_error_at": None,
+    "error_count": 0,
+    "last_success_at": None,
+}
 
 def normalize_source_key(source_url):
     return str(source_url).strip()
+
+
+def parse_capture_source(source_url):
+    source = str(source_url).strip()
+    try:
+        return int(source)
+    except ValueError:
+        return source
 
 
 def make_placeholder_frame(message, detail=""):
@@ -95,17 +112,35 @@ def resolve_yolo_device():
         return YOLO_DEVICE
 
     if torch.cuda.is_available():
-        return "0"
+        return "cuda:0"
 
     return "cpu"
 
 
 def describe_inference_device(device):
     if device != "cpu" and torch.cuda.is_available():
-        gpu_index = int(device) if str(device).isdigit() else 0
+        gpu_index = int(str(device).split(":")[-1]) if str(device).split(":")[-1].isdigit() else 0
         return f"cuda:{gpu_index} ({torch.cuda.get_device_name(gpu_index)})"
 
     return "cpu"
+
+
+def get_yolo_model():
+    global MODEL_CACHE, MODEL_DEVICE
+    with MODEL_LOCK:
+        if MODEL_CACHE is not None:
+            return MODEL_CACHE, MODEL_DEVICE
+
+        device = resolve_yolo_device()
+        print(f"Loading YOLO model: {YOLO_MODEL}")
+        print(f"Inference device: {describe_inference_device(device)}")
+        model = YOLO(YOLO_MODEL)
+        if device != "cpu":
+            model.to(device)
+
+        MODEL_CACHE = model
+        MODEL_DEVICE = device
+        return MODEL_CACHE, MODEL_DEVICE
 
 
 def open_video_capture(source):
@@ -121,6 +156,24 @@ def open_video_capture(source):
 
     cap.release()
     return cap
+
+
+def encode_frame(frame):
+    ret_jpg, buffer = cv2.imencode(".jpg", frame)
+    return buffer.tobytes() if ret_jpg else None
+
+
+def publish_frame(camera_id, frame):
+    frame_bytes = encode_frame(frame)
+    if not frame_bytes:
+        return False
+
+    LATEST_FRAMES[camera_id] = frame_bytes
+    state = active_trackers.get(camera_id)
+    if state is not None:
+        state["last_frame_at"] = time.time()
+        state["last_error"] = None
+    return True
 
 
 def save_full_frame_snapshot(result_frame, box, category_name, confidence, camera, camera_id, obj_id, reasoning_meta):
@@ -301,19 +354,11 @@ def track_camera(camera_id, stop_event):
     if not camera:
         return
 
-    source = camera["sourceUrl"]
-    try:
-        source = int(source)
-    except ValueError:
-        pass
+    source = parse_capture_source(camera["sourceUrl"])
 
     print(f"[CAM: {camera['name']}] Starting raw video thread on source: {source}")
-    print(f"[CAM: {camera['name']}] Loading YOLO model: {YOLO_MODEL}")
-    device = resolve_yolo_device()
-    print(f"[CAM: {camera['name']}] Inference device: {describe_inference_device(device)}")
-    model = YOLO(YOLO_MODEL)
-    if device != "cpu":
-        model.to(device)
+    LATEST_FRAMES[camera_id] = make_placeholder_frame("OPENING CAMERA...", f"Source {source}")
+    ping_camera(camera_id, False, "CONNECTING", None, "Opening camera source...")
 
     cap = open_video_capture(source)
     if not cap.isOpened():
@@ -322,7 +367,22 @@ def track_camera(camera_id, stop_event):
         ping_camera(camera_id, False, "ERROR", None, f"Source {source} could not be opened")
         return
 
-    ping_camera(camera_id, True, "CONNECTING", None, None)
+    first_frame_at = None
+    for _ in range(60):
+        if stop_event.is_set():
+            cap.release()
+            return
+        ret, frame = cap.read()
+        if ret:
+            first_frame_at = time.time()
+            publish_frame(camera_id, frame)
+            ping_camera(camera_id, True, "ONLINE", first_frame_at, None)
+            break
+        time.sleep(0.1)
+
+    if first_frame_at is None:
+        LATEST_FRAMES[camera_id] = make_placeholder_frame("WAITING FOR FRAME", f"Source {source} opened but has not produced video")
+        ping_camera(camera_id, False, "CONNECTING", None, "Camera source opened; waiting for first frame")
 
     track_history = defaultdict(
         lambda: {
@@ -341,10 +401,11 @@ def track_camera(camera_id, stop_event):
         ret, frame = cap.read()
         if not ret:
             ping_camera(camera_id, False, "ERROR", None, "Camera stream dropped. Attempting to reconnect...")
+            LATEST_FRAMES[camera_id] = make_placeholder_frame("RECONNECTING CAMERA...", "Stream dropped")
             cap.release()
             time.sleep(2)
             cap = open_video_capture(source)
-            if not cap:
+            if not cap.isOpened():
                 time.sleep(3)
             continue
 
@@ -354,14 +415,22 @@ def track_camera(camera_id, stop_event):
 
         frame_count += 1
         frame_skip = int(camera.get("aiFrameSkip") or 6)
-        
-        # Always read frame to keep buffer clear, but only process every Nth frame
+
+        if not camera.get("aiEnabled"):
+            publish_frame(camera_id, frame)
+            time.sleep(0.03)
+            continue
+
+        # Always read frames to keep the camera buffer clear, but only publish processed frames
+        # while AI is enabled. Publishing raw frames between annotated frames makes boxes flicker.
         if frame_count % frame_skip != 0:
+            time.sleep(0.01)
             continue
 
         annotated_frame = frame
 
-        if camera.get("aiEnabled"):
+        try:
+            model, device = get_yolo_model()
             conf_threshold = float(camera.get("aiConfThreshold") or 0.35)
             results = model.track(
                 frame,
@@ -370,113 +439,119 @@ def track_camera(camera_id, stop_event):
                 classes=[0, *LOST_ITEM_CLASSES.keys()],
                 conf=conf_threshold,
                 device=device,
-                half=device != "cpu",
+                half=False,
                 verbose=False,
             )
+            AI_HEALTH["last_success_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            AI_HEALTH["last_error"] = None
+            AI_HEALTH["last_error_at"] = None
+        except Exception as exc:
+            AI_HEALTH["last_error"] = str(exc)
+            AI_HEALTH["last_error_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            AI_HEALTH["error_count"] += 1
+            print(f"[CAM: {camera['name']}] AI inference unavailable, keeping raw stream alive: {exc}")
+            ping_camera(camera_id, True, "ONLINE", time.time(), f"AI unavailable; raw stream is still online: {exc}")
+            publish_frame(camera_id, frame)
+            time.sleep(0.1)
+            continue
 
-            if len(results) > 0:
-                result = results[0]
-                annotated_frame = result.plot()
+        if len(results) > 0:
+            result = results[0]
+            annotated_frame = result.plot()
 
-                boxes = result.boxes
-                if boxes is not None and boxes.id is not None:
-                    current_time = time.time()
-                    person_boxes = []
+            boxes = result.boxes
+            if boxes is not None and boxes.id is not None:
+                current_time = time.time()
+                person_boxes = []
 
-                    for i in range(len(boxes)):
-                        cls_id = int(boxes.cls[i].item())
-                        if cls_id == 0:
-                            person_boxes.append(tuple(boxes.xyxy[i].tolist()))
+                for i in range(len(boxes)):
+                    cls_id = int(boxes.cls[i].item())
+                    if cls_id == 0:
+                        person_boxes.append(tuple(boxes.xyxy[i].tolist()))
 
-                    for i in range(len(boxes)):
-                        cls_id = int(boxes.cls[i].item())
-                        if cls_id not in LOST_ITEM_CLASSES:
-                            continue
+                for i in range(len(boxes)):
+                    cls_id = int(boxes.cls[i].item())
+                    if cls_id not in LOST_ITEM_CLASSES:
+                        continue
 
-                        obj_id = int(boxes.id[i].item())
-                        conf = float(boxes.conf[i].item())
-                        x1, y1, x2, y2 = boxes.xyxy[i].tolist()
-                        item_box = (x1, y1, x2, y2)
+                    obj_id = int(boxes.id[i].item())
+                    conf = float(boxes.conf[i].item())
+                    x1, y1, x2, y2 = boxes.xyxy[i].tolist()
+                    item_box = (x1, y1, x2, y2)
 
-                        cx = (x1 + x2) / 2
-                        cy = (y1 + y2) / 2
+                    cx = (x1 + x2) / 2
+                    cy = (y1 + y2) / 2
 
-                        state = track_history[obj_id]
-                        person_nearby = is_person_near_item(item_box, person_boxes, frame.shape)
-                        if person_nearby:
-                            state["person_was_nearby"] = True
-                            state["person_last_seen_at"] = current_time
-                            state["person_left_at"] = None
-                        elif state["person_was_nearby"] and state["person_left_at"] is None:
-                            state["person_left_at"] = current_time
+                    state = track_history[obj_id]
+                    person_nearby = is_person_near_item(item_box, person_boxes, frame.shape)
+                    if person_nearby:
+                        state["person_was_nearby"] = True
+                        state["person_last_seen_at"] = current_time
+                        state["person_left_at"] = None
+                    elif state["person_was_nearby"] and state["person_left_at"] is None:
+                        state["person_left_at"] = current_time
 
-                        if state["last_pos"] is None:
-                            state["last_pos"] = (cx, cy)
-                            continue
+                    if state["last_pos"] is None:
+                        state["last_pos"] = (cx, cy)
+                        continue
 
-                        last_cx, last_cy = state["last_pos"]
-                        dist = math.hypot(cx - last_cx, cy - last_cy)
+                    last_cx, last_cy = state["last_pos"]
+                    dist = math.hypot(cx - last_cx, cy - last_cy)
 
-                        if dist > STATIONARY_DIST_THRESHOLD:
-                            state["stationary_start"] = current_time
-                            state["last_pos"] = (cx, cy)
-                            continue
+                    if dist > STATIONARY_DIST_THRESHOLD:
+                        state["stationary_start"] = current_time
+                        state["last_pos"] = (cx, cy)
+                        continue
 
-                        stationary_duration = current_time - state["stationary_start"]
-                        if stationary_duration < STATIONARY_TIME_THRESHOLD or state["reported"]:
-                            continue
-                        if REQUIRE_PERSON_CONTEXT and not state["person_was_nearby"]:
-                            continue
-                        if person_nearby:
-                            continue
-                        if state["person_left_at"] and current_time - state["person_left_at"] < PERSON_LEFT_GRACE_SECONDS:
-                            continue
+                    stationary_duration = current_time - state["stationary_start"]
+                    if stationary_duration < STATIONARY_TIME_THRESHOLD or state["reported"]:
+                        continue
+                    if REQUIRE_PERSON_CONTEXT and not state["person_was_nearby"]:
+                        continue
+                    if person_nearby:
+                        continue
+                    if state["person_left_at"] and current_time - state["person_left_at"] < PERSON_LEFT_GRACE_SECONDS:
+                        continue
 
-                        category_name = LOST_ITEM_CLASSES[cls_id]
-                        duplicate_key = make_duplicate_key(camera_id, category_name, item_box, frame.shape)
-                        if is_duplicate_snapshot(camera_id, category_name, item_box, duplicate_key):
-                            state["reported"] = True
-                            continue
-
-                        print(f"[CAM: {camera['name']}] Detected abandoned {category_name} (ID: {obj_id})")
-                        reason_parts = [f"Stationary for {int(stationary_duration)}s"]
-                        if state["person_was_nearby"]:
-                            reason_parts.append("Person moved away")
-                        reason_parts.append("No interaction detected")
-                        reasoning_meta = {
-                            "stationaryDuration": round(stationary_duration, 1),
-                            "personWasNearby": state["person_was_nearby"],
-                            "personLeftAt": (
-                                time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(state["person_left_at"]))
-                                if state["person_left_at"]
-                                else None
-                            ),
-                            "reason": " / ".join(reason_parts),
-                            "duplicateKey": duplicate_key,
-                        }
-
+                    category_name = LOST_ITEM_CLASSES[cls_id]
+                    duplicate_key = make_duplicate_key(camera_id, category_name, item_box, frame.shape)
+                    if is_duplicate_snapshot(camera_id, category_name, item_box, duplicate_key):
                         state["reported"] = True
-                        upload_executor.submit(
-                            _async_upload,
-                            annotated_frame.copy(),
-                            (x1, y1, x2, y2),
-                            category_name,
-                            conf,
-                            camera.copy(),
-                            camera_id,
-                            obj_id,
-                            reasoning_meta,
-                            duplicate_key,
-                            state
-                        )
+                        continue
 
-        ret_jpg, buffer = cv2.imencode(".jpg", annotated_frame)
-        if ret_jpg:
-            LATEST_FRAMES[camera_id] = buffer.tobytes()
-            state = active_trackers.get(camera_id)
-            if state is not None:
-                state["last_frame_at"] = time.time()
-                state["last_error"] = None
+                    print(f"[CAM: {camera['name']}] Detected abandoned {category_name} (ID: {obj_id})")
+                    reason_parts = [f"Stationary for {int(stationary_duration)}s"]
+                    if state["person_was_nearby"]:
+                        reason_parts.append("Person moved away")
+                    reason_parts.append("No interaction detected")
+                    reasoning_meta = {
+                        "stationaryDuration": round(stationary_duration, 1),
+                        "personWasNearby": state["person_was_nearby"],
+                        "personLeftAt": (
+                            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(state["person_left_at"]))
+                            if state["person_left_at"]
+                            else None
+                        ),
+                        "reason": " / ".join(reason_parts),
+                        "duplicateKey": duplicate_key,
+                    }
+
+                    state["reported"] = True
+                    upload_executor.submit(
+                        _async_upload,
+                        annotated_frame.copy(),
+                        (x1, y1, x2, y2),
+                        category_name,
+                        conf,
+                        camera.copy(),
+                        camera_id,
+                        obj_id,
+                        reasoning_meta,
+                        duplicate_key,
+                        state
+                    )
+
+        publish_frame(camera_id, annotated_frame)
 
         time.sleep(0.03)
 
@@ -486,9 +561,11 @@ def track_camera(camera_id, stop_event):
 
 def fetch_cameras():
     try:
-        res = requests.get(f"{BACKEND_API_URL}/cameras", timeout=10)
+        headers = {"x-service-token": BACKEND_SERVICE_TOKEN} if BACKEND_SERVICE_TOKEN else {}
+        res = requests.get(f"{BACKEND_API_URL}/cameras", headers=headers, timeout=10)
         if res.status_code == 200:
             return res.json().get("cameras", [])
+        print(f"Failed to fetch cameras: backend returned HTTP {res.status_code}")
     except Exception as exc:
         print(f"Failed to fetch cameras: {exc}")
     return []
@@ -500,8 +577,7 @@ def ping_camera(camera_id, is_online=True, stream_status=None, last_frame_at=Non
         payload["streamStatus"] = stream_status
     if last_frame_at:
         payload["lastFrameAtUtc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_frame_at))
-    if last_error is not None:
-        payload["lastError"] = last_error
+    payload["lastError"] = last_error
 
     try:
         requests.patch(
@@ -531,6 +607,43 @@ def video_feed(camera_id):
     return Response(generate_frames(camera_id), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
+@app.route("/preview-source")
+def preview_source():
+    source_url = request.args.get("source", "")
+    if not source_url:
+        return jsonify({"error": "source is required"}), 400
+
+    source_key = normalize_source_key(source_url)
+    for camera_id, camera in ACTIVE_CAMERAS.items():
+        if normalize_source_key(camera.get("sourceUrl")) == source_key and camera_id in active_trackers:
+            return Response(generate_frames(camera_id), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+    return Response(generate_preview_frames(source_url), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+
+def generate_preview_frames(source_url):
+    source = parse_capture_source(source_url)
+    cap = open_video_capture(source)
+    if not cap.isOpened():
+        placeholder = make_placeholder_frame("PREVIEW UNAVAILABLE", f"Source {source_url} could not be opened")
+        while True:
+            yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + placeholder + b"\r\n"
+            time.sleep(0.5)
+
+    try:
+        while True:
+            ret, frame = cap.read()
+            frame_bytes = encode_frame(frame) if ret else None
+            if frame_bytes:
+                yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            else:
+                placeholder = make_placeholder_frame("WAITING FOR PREVIEW", f"Source {source_url}")
+                yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + placeholder + b"\r\n"
+            time.sleep(0.1)
+    finally:
+        cap.release()
+
+
 @app.route("/status")
 def status():
     device = resolve_yolo_device()
@@ -540,7 +653,63 @@ def status():
         "model": YOLO_MODEL,
         "device": describe_inference_device(device),
         "cudaAvailable": torch.cuda.is_available(),
+        "ai": AI_HEALTH,
     })
+
+
+@app.route("/camera-sources")
+def camera_sources():
+    token = request.headers.get("x-service-token", "")
+    if BACKEND_SERVICE_TOKEN and token != BACKEND_SERVICE_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+
+    max_index = int(request.args.get("max", "6"))
+    sources = []
+    for index in range(max(1, min(max_index, 10))):
+        source_url = str(index)
+        active_camera = next(
+            (
+                camera
+                for camera_id, camera in ACTIVE_CAMERAS.items()
+                if camera_id in active_trackers and normalize_source_key(camera.get("sourceUrl")) == source_url
+            ),
+            None,
+        )
+        if active_camera:
+            sources.append({
+                "sourceUrl": source_url,
+                "label": f"Local camera {index}",
+                "available": True,
+                "active": True,
+                "width": None,
+                "height": None,
+            })
+            continue
+
+        cap = cv2.VideoCapture(index, cv2.CAP_DSHOW if os.name == "nt" else cv2.CAP_ANY)
+        opened = cap.isOpened()
+        has_frame = False
+        width = None
+        height = None
+        if opened:
+            for _ in range(6):
+                ret, frame = cap.read()
+                if ret:
+                    has_frame = True
+                    height, width = frame.shape[:2]
+                    break
+                time.sleep(0.05)
+        cap.release()
+        sources.append({
+            "sourceUrl": source_url,
+            "label": f"Local camera {index}",
+            "available": bool(opened and has_frame),
+            "active": False,
+            "width": width,
+            "height": height,
+        })
+
+    return jsonify({"sources": sources})
 
 
 @app.route("/shutdown", methods=["POST"])
@@ -602,6 +771,7 @@ def main():
                     del active_trackers[cam_id]
                 LATEST_FRAMES[cam_id] = make_placeholder_frame("CAMERA PAUSED", "Stream disabled by staff")
                 ACTIVE_CAMERAS[cam_id] = cam
+                ping_camera(cam_id, False, "OFFLINE", None, "Camera stream is paused by staff")
                 continue
 
             previous_camera = ACTIVE_CAMERAS.get(cam_id)
@@ -658,8 +828,8 @@ def main():
                 print(f"Starting stream for camera {cam['name']} ({cam_id})...")
                 stop_event = threading.Event()
                 thread = threading.Thread(target=track_camera, args=(cam_id, stop_event), daemon=True)
-                thread.start()
                 active_trackers[cam_id] = {"stop_event": stop_event, "thread": thread, "last_frame_at": None, "last_error": None}
+                thread.start()
 
         if time.time() - last_ping_time > 30:
             for cam_id, tracker in active_trackers.items():

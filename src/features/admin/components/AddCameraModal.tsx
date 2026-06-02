@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import { Camera } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { Camera, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/Modal"
 import { ModalHeader } from "@/components/ui/ModalHeader"
 import { Select } from "@/components/ui/Select"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { api } from "@/lib/api"
+import { AI_SERVICE_BASE_URL } from "@/lib/constants"
 import { addCameraSchema, type AddCameraFormData } from "@/lib/validations/adminSchemas"
 
 interface AddCameraModalProps {
@@ -23,6 +25,15 @@ interface AddCameraModalProps {
   submitText?: string
 }
 
+type CameraSourceOption = {
+  sourceUrl: string
+  label: string
+  available: boolean
+  active?: boolean
+  width?: number | null
+  height?: number | null
+}
+
 export function AddCameraModal({
   isOpen,
   onClose,
@@ -37,6 +48,7 @@ export function AddCameraModal({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AddCameraFormData>({
     resolver: zodResolver(addCameraSchema),
@@ -48,10 +60,17 @@ export function AddCameraModal({
   const aiConfThreshold = useWatch({ control, name: "aiConfThreshold" }) ?? 0.35
   const aiFrameSkip = useWatch({ control, name: "aiFrameSkip" }) ?? 6
 
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [cameraSources, setCameraSources] = useState<CameraSourceOption[]>([])
+  const [isDetectingSources, setIsDetectingSources] = useState(false)
+  const [previewError, setPreviewError] = useState(false)
+  const [isPreviewActive, setIsPreviewActive] = useState(false)
+  const [previewSession, setPreviewSession] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
+
+  const handleClose = () => {
+    stopPreview()
+    onClose()
+  }
 
   useEffect(() => {
     if (!isOpen) return
@@ -59,73 +78,63 @@ export function AddCameraModal({
     setSubmitError(null)
   }, [defaultValues, isOpen, reset])
 
-  // Fetch available cameras when modal opens
   useEffect(() => {
-    if (isOpen && navigator.mediaDevices) {
-      navigator.mediaDevices.enumerateDevices()
-        .then(devs => {
-          const videoDevs = devs.filter(d => d.kind === "videoinput")
-          setDevices(videoDevs)
-        })
-        .catch(err => console.warn("Failed to enumerate devices", err))
-    }
+    setPreviewError(false)
+    setIsPreviewActive(false)
+  }, [webcamIndex, sourceType])
+
+  useEffect(() => {
+    if (!isOpen) setIsPreviewActive(false)
   }, [isOpen])
 
-  // Stop video stream when modal closes or source changes
-  const stopStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-      streamRef.current = null
+  useEffect(() => {
+    if (!isOpen || sourceType !== "webcam" || cameraSources.length === 0) return
+
+    const preferredSource = (
+      cameraSources.find((source) => source.active)
+      ?? cameraSources.find((source) => source.available && source.sourceUrl !== "0")
+      ?? cameraSources.find((source) => source.available)
+    )
+
+    if (preferredSource && preferredSource.sourceUrl !== webcamIndex) {
+      setValue("webcamIndex", preferredSource.sourceUrl, { shouldDirty: true, shouldValidate: true })
     }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
-    }
+  }, [cameraSources, isOpen, setValue, sourceType, webcamIndex])
+
+  const startPreview = () => {
+    setPreviewError(false)
+    setPreviewSession((current) => current + 1)
+    setIsPreviewActive(true)
   }
 
-  // Start video stream
-  useEffect(() => {
-    if (isOpen && sourceType === "webcam" && devices.length > 0) {
-      stopStream()
-      
-      const index = parseInt(webcamIndex, 10)
-      const targetDevice = devices[index] || devices[0]
-      
-      if (targetDevice) {
-        navigator.mediaDevices.getUserMedia({ 
-          video: { deviceId: targetDevice.deviceId ? { exact: targetDevice.deviceId } : undefined } 
-        })
-        .then(stream => {
-          streamRef.current = stream
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream
-            videoRef.current.play().catch(console.warn)
-          }
-          // If labels are missing, permission was just granted. Fetch devices again to get actual names.
-          if (!devices[0]?.label) {
-            navigator.mediaDevices.enumerateDevices().then(devs => {
-              setDevices(devs.filter(d => d.kind === "videoinput"))
-            }).catch(console.warn)
-          }
-        })
-        .catch(err => console.warn("Failed to start preview", err))
-      }
-    } else {
-      stopStream()
-    }
+  const stopPreview = () => {
+    setIsPreviewActive(false)
+    setPreviewSession((current) => current + 1)
+  }
 
-    // Stop stream on cleanup
-    return () => {
-      stopStream()
+  const detectCameraSources = async () => {
+    setIsDetectingSources(true)
+    setSubmitError(null)
+    try {
+      const response = await api.get<{ sources: CameraSourceOption[] }>("/cameras/sources")
+      setCameraSources(response.data.sources)
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "userMessage" in err
+        ? String((err as { userMessage?: unknown }).userMessage)
+        : "Unable to detect camera sources. Start the camera service and try again."
+      setSubmitError(message)
+    } finally {
+      setIsDetectingSources(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, sourceType, webcamIndex]) // Removed 'devices' from dependencies to prevent infinite loops
+  }
 
   const onFormSubmit = async (data: AddCameraFormData) => {
     const finalSourceUrl = data.sourceType === "webcam" ? (data.webcamIndex || "0") : (data.rtspUrl || "")
 
     try {
       setSubmitError(null)
-      stopStream()
+      stopPreview()
+      await new Promise((resolve) => window.setTimeout(resolve, 250))
       await onSubmit({ 
         name: data.name, 
         location: data.location, 
@@ -144,11 +153,11 @@ export function AddCameraModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="w-[960px] max-w-[95vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
+    <Modal isOpen={isOpen} onClose={handleClose} className="w-[960px] max-w-[95vw] bg-white rounded-2xl border border-slate-200 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
       <ModalHeader
         title={title}
         icon={<Camera className="w-5 h-5 text-white" />}
-        onClose={onClose}
+        onClose={handleClose}
         containerClassName="p-6 pb-4"
         titleClassName="text-slate-900"
       />
@@ -196,8 +205,20 @@ export function AddCameraModal({
           </div>
 
           {sourceType === "webcam" ? (
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Webcam Source</label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Python Service Source</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void detectCameraSources()}
+                  disabled={isDetectingSources}
+                  className="h-8 rounded-lg border-slate-200 px-3 text-[10px] font-black uppercase tracking-widest text-slate-600"
+                >
+                  <RefreshCw className={`mr-2 h-3.5 w-3.5 ${isDetectingSources ? "animate-spin" : ""}`} />
+                  Detect
+                </Button>
+              </div>
               <Controller
                 name="webcamIndex"
                 control={control}
@@ -206,18 +227,17 @@ export function AddCameraModal({
                     {...field}
                     className="w-full h-12 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/30 transition-all"
                   >
-                    {devices.length === 0 ? (
-                      <option value="0">Camera 0 (Default)</option>
-                    ) : (
-                      devices.map((d, idx) => (
-                        <option key={d.deviceId || idx} value={idx.toString()}>
-                          {d.label || `Camera ${idx}`}
-                        </option>
-                      ))
-                    )}
+                    {getSourceOptions(cameraSources, webcamIndex).map((source) => (
+                      <option key={source.sourceUrl} value={source.sourceUrl}>
+                        {source.label}{source.active ? " - active" : source.available ? ` - available${source.width && source.height ? ` (${source.width}x${source.height})` : ""}` : " - unavailable"}
+                      </option>
+                    ))}
                   </Select>
                 )}
               />
+              <p className="text-[10px] font-semibold leading-relaxed text-slate-400">
+                These are indexes tested by the Python camera service. Browser camera order can differ from service order.
+              </p>
             </div>
           ) : (
             <div>
@@ -273,21 +293,45 @@ export function AddCameraModal({
 
           {/* Right Column: Live Preview Box */}
           <div className="flex flex-col">
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Live Preview</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Source Verification</label>
             <div className="w-full aspect-video bg-slate-900 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
               {sourceType === "webcam" ? (
                 <>
-                  <video 
-                    ref={videoRef} 
-                    className="w-full h-full object-contain" 
-                    autoPlay
-                    muted 
-                    playsInline 
-                  />
-                  {devices.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-400 bg-slate-100/80">
-                      Waiting for camera access...
+                  {isPreviewActive && !previewError ? (
+                    <img
+                      src={`${AI_SERVICE_BASE_URL}/preview-source?source=${encodeURIComponent(webcamIndex)}&session=${previewSession}`}
+                      alt={`Preview for local camera ${webcamIndex}`}
+                      className="h-full w-full object-contain"
+                      onError={() => setPreviewError(true)}
+                    />
+                  ) : (
+                    <div className="px-8 text-center">
+                      <div className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">
+                        {previewError ? "Preview Unavailable" : "Preview Paused"}
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                        Click Start Preview to view the selected Python camera source. Preview is released before saving so Live Monitor can own the USB camera.
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={startPreview}
+                        className="mt-5 h-9 rounded-lg bg-brand px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-brand-active"
+                      >
+                        Start Preview
+                      </Button>
                     </div>
+                  )}
+                  <div className="absolute left-3 top-3 rounded bg-black/70 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                    Source {webcamIndex}
+                  </div>
+                  {isPreviewActive && (
+                    <Button
+                      type="button"
+                      onClick={stopPreview}
+                      className="absolute right-3 top-3 h-8 rounded-lg bg-white/95 px-3 text-[10px] font-black uppercase tracking-widest text-slate-700 shadow-sm hover:bg-white"
+                    >
+                      Stop Preview
+                    </Button>
                   )}
                 </>
               ) : (
@@ -318,6 +362,21 @@ export function AddCameraModal({
       </form>
     </Modal>
   )
+}
+
+function getSourceOptions(sources: CameraSourceOption[], currentValue: string): CameraSourceOption[] {
+  const fallbackSources: CameraSourceOption[] = ["0", "1", "2", "3"].map((sourceUrl) => ({
+    sourceUrl,
+    label: `Local camera ${sourceUrl}`,
+    available: sourceUrl === currentValue,
+  }))
+  const options = sources.length > 0 ? sources : fallbackSources
+  if (options.some((source) => source.sourceUrl === currentValue)) return options
+
+  return [
+    { sourceUrl: currentValue, label: `Current source ${currentValue}`, available: true },
+    ...options,
+  ]
 }
 
 function getDefaultValues(initialValues?: AddCameraModalProps["initialValues"]): AddCameraFormData {

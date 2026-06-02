@@ -9,6 +9,7 @@ type CameraMonitorPanelProps = {
   viewMode: LiveMonitorViewMode
   time: string
   serviceRunning: boolean
+  activeCameraIds?: string[]
   onFocusCamera: (cameraId: string) => void
   onSelectCamera: (cameraId: string) => void
 }
@@ -21,9 +22,12 @@ export function CameraMonitorPanel({
   viewMode,
   time,
   serviceRunning,
+  activeCameraIds = [],
   onFocusCamera,
   onSelectCamera,
 }: CameraMonitorPanelProps) {
+  const activeCameraIdSet = new Set(activeCameraIds)
+
   return (
     <div className="flex-1 overflow-y-auto p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
       {cameras.length === 0 ? (
@@ -39,6 +43,7 @@ export function CameraMonitorPanel({
               idx={index}
               time={time}
               serviceRunning={serviceRunning}
+              daemonActive={activeCameraIdSet.has(camera.id)}
               onClick={() => onFocusCamera(camera.id)}
             />
           ))}
@@ -46,7 +51,16 @@ export function CameraMonitorPanel({
       ) : (
         <div className="flex flex-col h-full gap-3 relative">
           <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
-            {activeCam && <CameraFeed cam={activeCam} idx={0} time={time} serviceRunning={serviceRunning} isFocus />}
+            {activeCam && (
+              <CameraFeed
+                cam={activeCam}
+                idx={0}
+                time={time}
+                serviceRunning={serviceRunning}
+                daemonActive={activeCameraIdSet.has(activeCam.id)}
+                isFocus
+              />
+            )}
           </div>
           <div className="flex gap-2.5 overflow-x-auto pb-1 flex-shrink-0 h-24 sm:h-32">
             {filteredCameras.map((camera, index) => (
@@ -56,7 +70,13 @@ export function CameraMonitorPanel({
                 onClick={() => onSelectCamera(camera.id)}
                 className={`w-32 sm:w-48 flex-shrink-0 relative cursor-pointer border-2 transition-all rounded-lg overflow-hidden ${activeCamId === camera.id ? "border-brand" : "border-transparent hover:border-slate-300"}`}
               >
-                <CameraFeed cam={camera} idx={index} time={time} serviceRunning={serviceRunning} />
+                <CameraFeed
+                  cam={camera}
+                  idx={index}
+                  time={time}
+                  serviceRunning={serviceRunning}
+                  daemonActive={activeCameraIdSet.has(camera.id)}
+                />
               </button>
             ))}
           </div>

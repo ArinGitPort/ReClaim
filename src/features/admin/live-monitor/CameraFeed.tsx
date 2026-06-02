@@ -8,19 +8,34 @@ type CameraFeedProps = {
   idx: number
   time: string
   serviceRunning?: boolean
+  daemonActive?: boolean
   isFocus?: boolean
   onClick?: () => void
 }
 
-export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, isFocus, onClick }: CameraFeedProps) {
+export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, daemonActive = false, isFocus, onClick }: CameraFeedProps) {
   const [imageError, setImageError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const isCameraEnabled = cam.streamEnabled !== false
-  const isStreaming = serviceRunning && isCameraEnabled && cam.isOnline
-  const isAiActive = cam.isOnline && cam.aiEnabled
+  const isCameraLive = cam.isOnline || daemonActive
+  const isStreaming = serviceRunning && isCameraEnabled && isCameraLive
+  const isAiActive = isCameraLive && cam.aiEnabled
 
   useEffect(() => {
     setImageError(!isStreaming)
+    setRetryKey((current) => current + 1)
   }, [cam.id, isStreaming])
+
+  useEffect(() => {
+    if (!isStreaming || !imageError) return
+
+    const retryTimer = window.setInterval(() => {
+      setImageError(false)
+      setRetryKey((current) => current + 1)
+    }, 3000)
+
+    return () => window.clearInterval(retryTimer)
+  }, [imageError, isStreaming])
 
   return (
     <div
@@ -29,7 +44,7 @@ export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, isFocu
     >
       {!imageError && isStreaming ? (
         <img
-          src={`${AI_STREAM_BASE_URL}/${cam.id}`}
+          src={`${AI_STREAM_BASE_URL}/${cam.id}?retry=${retryKey}`}
           alt={`Live feed from ${cam.name}`}
           className="w-full h-full object-cover"
           onError={() => setImageError(true)}
@@ -38,7 +53,7 @@ export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, isFocu
         <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-800 font-mono text-sm">
           <Radio className="w-8 h-8 mb-2 opacity-20" />
           <span className={isFocus ? "text-lg text-slate-700" : "text-xs text-slate-700"}>
-            {!serviceRunning ? "CAMERA SERVICE OFF" : !isCameraEnabled ? "CAMERA PAUSED" : !cam.isOnline ? (cam.streamStatus ?? "OFFLINE") : "STREAM_UNAVAILABLE"}
+            {!serviceRunning ? "CAMERA SERVICE OFF" : !isCameraEnabled ? "CAMERA PAUSED" : !isCameraLive ? (cam.streamStatus ?? "OFFLINE") : "STREAM_UNAVAILABLE"}
           </span>
           {!serviceRunning ? (
             <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
@@ -48,7 +63,7 @@ export function CameraFeed({ cam, idx: _idx, time, serviceRunning = true, isFocu
             <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
               Turn this camera on in Camera Settings
             </span>
-          ) : cam.isOnline && (
+          ) : isCameraLive && (
             <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
               Waiting for camera stream
             </span>

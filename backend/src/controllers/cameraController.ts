@@ -28,6 +28,24 @@ export async function getCameras(req: Request, res: Response): Promise<void> {
   res.json({ cameras });
 }
 
+export async function getCameraSources(_req: Request, res: Response): Promise<void> {
+  try {
+    const response = await fetch(`${env.aiServiceBaseUrl}/camera-sources`, {
+      headers: { "x-service-token": env.serviceToken },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      throw new HttpError(response.status, "Camera service could not scan local camera sources.");
+    }
+
+    res.json(await response.json());
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(503, "Camera service is not available for source detection.");
+  }
+}
+
 export async function createCamera(req: Request, res: Response): Promise<void> {
   const body = createCameraSchema.parse(req.body);
   const normalizedSourceUrl = body.sourceUrl.trim();
@@ -73,6 +91,7 @@ const updateStreamSchema = z.object({
 export async function updateCameraAi(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
   const { aiEnabled } = updateAiSchema.parse(req.body);
+  await ensureCameraExists(id);
 
   const camera = await prisma.camera.update({
     where: { id },
@@ -85,6 +104,7 @@ export async function updateCameraAi(req: Request, res: Response): Promise<void>
 export async function updateCameraStream(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
   const { streamEnabled } = updateStreamSchema.parse(req.body);
+  await ensureCameraExists(id);
 
   const camera = await prisma.camera.update({
     where: { id },
@@ -174,6 +194,7 @@ export async function pingCamera(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
   const body = pingCameraSchema.parse(req.body ?? {});
   const isOnline = body.isOnline ?? true;
+  await ensureCameraExists(id);
   
   const camera = await prisma.camera.update({
     where: { id },
@@ -195,6 +216,7 @@ export async function pingCamera(req: Request, res: Response): Promise<void> {
 
 export async function restartCamera(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
+  await ensureCameraExists(id);
 
   const camera = await prisma.camera.update({
     where: { id },
@@ -223,8 +245,20 @@ export async function restartCamera(req: Request, res: Response): Promise<void> 
 
 export async function deleteCamera(req: Request, res: Response): Promise<void> {
   const { id } = req.params as { id: string };
+  await ensureCameraExists(id);
   
   await prisma.camera.delete({ where: { id } });
   
   res.json({ success: true });
+}
+
+async function ensureCameraExists(id: string): Promise<void> {
+  const camera = await prisma.camera.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!camera) {
+    throw new HttpError(404, "Camera not found. Refresh the camera list and try again.");
+  }
 }
